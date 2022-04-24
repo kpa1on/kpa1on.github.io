@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/96.ico">
+  <link rel="mask-icon" href="/img/128.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="类加载器ClassLoader即常说的类加载器，其功能是用于从Class文件加载所需的类，主要场景用于热部署、代码热替换等场景。 系统提供了3种类加载器：Bootstrap ClassLoader、Extension ClassLoader、Application ClassLoader。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类加载器ClassLoader">
+<meta property="og:url" content="https://kpa1on.github.io/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/index.html">
+<meta property="og:site_name" content="kpa1on&#39;s Blog">
+<meta property="og:description" content="类加载器ClassLoader即常说的类加载器，其功能是用于从Class文件加载所需的类，主要场景用于热部署、代码热替换等场景。 系统提供了3种类加载器：Bootstrap ClassLoader、Extension ClassLoader、Application ClassLoader。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115117593-1177382331.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115535674-1596048336.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115932076-1929653729.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318120147716-781314371.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318120604980-332432719.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318123331878-1715322313.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318130001328-1508326646.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318130030431-1824213027.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318140231418-1616817752.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318140826958-729407800.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318143031557-363915155.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318143110312-1622367296.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318142956896-166356396.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318151210927-659385743.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318154941422-556943868.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318155040677-1183824107.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318160725005-1706254425.png">
+<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318160546550-939767981.png">
+<meta property="article:published_time" content="2022-03-18T02:30:30.000Z">
+<meta property="article:modified_time" content="2022-03-18T08:16:03.978Z">
+<meta property="article:author" content="kpa1on">
+<meta property="article:tag" content="类加载器">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115117593-1177382331.png">
+
+
+<link rel="canonical" href="https://kpa1on.github.io/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/","path":"2022/03/18/类加载器ClassLoader/","title":"类加载器ClassLoader"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>类加载器ClassLoader | kpa1on's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+  <!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+<link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">kpa1on's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep passion！</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">1.</span> <span class="nav-text">类加载器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Launcher%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">Launcher分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ExtClassLoader%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">ExtClassLoader分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AppClassLoader%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">AppClassLoader分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD%E9%A1%BA%E5%BA%8F%E5%88%86%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">加载顺序分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%89%98"><span class="nav-number">6.</span> <span class="nav-text">双亲委托</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89ClassLoader"><span class="nav-number">7.</span> <span class="nav-text">自定义ClassLoader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Context-ClassLoader-%E7%BA%BF%E7%A8%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">8.</span> <span class="nav-text">Context ClassLoader 线程上下文类加载器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="kpa1on"
+      src="/img/96.ico">
+  <p class="site-author-name" itemprop="name">kpa1on</p>
+  <div class="site-description" itemprop="description">kpa1on的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kpa1on" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kpa1on" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:l2kpa1on@gmail.com" title="E-Mail → mailto:l2kpa1on@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.wangan.com/docs/javasec" title="https:&#x2F;&#x2F;www.wangan.com&#x2F;docs&#x2F;javasec" rel="noopener" target="_blank">Java安全</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://javasec.org/" title="https:&#x2F;&#x2F;javasec.org&#x2F;" rel="noopener" target="_blank">JavaSec</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/kpa1on" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/96.ico">
+      <meta itemprop="name" content="kpa1on">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="kpa1on's Blog">
+      <meta itemprop="description" content="kpa1on的博客">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="类加载器ClassLoader | kpa1on's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          类加载器ClassLoader
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-03-18 10:30:30 / 修改时间：16:16:03" itemprop="dateCreated datePublished" datetime="2022-03-18T10:30:30+08:00">2022-03-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Java安全</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>18k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>16 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer"/>
+
+<h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>ClassLoader即常说的类加载器，其功能是用于从Class文件加载所需的类，主要场景用于热部署、代码热替换等场景。 系统提供了3种类加载器：Bootstrap ClassLoader、Extension ClassLoader、Application ClassLoader。</p>
+<span id="more"></span>
+
+<ul>
+<li><strong>Bootstrap ClassLoader</strong> 最顶层的加载器-启动类加载器，主要加载核心类库，<code>%JRE_HOME%\lib</code>下的rt.jar、resources.jar、charsets.jar和class等。另外需要注意的是可以通过启动jvm时指定-Xbootclasspath和路径来改变Bootstrap ClassLoader的加载目录。比如<code>java -Xbootclasspath/a:path</code>被指定的文件追加到默认的bootstrap路径中，Java程序无法直接引用该类加载器。</li>
+<li><strong>Extention ClassLoader</strong> 扩展类加载器，由Java实现，独立于虚拟机的外部，加载目录<code>%JRE_HOME%\lib\ext</code>目录下的jar包和class文件，还可以加载<code>-D java.ext.dirs</code>选项指定的目录。开发者可直接使用扩展类加载器。 该加载器是由<code>sun.misc.Launcher$ExtClassLoader</code>实现。</li>
+<li><strong>Appclass Loader</strong>应用程序类加载器，该加载器是由<code>sun.misc.Launcher$AppClassLoader</code>实现，该类加载器负责加载用户类路径上所指定的类库。开发者可通过<code>ClassLoader.getSystemClassLoader()</code>方法直接获取，故又称为系统类加载器。当应用程序没有自定义类加载器时，默认采用该类加载器。</li>
+</ul>
+<p>加载顺序</p>
+<ol>
+<li>Bootstrap CLassloder</li>
+<li>Extention ClassLoader</li>
+<li>AppClassLoader</li>
+</ol>
+<h2 id="Launcher分析"><a href="#Launcher分析" class="headerlink" title="Launcher分析"></a>Launcher分析</h2><p>我们查看<code>sun.misc.Launcher</code>类的部分源码，它是java虚拟机的入口应用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">public class Launcher &#123;</span><br><span class="line">    private static Launcher launcher = new Launcher();</span><br><span class="line">    private static String bootClassPath =</span><br><span class="line">        System.getProperty(&quot;sun.boot.class.path&quot;);</span><br><span class="line"></span><br><span class="line">    public static Launcher getLauncher() &#123;</span><br><span class="line">        return launcher;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private ClassLoader loader;</span><br><span class="line"></span><br><span class="line">    public Launcher() &#123;</span><br><span class="line">        // Create the extension class loader</span><br><span class="line">        ClassLoader extcl;</span><br><span class="line">        try &#123;</span><br><span class="line">            extcl = ExtClassLoader.getExtClassLoader();</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            throw new InternalError(</span><br><span class="line">                &quot;Could not create extension class loader&quot;, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        // Now create the class loader to use to launch the application</span><br><span class="line">        try &#123;</span><br><span class="line">            loader = AppClassLoader.getAppClassLoader(extcl);</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            throw new InternalError(</span><br><span class="line">                &quot;Could not create application class loader&quot;, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        //设置AppClassLoader为线程上下文类加载器，这个文章后面部分讲解</span><br><span class="line">        Thread.currentThread().setContextClassLoader(loader);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br></pre></td></tr></table></figure>
+
+<p>根据上面部分源码我们可以知道：</p>
+<ol>
+<li>Launcher在构造方法中初始化了<code>ExtClassLoader</code>和<code>AppClassLoader</code>。</li>
+<li>Launcher定义了一个静态变量<code>static String bootClassPath =System.getProperty(&quot;sun.boot.class.path&quot;);</code>，这个字符串”sun.boot.class.path”应该和<code>BootstrapClassLoader</code>有关，猜测是<code>BootstrapClassLoader</code>加载Jar包的路径。</li>
+</ol>
+<p>我们可以输出一下这个值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(System.getProperty(&quot;sun.boot.class.path&quot;));</span><br></pre></td></tr></table></figure>
+
+<p>得到以下结果，可以看到，这些全是jre目录下的jar包或者是class文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\resources.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\rt.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\sunrsasign.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\jsse.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\jce.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\charsets.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\jfr.jar;</span><br><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\classes</span><br></pre></td></tr></table></figure>
+
+<h2 id="ExtClassLoader分析"><a href="#ExtClassLoader分析" class="headerlink" title="ExtClassLoader分析"></a>ExtClassLoader分析</h2><p><code>ExtClassLoader</code>部分源码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line">     * The class loader used for loading installed extensions.</span><br><span class="line">     */</span><br><span class="line">    static class ExtClassLoader extends URLClassLoader &#123;</span><br><span class="line"></span><br><span class="line">        static &#123;</span><br><span class="line">            ClassLoader.registerAsParallelCapable();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        /**</span><br><span class="line">         * create an ExtClassLoader. The ExtClassLoader is created</span><br><span class="line">         * within a context that limits which files it can read</span><br><span class="line">         */</span><br><span class="line">        public static ExtClassLoader getExtClassLoader() throws IOException</span><br><span class="line">        &#123;</span><br><span class="line">            final File[] dirs = getExtDirs();</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                // Prior implementations of this doPrivileged() block supplied</span><br><span class="line">                // aa synthesized ACC via a call to the private method</span><br><span class="line">                // ExtClassLoader.getContext().</span><br><span class="line"></span><br><span class="line">                return AccessController.doPrivileged(</span><br><span class="line">                    new PrivilegedExceptionAction&lt;ExtClassLoader&gt;() &#123;</span><br><span class="line">                        public ExtClassLoader run() throws IOException &#123;</span><br><span class="line">                            int len = dirs.length;</span><br><span class="line">                            for (int i = 0; i &lt; len; i++) &#123;</span><br><span class="line">                                MetaIndex.registerDirectory(dirs[i]);</span><br><span class="line">                            &#125;</span><br><span class="line">                            return new ExtClassLoader(dirs);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;);</span><br><span class="line">            &#125; catch (java.security.PrivilegedActionException e) &#123;</span><br><span class="line">                throw (IOException) e.getException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        private static File[] getExtDirs() &#123;</span><br><span class="line">            String s = System.getProperty(&quot;java.ext.dirs&quot;);</span><br><span class="line">            File[] dirs;</span><br><span class="line">            if (s != null) &#123;</span><br><span class="line">                StringTokenizer st =</span><br><span class="line">                    new StringTokenizer(s, File.pathSeparator);</span><br><span class="line">                int count = st.countTokens();</span><br><span class="line">                dirs = new File[count];</span><br><span class="line">                for (int i = 0; i &lt; count; i++) &#123;</span><br><span class="line">                    dirs[i] = new File(st.nextToken());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                dirs = new File[0];</span><br><span class="line">            &#125;</span><br><span class="line">            return dirs;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">......</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在先前的内容有说过，可以指定<code>-D java.ext.dirs</code>参数来添加和改变<code>ExtClassLoader</code>的加载路径。这里我们编写测试代码。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(System.getProperty(&quot;java.ext.dirs&quot;));</span><br></pre></td></tr></table></figure>
+
+<p>得到以下结果</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">C:\Program Files\Java\jdk1.8.0_321\jre\lib\ext;</span><br><span class="line">C:\Windows\Sun\Java\lib\ext</span><br></pre></td></tr></table></figure>
+
+<p>源码中通过<code>ExtClassLoader$getExtDirs</code>获取到了”java.ext.dirs”的路径值，然后在</p>
+<p><code>ExtClassLoader$getExtClassLoader</code>中被调用用来加载。</p>
+<h2 id="AppClassLoader分析"><a href="#AppClassLoader分析" class="headerlink" title="AppClassLoader分析"></a>AppClassLoader分析</h2><p>AppClassLoader部分源码如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line">     * The class loader used for loading from java.class.path.</span><br><span class="line">     * runs in a restricted security context.</span><br><span class="line">     */</span><br><span class="line">    static class AppClassLoader extends URLClassLoader &#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        public static ClassLoader getAppClassLoader(final ClassLoader extcl)</span><br><span class="line">            throws IOException</span><br><span class="line">        &#123;</span><br><span class="line">            final String s = System.getProperty(&quot;java.class.path&quot;);</span><br><span class="line">            final File[] path = (s == null) ? new File[0] : getClassPath(s);   </span><br><span class="line">            return AccessController.doPrivileged(</span><br><span class="line">                new PrivilegedAction&lt;AppClassLoader&gt;() &#123;</span><br><span class="line">                    public AppClassLoader run() &#123;</span><br><span class="line">                    URL[] urls =</span><br><span class="line">                        (s == null) ? new URL[0] : pathToURLs(path);</span><br><span class="line">                    return new AppClassLoader(urls, extcl);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ......</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在源码中我们看到<code>AppClassLoader</code>加载的就是<code>java.class.path</code>下的路径。</p>
+<h2 id="加载顺序分析"><a href="#加载顺序分析" class="headerlink" title="加载顺序分析"></a>加载顺序分析</h2><p>前面了解到了<code>BootstrapClassLoader</code>、<code>ExtClassLoader</code>、<code>AppClassLoader</code>实际是获取了相应的环境属性<code>sun.boot.class.path</code>、<code>java.ext.dirs</code>和<code>java.class.path</code>来加载资源文件的。</p>
+<p>获取Test.class文件的类加载器：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ClassLoader cl = Test.class.getClassLoader();</span><br><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115117593-1177382331.png" alt="image-20220318115118410"></p>
+<p>结果说明Test.class文件是由<code>AppClassLoader</code>加载的，这个Test类是我们自己编写的，那我们再测试下一些基础类是由哪个加载器加载的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ClassLoader cl = Test.class.getClassLoader();</span><br><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br><span class="line">cl = String.class.getClassLoader();</span><br><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br><span class="line">cl = int.class.getClassLoader();</span><br><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br></pre></td></tr></table></figure>
+
+<p>运行报错，提示空指针</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115535674-1596048336.png" alt="image-20220318115536600"></p>
+<p>实际上<code>int.class</code>等基础类是由<code>Bootstrap ClassLoader</code>加载的</p>
+<p>每个类加载器都有一个父加载器，比如加载<code>Test.class</code>是由<code>AppClassLoader</code>完成，那么<code>AppClassLoader</code>也有一个父加载器，通过<code>getParent</code>方法。代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ClassLoader cl = Test.class.getClassLoader();</span><br><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br><span class="line">System.out.println(&quot;ClassLoader\&#x27;s parent is:&quot;+cl.getParent().toString());</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318115932076-1929653729.png" alt="image-20220318115932982"></p>
+<p>根据结果我们可以知道，<code>AppClassLoader</code>的父加载器是<code>ExtClassLoader</code>，因此我们可以在获取下<code>ExtClassLoader</code>的父加载器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">System.out.println(&quot;ClassLoader is:&quot;+cl.toString());</span><br><span class="line">System.out.println(&quot;ClassLoader\&#x27;s parent is:&quot;+cl.getParent().toString());</span><br><span class="line">System.out.println(&quot;ClassLoader\&#x27;s grand father is:&quot;+cl.getParent().getParent().toString());</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318120147716-781314371.png" alt="image-20220318120148595"></p>
+<p>一样报的空指针异常，这表明<code>ExtClassLoader</code>没有父加载器？往下分析</p>
+<p><code>ExtClassLoader</code>和<code>AppClassLoader</code>继承同一个父类<code>URLClassLoader</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">static class ExtClassLoader extends URLClassLoader &#123;&#125;</span><br><span class="line">static class AppClassLoader extends URLClassLoader &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>调用<code>AppClassLoader</code>的<code>getParent()</code>代码为什么会得到<code>ExtClassLoader</code>的实例呢</p>
+<p>先了解下<code>URLClassLoader</code>的类继承图</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318120604980-332432719.png" alt="image-20220318120605826"></p>
+<p>在<code>ClassLoader.java</code>中发现<code>getParent()</code>方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">public abstract class ClassLoader &#123;</span><br><span class="line"></span><br><span class="line">// The parent class loader for delegation</span><br><span class="line">// Note: VM hardcoded the offset of this field, thus all new fields</span><br><span class="line">// must be added *after* it.</span><br><span class="line">private final ClassLoader parent;</span><br><span class="line">// The class loader for the system</span><br><span class="line">    // @GuardedBy(&quot;ClassLoader.class&quot;)</span><br><span class="line">private static ClassLoader scl;</span><br><span class="line"></span><br><span class="line">private ClassLoader(Void unused, ClassLoader parent) &#123;</span><br><span class="line">    this.parent = parent;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line">protected ClassLoader(ClassLoader parent) &#123;</span><br><span class="line">    this(checkCreateClassLoader(), parent);</span><br><span class="line">&#125;</span><br><span class="line">protected ClassLoader() &#123;</span><br><span class="line">    this(checkCreateClassLoader(), getSystemClassLoader());</span><br><span class="line">&#125;</span><br><span class="line">public final ClassLoader getParent() &#123;</span><br><span class="line">    if (parent == null)</span><br><span class="line">        return null;</span><br><span class="line">    return parent;</span><br><span class="line">&#125;</span><br><span class="line">public static ClassLoader getSystemClassLoader() &#123;</span><br><span class="line">    initSystemClassLoader();</span><br><span class="line">    if (scl == null) &#123;</span><br><span class="line">        return null;</span><br><span class="line">    &#125;</span><br><span class="line">    return scl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private static synchronized void initSystemClassLoader() &#123;</span><br><span class="line">    if (!sclSet) &#123;</span><br><span class="line">        if (scl != null)</span><br><span class="line">            throw new IllegalStateException(&quot;recursive invocation&quot;);</span><br><span class="line">        sun.misc.Launcher l = sun.misc.Launcher.getLauncher();</span><br><span class="line">        if (l != null) &#123;</span><br><span class="line">            Throwable oops = null;</span><br><span class="line">            //通过Launcher获取ClassLoader</span><br><span class="line">            scl = l.getClassLoader();</span><br><span class="line">            try &#123;</span><br><span class="line">                scl = AccessController.doPrivileged(</span><br><span class="line">                    new SystemClassLoaderAction(scl));</span><br><span class="line">            &#125; catch (PrivilegedActionException pae) &#123;</span><br><span class="line">                oops = pae.getCause();</span><br><span class="line">                if (oops instanceof InvocationTargetException) &#123;</span><br><span class="line">                    oops = oops.getCause();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            if (oops != null) &#123;</span><br><span class="line">                if (oops instanceof Error) &#123;</span><br><span class="line">                    throw (Error) oops;</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    // wrap the exception</span><br><span class="line">                    throw new Error(oops);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        sclSet = true;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到<code>getParent()</code>实际上返回的就是一个<code>ClassLoader</code>对象</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">private final ClassLoader parent;</span><br></pre></td></tr></table></figure>
+
+<p>parent的赋值是在ClassLoader对象的构造方法中，根据上面的源码，我们可以发现</p>
+<p>它可以通过两种方式赋值：</p>
+<ol>
+<li><p>由外部类创建ClassLoader时直接指定一个ClassLoader为parent。</p>
+</li>
+<li><p>由<code>getSystemClassLoader()</code>方法生成，也就是在<code>sun.misc.Laucher</code>通过<code>getClassLoader()</code>获取，也就是<code>AppClassLoader</code>。也就是说，一个<code>ClassLoader</code>创建时如果没有指定parent，那么它的parent默认就是<code>AppClassLoader</code>。</p>
+</li>
+</ol>
+<p>现在探究下<code>ExtClassLoader</code>与<code>AppClassLoader</code>的parent的来源</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318123331878-1715322313.png" alt="image-20220318123332729"></p>
+<p>从代码中可以看到<code>AppClassLoader</code>的parent是一个<code>ExtClassLoader</code>实例。<code>ExtClassLoader</code>并没有直接找到对parent的赋值。它调用了它的父类也就是<code>URLClassLoder</code>的构造方法并传递了3个参数。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318130001328-1508326646.png" alt="image-20220318130002200"></p>
+<p>在父类的构造方法中，我们可以看到传递的parent为null</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318130030431-1824213027.png" alt="image-20220318130031339"></p>
+<p>综上，<code>AppClassLoader</code>的parent是<code>ExtClassLoader</code>，<code>ExtClassLoader</code>的parent是null。</p>
+<p>继续往下，<code>BootstrapClassLoader</code>是如何创建的？</p>
+<blockquote>
+<p><code>Bootstrap ClassLoader</code>是由C&#x2F;C++编写的，它本身是虚拟机的一部分，所以它并不是一个JAVA类，也就是无法在java代码中获取它的引用，JVM启动时通过<code>Bootstrap</code>类加载器加载rt.jar等核心jar包中的class文件，之前的int.class,String.class都是由它加载。然后呢，我们前面已经分析了，JVM初始化<code>sun.misc.Launcher</code>并创建<code>Extension ClassLoader</code>和<code>AppClassLoader</code>实例。并将<code>ExtClassLoader</code>设置为<code>AppClassLoader</code>的父加载器。<code>Bootstrap</code>没有父加载器，但是它却可以作用一个<code>ClassLoader</code>的父加载器。比如<code>ExtClassLoader</code>。这也可以解释之前通过<code>ExtClassLoader</code>的getParent方法获取为Null的现象。</p>
+</blockquote>
+<h2 id="双亲委托"><a href="#双亲委托" class="headerlink" title="双亲委托"></a>双亲委托</h2><p>一个类加载器查找class和resource时，是通过“委托模式”进行的，它首先判断这个class是不是已经加载成功，如果没有的话它并不是自己进行查找，而是先通过父加载器，然后递归下去，直到Bootstrap ClassLoader，如果Bootstrap classloader找到了，直接返回，如果没有找到，则一级一级返回，最后到达自身去查找这些对象。这种机制就叫做双亲委托。</p>
+<p>流程图:</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318140231418-1616817752.png" alt="image-20220318140231962"></p>
+<p>这个更具体一些</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318140826958-729407800.png" alt="image-20220318140827686"></p>
+<p>描述：</p>
+<ol>
+<li>一个AppClassLoader查找资源时，先看看缓存是否有，缓存有从缓存中获取，否则委托给父加载器。</li>
+<li>递归，重复第1部的操作。</li>
+<li>如果ExtClassLoader也没有加载过，则由Bootstrap ClassLoader出面，它首先查找缓存，如果没有找到的话，就去找自己的规定的路径下，也就是sun.mic.boot.class下面的路径。找到就返回，没有找到，让子加载器自己去找。</li>
+<li>Bootstrap ClassLoader如果没有查找成功，则ExtClassLoader自己在java.ext.dirs路径中去查找，查找成功就返回，查找不成功，再向下让子加载器找。</li>
+<li>ExtClassLoader查找不成功，AppClassLoader就自己查找，在java.class.path路径下查找。找到就返回。如果没有找到就让子类找，如果没有子类会怎么样？抛出各种异常。</li>
+</ol>
+<p>在了解加载过程时，需要了解几个个重要的方法loadClass()、findLoadedClass()、findClass()、defineClass()。</p>
+<ol>
+<li>loadClass()：加载具有指定二进制名称的类。此方法搜索类的方式与<code>loadClass(String, boolean)</code>方法相同，Java虚拟机调用它来解析类引用。</li>
+<li>findClass()：根据名称或位置加载.class字节码,然后使用defineClass，通常由子类去实现。</li>
+<li>defineClass()：把字节码转化为Class。</li>
+<li>findLoadedClass()：判断该类是否已经加载过，加载过就返回Class对象，未加载过就返回null。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">protected Class&lt;?&gt; loadClass(String name,</span><br><span class="line">                             boolean resolve)</span><br><span class="line">                      throws ClassNotFoundException</span><br></pre></td></tr></table></figure>
+
+<p>下面为loadClass(String, boolean)方法的源代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">protected Class&lt;?&gt; loadClass(String name, boolean resolve)</span><br><span class="line">        throws ClassNotFoundException</span><br><span class="line">    &#123;</span><br><span class="line">        synchronized (getClassLoadingLock(name)) &#123;</span><br><span class="line">            // 首先，检测是否已经加载</span><br><span class="line">            Class&lt;?&gt; c = findLoadedClass(name);</span><br><span class="line">            if (c == null) &#123;</span><br><span class="line">                long t0 = System.nanoTime();</span><br><span class="line">                try &#123;</span><br><span class="line">                    if (parent != null) &#123;</span><br><span class="line">                    	//父加载器不为空则调用父加载器的loadClass</span><br><span class="line">                        c = parent.loadClass(name, false);</span><br><span class="line">                    &#125; else &#123;</span><br><span class="line">                    	//父加载器为空则调用Bootstrap Classloader</span><br><span class="line">                        c = findBootstrapClassOrNull(name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">                    // ClassNotFoundException thrown if class not found</span><br><span class="line">                    // from the non-null parent class loader</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                if (c == null) &#123;</span><br><span class="line">                    // If still not found, then invoke findClass in order</span><br><span class="line">                    // to find the class.</span><br><span class="line">                    long t1 = System.nanoTime();</span><br><span class="line">                    //父加载器没有找到，则调用findclass</span><br><span class="line">                    c = findClass(name);</span><br><span class="line"></span><br><span class="line">                    // this is the defining class loader; record the stats</span><br><span class="line">                    sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);</span><br><span class="line">                    sun.misc.PerfCounter.getFindClasses().increment();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            if (resolve) &#123;</span><br><span class="line">            	//调用resolveClass()</span><br><span class="line">                resolveClass(c);</span><br><span class="line">            &#125;</span><br><span class="line">            return c;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>大致的流程是：</p>
+<ol>
+<li>执行<code>findLoadedClass(String)</code>去检测这个class是不是已经加载过了。</li>
+<li>执行父加载器的<code>loadClass</code>方法。如果父加载器为null，则jvm内置的加载器去替代，也就是<code>Bootstrap ClassLoader</code>。这也解释了<code>ExtClassLoader</code>的parent为null,但仍然说<code>Bootstrap ClassLoader</code>是它的父加载器。</li>
+<li>如果向上委托父加载器没有加载成功，则通过<code>findClass(String)</code>查找。</li>
+</ol>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318143031557-363915155.png" alt="image-20220318143032440"></p>
+<p>如果class在上面的步骤中找到了，参数resolve又是true的话，那么<code>loadClass()</code>又会调用<code>resolveClass(Class)</code>这个方法来生成最终的Class对象</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318143110312-1622367296.png" alt="image-20220318143111427"></p>
+<p>如果要编写一个classLoader的子类，也就是自定义一个classloader，建议覆盖<code>findClass()</code>方法，而不要直接改写<code>loadClass()</code>方法。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318142956896-166356396.png" alt="image-20220318142957798"></p>
+<h2 id="自定义ClassLoader"><a href="#自定义ClassLoader" class="headerlink" title="自定义ClassLoader"></a>自定义ClassLoader</h2><p>不管是<code>Bootstrap ClassLoader</code>还是<code>ExtClassLoader</code>等，这些类加载器都只是加载指定的目录下的jar包或者资源。如果从D盘某个文件夹加载一个class文件，或者从网络上下载class主内容然后再进行加载，这样的话，需要自定义一个ClassLoader。</p>
+<p>步骤分为如下几步：</p>
+<ol>
+<li>编写一个类继承自<code>ClassLoader</code>抽象类。</li>
+<li>复写它的<code>findClass()</code>方法。</li>
+<li>在<code>findClass()</code>方法中调用<code>defineClass()</code>。</li>
+</ol>
+<p>注：如果自定义一个<code>ClassLoader</code>，默认的parent父加载器是<code>AppClassLoader</code>，因为这样就能够保证它能访问系统内置加载器成功加载class文件。</p>
+<p>测试：自定义一个<code>ClassLoader</code>,默认加载路径为<code>D:\code\lib</code>下的jar包和资源。</p>
+<p>Say.java</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public class Say &#123;</span><br><span class="line">	public void say()&#123;</span><br><span class="line">		System.out.println(&quot;Say Hello&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译成class文件后放到<code>D:\code\lib</code>路径下。</p>
+<p>DiskClassLoader.java</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">import java.io.*;</span><br><span class="line"></span><br><span class="line">public class DiskClassLoader extends ClassLoader&#123;</span><br><span class="line">    private String mLibPath;</span><br><span class="line"></span><br><span class="line">    public DiskClassLoader(String mLibPath)&#123;</span><br><span class="line">        this.mLibPath = mLibPath;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    protected Class&lt;?&gt; findClass(String name) throws ClassNotFoundException &#123;</span><br><span class="line">        String fileName = getFileName(name);</span><br><span class="line">        File file = new File(mLibPath, fileName);</span><br><span class="line">        try &#123;</span><br><span class="line">            FileInputStream is = new FileInputStream(file);</span><br><span class="line">            ByteArrayOutputStream bos = new ByteArrayOutputStream();</span><br><span class="line">            int len = 0;</span><br><span class="line">            try &#123;</span><br><span class="line">                while ((len = is.read()) != -1) &#123;</span><br><span class="line">                    bos.write(len);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; catch (IOException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            byte[] data = bos.toByteArray();</span><br><span class="line">            is.close();</span><br><span class="line">            bos.close();</span><br><span class="line"></span><br><span class="line">            return defineClass(name,data,0,data.length);</span><br><span class="line"></span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        return super.findClass(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //获取要加载的class文件名</span><br><span class="line">    private String getFileName(String name) &#123;</span><br><span class="line">        // TODO Auto-generated method stub</span><br><span class="line">        int index = name.lastIndexOf(&#x27;.&#x27;);</span><br><span class="line">        if(index == -1)&#123;</span><br><span class="line">            return name+&quot;.class&quot;;</span><br><span class="line">        &#125;else&#123;</span><br><span class="line">            return name.substring(index+1)+&quot;.class&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>ClassLoaderTest.java</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">import java.lang.reflect.InvocationTargetException;</span><br><span class="line">import java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line">public class ClassLoaderTest &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        //创建自定义classloader对象。</span><br><span class="line">        DiskClassLoader diskLoader = new DiskClassLoader(&quot;D:\\code\\lib&quot;);</span><br><span class="line">        try &#123;</span><br><span class="line">            Class clazz = diskLoader.loadClass(&quot;Say&quot;);</span><br><span class="line">            </span><br><span class="line">            if(clazz!=null)&#123;</span><br><span class="line">                Object o = clazz.newInstance();</span><br><span class="line">                Method say = clazz.getDeclaredMethod(&quot;say&quot;, null);</span><br><span class="line">                say.invoke(o, null);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318151210927-659385743.png" alt="image-20220318151211530"></p>
+<h2 id="Context-ClassLoader-线程上下文类加载器"><a href="#Context-ClassLoader-线程上下文类加载器" class="headerlink" title="Context ClassLoader 线程上下文类加载器"></a>Context ClassLoader 线程上下文类加载器</h2><p><code>ContextClassLoader</code>其实只是一个概念，查看<code>Thread.java</code>源码可以发现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class Thread implements Runnable &#123;</span><br><span class="line"></span><br><span class="line">/* The context ClassLoader for this thread */</span><br><span class="line">   private ClassLoader contextClassLoader;</span><br><span class="line">   </span><br><span class="line">   public void setContextClassLoader(ClassLoader cl) &#123;</span><br><span class="line">       SecurityManager sm = System.getSecurityManager();</span><br><span class="line">       if (sm != null) &#123;</span><br><span class="line">           sm.checkPermission(new RuntimePermission(&quot;setContextClassLoader&quot;));</span><br><span class="line">       &#125;</span><br><span class="line">       contextClassLoader = cl;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   public ClassLoader getContextClassLoader() &#123;</span><br><span class="line">       if (contextClassLoader == null)</span><br><span class="line">           return null;</span><br><span class="line">       SecurityManager sm = System.getSecurityManager();</span><br><span class="line">       if (sm != null) &#123;</span><br><span class="line">           ClassLoader.checkClassLoaderPermission(contextClassLoader,</span><br><span class="line">                                                  Reflection.getCallerClass());</span><br><span class="line">       &#125;</span><br><span class="line">       return contextClassLoader;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>contextClassLoader只是一个成员变量，通过<code>setContextClassLoader()</code>方法设置，通过<code>getContextClassLoader()</code>返回。</p>
+<p>编写测试代码来加深理解，编写一个接口类<code>ISpeak</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public interface ISpeak &#123;</span><br><span class="line">	public void speak();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再编写2个<code>SpeakTest.java</code>文件实现<code>ISpeak</code>接口，一个源码是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public class SpeakTest implements ISpeak &#123;</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">	public void speak() &#123;</span><br><span class="line">		// TODO Auto-generated method stub</span><br><span class="line">		System.out.println(&quot;Test&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它生成的<code>SpeakTest.class</code>文件放置在<code>D:\\code\\lib\\test</code>目录下。</p>
+<p>然后，另一个<code>SpeakTest.java</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public class SpeakTest implements ISpeak &#123;</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">	public void speak() &#123;</span><br><span class="line">		// TODO Auto-generated method stub</span><br><span class="line">		System.out.println(&quot;I am boy&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它生成的<code>SpeakTest.class</code>文件放置在<code>D:\\code\\lib</code>目录下。</p>
+<p>再编写<code>DiskClassLoader1</code>和<code>DiskClassLoader2</code>，代码和<code>DiskClassLoader</code>基本一致，修改下加载路径和类路径即可。</p>
+<p><code>DiskClassLoader1.java</code>的main方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        DiskClassLoader1 diskLoader1 = new DiskClassLoader1(&quot;D:\\code\\lib\\test&quot;);</span><br><span class="line">        Class cls1 = null;</span><br><span class="line">        try &#123;</span><br><span class="line">//加载class文件</span><br><span class="line">            cls1 = diskLoader1.loadClass(&quot;SpeakTest&quot;);</span><br><span class="line">            System.out.println(cls1.getClassLoader().toString());</span><br><span class="line">            if(cls1 != null)&#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    Object obj = cls1.newInstance();</span><br><span class="line">                    //SpeakTest1 speak = (SpeakTest1) obj;</span><br><span class="line">                    //speak.speak();</span><br><span class="line">                    Method method = cls1.getDeclaredMethod(&quot;speak&quot;,null);</span><br><span class="line">                    //通过反射调用Test类的speak方法</span><br><span class="line">                    method.invoke(obj, null);</span><br><span class="line">                &#125; catch (InstantiationException | IllegalAccessException</span><br><span class="line">                        | NoSuchMethodException</span><br><span class="line">                        | SecurityException |</span><br><span class="line">                        IllegalArgumentException |</span><br><span class="line">                        InvocationTargetException e) &#123;</span><br><span class="line">                    // TODO Auto-generated catch block</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">// TODO Auto-generated catch block</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318154941422-556943868.png" alt="image-20220318154942350"></p>
+<p><code>DiskClassLoader2.java</code>的main方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        DiskClassLoader2 diskLoader2 = new DiskClassLoader2(&quot;D:\\code\\lib&quot;);</span><br><span class="line">        System.out.println(&quot;Thread &quot;+Thread.currentThread().getName()+&quot; classloader: &quot;+Thread.currentThread().getContextClassLoader().toString());</span><br><span class="line">        new Thread(new Runnable() &#123;</span><br><span class="line"></span><br><span class="line">            @Override</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                System.out.println(&quot;Thread &quot;+Thread.currentThread().getName()+&quot; classloader: &quot;+Thread.currentThread().getContextClassLoader().toString());</span><br><span class="line"></span><br><span class="line">                // TODO Auto-generated method stub</span><br><span class="line">                try &#123;</span><br><span class="line">                    //加载class文件</span><br><span class="line">                    //	Thread.currentThread().setContextClassLoader(diskLoader);</span><br><span class="line">                    //Class c = diskLoader.loadClass(&quot;SpeakTest&quot;);</span><br><span class="line">                    ClassLoader cl = Thread.currentThread().getContextClassLoader();</span><br><span class="line">                    Class c = cl.loadClass(&quot;SpeakTest&quot;);</span><br><span class="line">                    // Class c = Class.forName(&quot;SpeakTest&quot;);</span><br><span class="line">                    System.out.println(c.getClassLoader().toString());</span><br><span class="line">                    if(c != null)&#123;</span><br><span class="line">                        try &#123;</span><br><span class="line">                            Object obj = c.newInstance();</span><br><span class="line">                            //SpeakTest1 speak = (SpeakTest1) obj;</span><br><span class="line">                            //speak.speak();</span><br><span class="line">                            Method method = c.getDeclaredMethod(&quot;speak&quot;,null);</span><br><span class="line">                            //通过反射调用Test类的say方法</span><br><span class="line">                            method.invoke(obj, null);</span><br><span class="line">                        &#125; catch (InstantiationException | IllegalAccessException</span><br><span class="line">                                | NoSuchMethodException</span><br><span class="line">                                | SecurityException |</span><br><span class="line">                                IllegalArgumentException |</span><br><span class="line">                                InvocationTargetException e) &#123;</span><br><span class="line">                            // TODO Auto-generated catch block</span><br><span class="line">                            e.printStackTrace();</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; catch (ClassNotFoundException e) &#123;</span><br><span class="line">                    // TODO Auto-generated catch block</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318155040677-1183824107.png" alt="image-20220318155041635"></p>
+<p>根据结果我们可以得出：</p>
+<ol>
+<li><code>DiskClassLoader1</code>成功加载了<code>SpeakTest.class</code>文件。</li>
+<li>主线程和子线程的<code>ContextClassLoader</code>是<code>AppClassLoader</code>。</li>
+<li><code>AppClassLoader</code>加载不了父线程当中已经加载的<code>SpeakTest.class</code>内容。</li>
+</ol>
+<p>修改代码，再子线程开头加上</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Thread.currentThread().setContextClassLoader(diskLoader2);</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318160725005-1706254425.png" alt="image-20220318160726100"></p>
+<p>可以看到子线程的<code>ContextClassLoader</code>变成了<code>DiskClassLoader</code>。</p>
+<p>修改diskLoader2为diskLoader1，结果如下：</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220318160546550-939767981.png" alt="image-20220318160547669"></p>
+<p>可以看到<code>DiskClassLoader2</code>和<code>DiskClassLoader1</code>分别加载了自己路径下的<code>SpeakTest.class</code>文件。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/briblue/article/details/54973413">https://blog.csdn.net/briblue/article/details/54973413</a></p>
+<p><a target="_blank" rel="noopener" href="http://gityuan.com/2016/01/24/java-classloader/">http://gityuan.com/2016/01/24/java-classloader/</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>kpa1on
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kpa1on.github.io/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/" title="类加载器ClassLoader">https://kpa1on.github.io/2022/03/18/类加载器ClassLoader/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8/" rel="tag"># 类加载器</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/17/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/" rel="prev" title="Java反射机制学习">
+                  <i class="fa fa-chevron-left"></i> Java反射机制学习
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/03/19/Jsp-Webshell%E5%85%8D%E6%9D%80-%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" rel="next" title="Jsp Webshell免杀-命令执行">
+                  Jsp Webshell免杀-命令执行 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">kpa1on</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">145k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">2:12</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共37.9k字</span>
+  <span class="post-meta-divider">|</span>
+  本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  <span class="post-meta-divider">|</span>
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+  <span class="post-meta-divider">|</span>
+  本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+</div>
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>
