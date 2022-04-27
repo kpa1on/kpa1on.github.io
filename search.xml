@@ -2138,4 +2138,99 @@
         <tag>代理</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Java安全之Javassist动态编程</title>
+    <url>/2022/04/27/Java%E5%AE%89%E5%85%A8%E4%B9%8BJavassist%E5%8A%A8%E6%80%81%E7%BC%96%E7%A8%8B/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h3 id="动态编程"><a href="#动态编程" class="headerlink" title="动态编程"></a>动态编程</h3><p>动态编程是相对于静态编程而言的,平时我们讨论比较多的就是静态编程语言，例如Java，与动态编程语言，例如JavaScript。</p>
+<span id="more"></span>
+
+<p>那二者有什么明显的区别呢？简单的说就是在静态编程中，类型检查是在编译时完成的，而动态编程中类型检查是在运行时完成的。所谓动态编程就是绕过编译过程在运行时进行操作的技术，在Java中有如下几种方式：</p>
+<p><strong>反射</strong><br>这个搞Java的应该比较熟悉，原理也就是通过在运行时获得类型信息然后做相应的操作。</p>
+<p><strong>动态编译</strong><br>动态编译是从Java 6开始支持的，主要是通过一个JavaCompiler接口来完成的。通过这种方式我们可以直接编译一个已经存在的java文件，也可以在内存中动态生成Java代码，动态编译执行。</p>
+<p><strong>调用JavaScript引擎</strong><br>Java 6加入了对Script(JSR223)的支持。这是一个脚本框架，提供了让脚本语言来访问Java内部的方法。你可以在运行的时候找到脚本引擎，然后调用这个引擎去执行脚本。这个脚本API允许你为脚本语言提供Java支持。</p>
+<p><strong>动态生成字节码</strong></p>
+<p>这种技术通过操作Java字节码的方式在JVM中生成新类或者对已经加载的类动态添加元素。</p>
+<p>方式：</p>
+<p><strong>ASM</strong>：直接操作字节码指令，执行效率高，要是使用者掌握Java类字节码文件格式及指令，对使用者的要求比较高。</p>
+<p><strong>Javassit</strong> ：提供了更高级的API，执行效率相对较差，但无需掌握字节码指令的知识，对使用者要求较低。</p>
+<h3 id="什么是Javassist"><a href="#什么是Javassist" class="headerlink" title="什么是Javassist"></a>什么是Javassist</h3><p><code>Javassist</code>是一个开源的分析、编辑和创建Java字节码的类库，Java 字节码存储在称为类文件的二进制文件中。每个类文件包含一个 Java 类或接口。是由东京工业大学的数学和计算机科学系的 Shigeru Chiba （千叶 滋）所创建的。其主要的优点，在于简单，而且快速。直接使用java编码的形式，而不需要了解虚拟机指令，就能动态改变类的结构，或者动态生成类。而个人感觉在安全中最重要的就是在使用<code>Javassist</code>时我们可以像写Java代码一样直接插入Java代码片段，让我们不再需要关注Java底层的字节码的和栈操作，仅需要学会如何使用<code>Javassist</code>的API即可实现字节码编辑，类似于可以达到任意代码执行的效果。</p>
+<h3 id="Javassist的使用"><a href="#Javassist的使用" class="headerlink" title="Javassist的使用"></a>Javassist的使用</h3><p>在<strong>Javassist</strong>中最为重要的是<code>ClassPool</code>，<code>CtClass</code> ，<code>CtMethod</code> 以及 <code>CtField</code>这几个类。</p>
+<p>ClassPool：一个基于HashMap实现的CtClass对象容器，其中键是类名称，值是表示该类的CtClass对象。默认的ClassPool使用与底层JVM相同的类路径，因此在某些情况下，可能需要向ClassPool添加类路径或类字节。</p>
+<p>CtClass：表示一个类，这些CtClass对象可以从ClassPool获得。</p>
+<p>CtMethods：表示类中的方法。</p>
+<p>CtFields ：表示类中的字段。</p>
+<h4 id="ClassPool"><a href="#ClassPool" class="headerlink" title="ClassPool"></a>ClassPool</h4><p>常用方法：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ClassPool		<span class="title function_">getDefault</span><span class="params">()</span>			返回默认的类池。</span><br><span class="line">  </span><br><span class="line">ClassPath		<span class="title function_">insertClassPath</span><span class="params">(String pathname)</span>	在搜索路径的开头插入目录或jar（或zip）文件。</span><br><span class="line">  </span><br><span class="line">ClassPath		<span class="title function_">insertClassPath</span><span class="params">(ClassPath cp)</span>		ClassPath在搜索路径的开头插入一个对象。</span><br><span class="line">  </span><br><span class="line">java.lang.ClassLoader	<span class="title function_">getClassLoader</span><span class="params">()</span>	获取类加载器</span><br><span class="line">  </span><br><span class="line">CtClass	<span class="title function_">get</span><span class="params">(java.lang.String classname)</span>	从源中读取类文件，并返回对CtClass 表示该类文件的对象的引用。</span><br><span class="line">  </span><br><span class="line">ClassPath	<span class="title function_">appendClassPath</span><span class="params">(ClassPath cp)</span>	 将ClassPath对象附加到搜索路径的末尾。</span><br><span class="line">  </span><br><span class="line">CtClass	<span class="title function_">makeClass</span><span class="params">(java.lang.String classname)</span>  创建一个新的<span class="keyword">public</span>类</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="CtClass"><a href="#CtClass" class="headerlink" title="CtClass"></a>CtClass</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span>	<span class="title function_">setSuperclass</span><span class="params">(CtClass clazz)</span>	更改超类，除非此对象表示接口。</span><br><span class="line"></span><br><span class="line">java.lang.Class&lt;?&gt;	toClass(java.lang.invoke.MethodHandles.Lookup lookup)	</span><br><span class="line">	将此类转换为java.lang.Class对象。</span><br><span class="line">	</span><br><span class="line"><span class="type">byte</span>[]	toBytecode()	将该类转换为类文件。</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span>	<span class="title function_">writeFile</span><span class="params">()</span>		将由此CtClass 对象表示的类文件写入当前目录。</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span>	<span class="title function_">writeFile</span><span class="params">(java.lang.String directoryName)</span>	 将由此CtClass 对象表示的类文件写入本地磁盘。</span><br><span class="line"></span><br><span class="line">CtConstructor	<span class="title function_">makeClassInitializer</span><span class="params">()</span>	制作一个空的类初始化程序（静态构造函数）。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="CtMethod"><a href="#CtMethod" class="headerlink" title="CtMethod"></a>CtMethod</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span>	<span class="title function_">insertBefore</span> <span class="params">(java.lang.String src)</span>	</span><br><span class="line">在正文的开头插入字节码。</span><br><span class="line"><span class="keyword">void</span>	<span class="title function_">insertAfter</span>	<span class="params">(java.lang.String src)</span>	</span><br><span class="line">在正文的末尾插入字节码。</span><br><span class="line"><span class="keyword">void</span>	<span class="title function_">setBody</span> <span class="params">(CtMethod src, ClassMap map)</span>	</span><br><span class="line">从另一个方法复制方法体。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="CtConstructor"><a href="#CtConstructor" class="headerlink" title="CtConstructor"></a>CtConstructor</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span>	<span class="title function_">setBody</span><span class="params">(java.lang.String src)</span>	</span><br><span class="line">	设置构造函数主体。</span><br><span class="line"><span class="keyword">void</span>	<span class="title function_">setBody</span><span class="params">(CtConstructor src, ClassMap map)</span>	</span><br><span class="line">	从另一个构造函数复制一个构造函数主体。</span><br><span class="line">CtMethod	<span class="title function_">toMethod</span><span class="params">(java.lang.String name, CtClass declaring)</span>	</span><br><span class="line">	复制此构造函数并将其转换为方法。</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="CtField"><a href="#CtField" class="headerlink" title="CtField"></a>CtField</h4><p>CtFields ：表示类中的字段。</p>
+<h4 id="动态生成类"><a href="#动态生成类" class="headerlink" title="动态生成类"></a>动态生成类</h4><p>大致有如下几个步骤</p>
+<ol>
+<li>获取默认类池<code>ClassPool classPool = ClassPool.getDefault();</code></li>
+<li>创建一个自定义类<code>CtClass ctClass = classPool.makeClass();</code></li>
+<li>添加实现接口or属性or构造方法or普通方法</li>
+</ol>
+<ul>
+<li><p>添加接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ctClass.setInterfaces(<span class="keyword">new</span> <span class="title class_">CtClass</span>[]&#123;classPool.makeInterface(<span class="string">&quot;java.io.Serializable&quot;</span>)&#125;);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加属性</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//新建一个int类型名为id的成员变量</span></span><br><span class="line"><span class="type">CtField</span> <span class="variable">id</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CtField</span>(CtClass.intType, <span class="string">&quot;id&quot;</span>, ctClass);</span><br><span class="line"><span class="comment">//将id设置为public</span></span><br><span class="line">id.setModifiers(AccessFlag.PUBLIC);</span><br><span class="line"><span class="comment">//将该id属性&quot;赋值&quot;给ClassDemo</span></span><br><span class="line">ctClass.addField(id);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加构造方法(有参)</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//添加有参构造方法</span></span><br><span class="line"><span class="type">CtConstructor</span> <span class="variable">ctConstructor1</span> <span class="operator">=</span> CtNewConstructor.make(<span class="string">&quot;public ClassDemo(int id)&#123;this.id = id;&#125;&quot;</span>, ctClass);</span><br><span class="line">ctClass.addConstructor(ctConstructor1);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>添加方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">CtMethod</span> <span class="variable">ctMethod</span> <span class="operator">=</span> CtNewMethod.make(<span class="string">&quot;public void calcDemo()&#123;java.lang.Runtime.getRuntime().exec(\&quot;open -a Calculator\&quot;);&#125;&quot;</span>, ctClass);</span><br><span class="line">ctClass.addMethod(ctMethod);</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ol start="4">
+<li><p>写入磁盘</p>
+<p>这里写入磁盘可以用如下两种方法</p>
+<ul>
+<li>javassist自带的<code>ctClass.writeFile();</code>可指定绝对路径写入</li>
+<li>也可转换为byte流通过<code>FileOutputStream</code>等写入磁盘</li>
+</ul>
+</li>
+<li><p>进行验证：调用方法or属性赋值</p>
+</li>
+<li><p>tips：</p>
+<ul>
+<li>这里注意<code>javassist.CannotCompileException</code>异常: 因为同个 Class 是不能在同个 ClassLoader 中加载两次的，所以在输出 CtClass 的时候需要注意下,可以使用<code>javassist</code>自带的classloader解决此问题</li>
+<li>反射时<code>newInstance()</code>抛出了<code>java.lang.InstantiationException</code>异常可能是因为没有写无参构造</li>
+<li>如果已经加载了通过javassist生成的类，即便是通过反射(如<code>class.forName()</code>)或者<code>new</code>都不是加载一个<code>&quot;新类&quot;</code>，只有换一个ClassLoader加载才会是生成一个<code>&quot;新类&quot;</code></li>
+</ul>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.sec.test2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javassist.*;</span><br><span class="line"><span class="keyword">import</span> javassist.bytecode.AccessFlag;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JavassistDemo01</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">JavassistDemo01</span> <span class="variable">a</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">JavassistDemo01</span>();</span><br><span class="line">        a.makeClass0();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">makeClass0</span><span class="params">()</span>&#123;</span><br><span class="line">        <span class="comment">//获取默认类池</span></span><br><span class="line">        <span class="type">ClassPool</span> <span class="variable">classPool</span> <span class="operator">=</span> ClassPool.getDefault();</span><br><span class="line">        <span class="comment">//创建一个类ClassDemo</span></span><br><span class="line">        <span class="type">CtClass</span> <span class="variable">ctClass</span> <span class="operator">=</span> classPool.makeClass(<span class="string">&quot;com.sec.test2.ClassDemo&quot;</span>);</span><br><span class="line">        <span class="comment">//让该类实现序列化接口</span></span><br><span class="line">        ctClass.setInterfaces(<span class="keyword">new</span> <span class="title class_">CtClass</span>[]&#123;classPool.makeInterface(<span class="string">&quot;java.io.Serializable&quot;</span>)&#125;);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//新建一个int类型名为id的成员变量</span></span><br><span class="line">            <span class="type">CtField</span> <span class="variable">id</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CtField</span>(CtClass.intType, <span class="string">&quot;id&quot;</span>, ctClass);</span><br><span class="line">            <span class="comment">//将id设置为public</span></span><br><span class="line">            id.setModifiers(AccessFlag.PUBLIC);</span><br><span class="line">            <span class="comment">//将该id属性&quot;赋值&quot;给ClassDemo</span></span><br><span class="line">            ctClass.addField(id);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//添加无参构造方法</span></span><br><span class="line">            <span class="type">CtConstructor</span> <span class="variable">ctConstructor</span> <span class="operator">=</span> CtNewConstructor.make(<span class="string">&quot;public ClassDemo()&#123;&#125;;&quot;</span>, ctClass);</span><br><span class="line">            ctClass.addConstructor(ctConstructor);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//添加有参构造方法</span></span><br><span class="line">            <span class="type">CtConstructor</span> <span class="variable">ctConstructor1</span> <span class="operator">=</span> CtNewConstructor.make(<span class="string">&quot;public ClassDemo(int id)&#123;this.id = id;&#125;&quot;</span>, ctClass);</span><br><span class="line">            ctClass.addConstructor(ctConstructor1);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//添加普通方法1</span></span><br><span class="line">            <span class="type">CtMethod</span> <span class="variable">ctMethod</span> <span class="operator">=</span> CtNewMethod.make(<span class="string">&quot;public void calcDemo()&#123;java.lang.Runtime.getRuntime().exec(\&quot;cmd.exe /c calc.exe\&quot;);&#125;&quot;</span>, ctClass);</span><br><span class="line">            ctClass.addMethod(ctMethod);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//添加普通方法2</span></span><br><span class="line">            <span class="type">CtMethod</span> <span class="variable">ctMethod1</span> <span class="operator">=</span> CtNewMethod.make(<span class="string">&quot;public void hello()&#123;System.out.println(\&quot;Hello Javassist!!!\&quot;);&#125;&quot;</span>, ctClass);</span><br><span class="line">            ctClass.addMethod(ctMethod1);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//将class文件写入磁盘</span></span><br><span class="line">            <span class="comment">//转换成字节流</span></span><br><span class="line">            <span class="type">byte</span>[] bytes = ctClass.toBytecode();</span><br><span class="line">            <span class="comment">//写入磁盘</span></span><br><span class="line">            <span class="type">File</span> <span class="variable">classPath</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">File</span>(<span class="keyword">new</span> <span class="title class_">File</span>(System.getProperty(<span class="string">&quot;user.dir&quot;</span>), <span class="string">&quot;/src/main/java/com/sec/test2&quot;</span>), <span class="string">&quot;ClassDemo.class&quot;</span>);</span><br><span class="line">            <span class="type">FileOutputStream</span> <span class="variable">fos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(classPath);</span><br><span class="line">            fos.write(bytes);</span><br><span class="line">            fos.close();</span><br><span class="line"></span><br><span class="line">            <span class="comment">//验证-调用方法</span></span><br><span class="line">            <span class="comment">//注意这里可能会抛javassist.CannotCompileException异常因为同个 Class 是不能在同个 ClassLoader 中加载两次的，所以在输出 CtClass 的时候需要注意下</span></span><br><span class="line">            <span class="comment">//需要通过一个未加载该class的classloader加载即可，为此javassist内置了一个classloader</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//获取javassist的classloader</span></span><br><span class="line">            <span class="type">ClassLoader</span> <span class="variable">loader</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Loader</span>(classPool);</span><br><span class="line">            System.out.println(<span class="string">&quot;loading&quot;</span>);</span><br><span class="line">            <span class="comment">//通过该classloader加载才是新的一个class</span></span><br><span class="line">            Class&lt;?&gt; clazz = loader.loadClass(<span class="string">&quot;com.sec.test2.ClassDemo&quot;</span>);</span><br><span class="line"></span><br><span class="line">            <span class="comment">//反射调用hello</span></span><br><span class="line">            clazz.getDeclaredMethod(<span class="string">&quot;hello&quot;</span>).invoke(clazz.newInstance());</span><br><span class="line">            <span class="comment">//反射调用calc</span></span><br><span class="line">            clazz.getDeclaredMethod(<span class="string">&quot;calcDemo&quot;</span>).invoke(clazz.newInstance());</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e)&#123;</span><br><span class="line">            System.out.println(e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="动态获取类方法"><a href="#动态获取类方法" class="headerlink" title="动态获取类方法"></a>动态获取类方法</h4><ol>
+<li>获取默认类池<code>ClassPool classPool = ClassPool.getDefault();</code></li>
+<li>获取目标类<code>CtClass cc = cp.get();</code></li>
+<li>获取类的方法<code>CtMethod m = cc.getDeclaredMethod();</code></li>
+<li>插入任意代码<code>m.insertBefore(&quot;&#123;java.lang.Runtime.getRuntime().exec(\&quot;open -a Calculator\&quot;);&#125;&quot;);</code></li>
+<li>转换为class对象<code>Class c = cc.toClass();</code></li>
+<li>反射调用对象<code>JavassistDemo j= (JavassistDemo)c.newInstance();</code></li>
+<li>执行方法<code>j.hello();</code></li>
+</ol>
+<p>tips：</p>
+<ol>
+<li>如果目标类未加载过，可以直接调用<code>toClass()</code>方法之后<code>new</code>一个该类的对象即可调用该类。</li>
+<li>如果目标类已加载过，就需要用上面的方法，通过javassist的ClassLoader去加载后进行调用。</li>
+</ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/CoLo/p/15383642.html">https://www.cnblogs.com/CoLo/p/15383642.html</a></p>
+]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>动态编程</tag>
+      </tags>
+  </entry>
 </search>
