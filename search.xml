@@ -2238,8 +2238,8 @@
     <url>/2022/04/28/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections2%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer"/>
 
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前分析了cc1的利用链，但是CC1的利用链是有JDK版本限制的。在JDK1.8 8u71版本以后，对<code>AnnotationInvocationHandler</code>的<code>readobject</code>进行了改写，导致高版本中利用链无法使用，这在上文中分析过了。</p>
-<span id="more"></span>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前分析了cc1的利用链，但是cc1的利用链是有JDK版本限制的。在JDK8u71版本以后，对<code>AnnotationInvocationHandler</code>的<code>readobject</code>进行了改写，导致高版本中利用链无法使用，这在上文中分析过了。</p>
+<span id="more"></span>s
 
 <p>cc2链中使用的是<code>commons-collections-4.0</code>版本，利用链如下</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Gadget chain:</span><br><span class="line">		ObjectInputStream.readObject()</span><br><span class="line">			PriorityQueue.readObject()</span><br><span class="line">				...</span><br><span class="line">					TransformingComparator.compare()</span><br><span class="line">						InvokerTransformer.transform()</span><br><span class="line">							Method.invoke()</span><br><span class="line">								Runtime.exec()</span><br></pre></td></tr></table></figure>
