@@ -49,7 +49,7 @@
 <meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182734589-490760347.png">
 <meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617181311638-1405806032.png">
 <meta property="article:published_time" content="2022-06-17T02:41:38.000Z">
-<meta property="article:modified_time" content="2022-06-17T14:53:02.387Z">
+<meta property="article:modified_time" content="2022-06-17T15:11:01.187Z">
 <meta property="article:author" content="kpa1on">
 <meta property="article:tag" content="JNDI">
 <meta name="twitter:card" content="summary">
@@ -175,7 +175,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI%E6%A6%82%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">JNDI概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI-RMI%E4%BB%A3%E7%A0%81%E6%B5%8B%E8%AF%95"><span class="nav-number">3.</span> <span class="nav-text">JNDI+RMI代码测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDNI-RMI%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">JDNI+RMI调试分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDNI-LDAP%E4%BB%A3%E7%A0%81%E6%B5%8B%E8%AF%95"><span class="nav-number">5.</span> <span class="nav-text">JDNI+LDAP代码测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.</span> <span class="nav-text">版本限制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RMI%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.1.</span> <span class="nav-text">RMI版本限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LDAP%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.2.</span> <span class="nav-text">LDAP版本限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.3.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI%E6%A6%82%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">JNDI概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI-RMI%E4%BB%A3%E7%A0%81%E6%B5%8B%E8%AF%95"><span class="nav-number">3.</span> <span class="nav-text">JNDI+RMI代码测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI-RMI%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">JNDI+RMI调试分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JNDI-LDAP%E4%BB%A3%E7%A0%81%E6%B5%8B%E8%AF%95"><span class="nav-number">5.</span> <span class="nav-text">JNDI+LDAP代码测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.</span> <span class="nav-text">版本限制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RMI%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.1.</span> <span class="nav-text">RMI版本限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LDAP%E7%89%88%E6%9C%AC%E9%99%90%E5%88%B6"><span class="nav-number">6.2.</span> <span class="nav-text">LDAP版本限制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.3.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -297,7 +297,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2022-06-17 10:41:38 / 修改时间：22:53:02" itemprop="dateCreated datePublished" datetime="2022-06-17T10:41:38+08:00">2022-06-17</time>
+      <time title="创建时间：2022-06-17 10:41:38 / 修改时间：23:11:01" itemprop="dateCreated datePublished" datetime="2022-06-17T10:41:38+08:00">2022-06-17</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -364,7 +364,7 @@
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617163834494-1141739286.png" alt="image-20220617163834298"></p>
 <p>这里弄了很久，之前运行一直显示timeout，后面调试发现，在rmi通信的时候是启用了一个随机端口比如44567，vps因为有安全组所以一直连不上，把安全组策略打开即可。</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164110192-943870745.png" alt="image-20220617164109795"></p>
-<h3 id="JDNI-RMI调试分析"><a href="#JDNI-RMI调试分析" class="headerlink" title="JDNI+RMI调试分析"></a>JDNI+RMI调试分析</h3><p>在lookup函数处打上断点</p>
+<h3 id="JNDI-RMI调试分析"><a href="#JNDI-RMI调试分析" class="headerlink" title="JNDI+RMI调试分析"></a>JNDI+RMI调试分析</h3><p>在lookup函数处打上断点</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164309402-241499107.png" alt="image-20220617164309349"></p>
 <p>跟进rmiURLContext#lookup</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164322491-1242926316.png" alt="image-20220617164322361"></p>
@@ -391,7 +391,7 @@
 <p>调用链大致如下</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182136384-338384993.png" alt="image-20220617182136524"></p>
 <p>JNDI注入利用RMI的话，版本会受到极大的限制。</p>
-<h3 id="JDNI-LDAP代码测试"><a href="#JDNI-LDAP代码测试" class="headerlink" title="JDNI+LDAP代码测试"></a>JDNI+LDAP代码测试</h3><p>LDAP是轻型目录访问协议（英文：Lightweight Directory Access Protocol，缩写：LDAP）是一个开放的，中立的，工业标准的应用协议，通过IP协议提供访问控制和维护分布式信息的目录信息。</p>
+<h3 id="JNDI-LDAP代码测试"><a href="#JNDI-LDAP代码测试" class="headerlink" title="JNDI+LDAP代码测试"></a>JNDI+LDAP代码测试</h3><p>LDAP是轻型目录访问协议（英文：Lightweight Directory Access Protocol，缩写：LDAP）是一个开放的，中立的，工业标准的应用协议，通过IP协议提供访问控制和维护分布式信息的目录信息。</p>
 <p>因为RMI会受到限制，所以就有了JNDI+LDAP的注入方式。</p>
 <blockquote>
 <p>除了RMI服务之外，JNDI还可以对接LDAP服务，且LDAP也能返回JNDI Reference对象，利用过程与上面RMI Reference基本一致，只是lookup()中的URL为一个LDAP地址如ldap:&#x2F;&#x2F;xxx&#x2F;xxx，由攻击者控制的LDAP服务端返回一个恶意的JNDI Reference对象。</p>
