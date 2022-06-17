@@ -2904,7 +2904,7 @@
 <h4 id="LDAP版本限制"><a href="#LDAP版本限制" class="headerlink" title="LDAP版本限制"></a>LDAP版本限制</h4><p>然后再说下ldap的jndi，ldap的jndi在6u211、7u201、8u191、11.0.1后也将默认的<code>com.sun.jndi.ldap.object.trustURLCodebase</code>设置为了false。</p>
 <p>这里就是为什么进行JNDI注入的时候用LDAP会通用，因为我们如果想要通过ldap的jndi进行加载恶意类，在jdk8中，版本就可以适用到8u191</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617181311638-1405806032.png" alt="image-20220617181311507"></p>
-<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a href="https://blog.csdn.net/rfrder/article/details/120048519">https://blog.csdn.net/rfrder/article/details/120048519</a></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://blog.csdn.net/rfrder/article/details/120048519">https://blog.csdn.net/rfrder/article/details/120048519</a></p>
 <p><a href="https://www.cnblogs.com/nice0e3/p/13958047.html">https://www.cnblogs.com/nice0e3/p/13958047.html</a></p>
 ]]></content>
       <categories>
