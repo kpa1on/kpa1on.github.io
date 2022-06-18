@@ -49,7 +49,7 @@
 <meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182734589-490760347.png">
 <meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617181311638-1405806032.png">
 <meta property="article:published_time" content="2022-06-17T02:41:38.000Z">
-<meta property="article:modified_time" content="2022-06-17T15:16:24.307Z">
+<meta property="article:modified_time" content="2022-06-17T16:13:11.689Z">
 <meta property="article:author" content="kpa1on">
 <meta property="article:tag" content="JNDI">
 <meta name="twitter:card" content="summary">
@@ -190,7 +190,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-count">32</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -201,7 +201,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-count">26</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -295,9 +295,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-06-17 10:41:38 / 修改时间：23:16:24" itemprop="dateCreated datePublished" datetime="2022-06-17T10:41:38+08:00">2022-06-17</time>
+      <time title="创建时间：2022-06-17 10:41:38" itemprop="dateCreated datePublished" datetime="2022-06-17T10:41:38+08:00">2022-06-17</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-06-18 00:13:11" itemprop="dateModified" datetime="2022-06-18T00:13:11+08:00">2022-06-18</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -316,7 +322,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>8.2k</span>
+      <span>8k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -366,27 +372,27 @@
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164110192-943870745.png" alt="image-20220617164109795"></p>
 <h3 id="JNDI-RMI调试分析"><a href="#JNDI-RMI调试分析" class="headerlink" title="JNDI+RMI调试分析"></a>JNDI+RMI调试分析</h3><p>在lookup函数处打上断点</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164309402-241499107.png" alt="image-20220617164309349"></p>
-<p>跟进rmiURLContext#lookup</p>
+<p>跟进<code>rmiURLContext#lookup</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164322491-1242926316.png" alt="image-20220617164322361"></p>
-<p>通过rmiURLContext#getRootURLContext拿到var2，var2如下，里面把包括远程主机和对应的端口，以及绑定对象的名字</p>
+<p>通过<code>rmiURLContext#getRootURLContext</code>拿到var2，var2如下，里面把包括远程主机和对应的端口，以及绑定对象的名字</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617164753272-151728509.png" alt="image-20220617164753147"></p>
-<p>继续跟进var3#lookup</p>
+<p>继续跟进<code>var3#lookup</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165035151-1967729845.png" alt="image-20220617165035321"></p>
-<p>通过this.registry#lookup方法拿到RMI绑定的对象</p>
+<p>通过<code>this.registry#lookup</code>方法拿到RMI绑定的对象</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165354472-424846252.png" alt="image-20220617165354526"></p>
-<p>向下，跟进decodeObject()方法</p>
+<p>向下，跟进<code>decodeObject()</code>方法</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617165531472-280695840.png" alt="image-20220617165531724"></p>
 <p>这里先判断var1是否是<code>ReferenceWrapper</code>类的对象，它<code>implements RemoteReference</code>了，所以会调用<code>getReference()</code>，获取<code>Reference</code>对象</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617172709689-478528339.png" alt="image-20220617172709570"></p>
 <p>进入<code>NamingManager.getObjectInstance</code>，前面通过一些if语句的判断，重点是下面这几行代码</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617172958332-1022715033.png" alt="image-20220617172958249"></p>
-<p>跟进getObjectFactoryFromReference()函数，<code>clas = helper.loadClass(factoryName);</code>这里是本地类加载，因为找不到<code>Evil</code>类所以会加载失败。继续往下在<code>codebase = ref.getFactoryClassLocation()</code>中，<code>FactoryClassLocation</code>就是我们请求的URL，并赋值给<code>codebase</code>，下面就通过<code>URLClassLoader</code>远程加载类，跟进loadClass()方法，获取<code>URLClassLoader</code></p>
+<p>跟进<code>getObjectFactoryFromReference()</code>函数，<code>clas = helper.loadClass(factoryName);</code>这里是本地类加载，因为找不到<code>Evil</code>类所以会加载失败。继续往下在<code>codebase = ref.getFactoryClassLocation()</code>中，<code>FactoryClassLocation</code>就是我们请求的URL，并赋值给<code>codebase</code>，下面就通过<code>URLClassLoader</code>远程加载类，跟进<code>loadClass()</code>方法，获取<code>URLClassLoader</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617174419754-846853933.png" alt="image-20220617174420127"></p>
-<p>再跟进loadClass()方法，可以看到这里用<code>Class.forName</code>加载类且第二个参数是true（默认也是true）会进行类的加载，也就是静态代码块。因此这时候静态代码块的代码可以执行。</p>
+<p>再跟进<code>loadClass()</code>方法，可以看到这里用<code>Class.forName</code>加载类且第二个参数是true（默认也是true）会进行类的加载，也就是静态代码块。因此这时候静态代码块的代码可以执行。</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617174351473-1380822828.png" alt="image-20220617174351661"></p>
-<p>成功加载到了clas后，再return (clas !&#x3D; null) ? (ObjectFactory) clas.newInstance() : null;，调用它的newInstance()进行实例化，从而调用了无参构造器，执行了无参构造器里面的代码，因此可以将恶意代码放入无参构造器中。</p>
+<p>成功加载到了clas后，再<code>return (clas != null) ? (ObjectFactory) clas.newInstance() : null;</code>，调用它的newInstance()进行实例化，从而调用了无参构造器，执行了无参构造器里面的代码，因此可以将恶意代码放入无参构造器中。</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617173457303-1784389861.png" alt="image-20220617173457054"></p>
-<p>回到getObjectFactoryFromReference()调用处，继续往下，可以发现还会调用getObjectInstance()方法，因此也可以把代码写到<code>getObjectInstance</code>方法中</p>
+<p>回到<code>getObjectFactoryFromReference()</code>调用处，继续往下，可以发现还会调用<code>getObjectInstance()</code>方法，因此也可以把代码写到<code>getObjectInstance</code>方法中</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617175505587-983781106.png" alt="image-20220617175505727"></p>
 <p>调用链大致如下</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182136384-338384993.png" alt="image-20220617182136524"></p>
@@ -405,15 +411,14 @@
 
 <p>运行结果如下</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617223744211-553424588.png" alt="image-20220617223742062"></p>
-<h3 id="版本限制"><a href="#版本限制" class="headerlink" title="版本限制"></a>版本限制</h3><h4 id="RMI版本限制"><a href="#RMI版本限制" class="headerlink" title="RMI版本限制"></a>RMI版本限制</h4><p>这里还需要说下在 当RMI客户端引用远程对象将受本地Java环境限制，即本地的java.rmi.server.useCodebaseOnly配置必须为false(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
-<p>所以这里如果我们进行利用的话，客户端的RMI启动的时候就需要设置useCodebaseOnly</p>
-<p>java在6u45、7u21开始java.rmi.server.useCodebaseOnly默认配置已经改为了true。</p>
-<p>在javasec中看到说是8u121开始java.rmi.server.useCodebaseOnly默认配置已经改为了true</p>
+<h3 id="版本限制"><a href="#版本限制" class="headerlink" title="版本限制"></a>版本限制</h3><h4 id="RMI版本限制"><a href="#RMI版本限制" class="headerlink" title="RMI版本限制"></a>RMI版本限制</h4><p>这里还需要说下在 当RMI客户端引用远程对象将受本地Java环境限制，即本地的<code>java.rmi.server.useCodebaseOnly</code>配置必须为<code>false</code>(允许加载远程对象)，如果该值为true则禁止引用远程对象。</p>
+<p>所以这里如果我们进行利用的话，客户端的RMI启动的时候就需要设置<code>useCodebaseOnly</code></p>
+<p>java在6u45、7u21开始<code>java.rmi.server.useCodebaseOnly</code>默认配置已经改为了<code>true</code>。</p>
+<p>在javasec中看到说是8u121开始<code>java.rmi.server.useCodebaseOnly</code>默认配置已经改为了<code>true</code></p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617180421366-1985012742.png" alt="image-20220617180420743"></p>
-<p>除此之外被引用的ObjectFactory对象还将受到<code>com.sun.jndi.rmi.object.trustURLCodebase</code>配置限制，如果该值为false(不信任远程引用对象)则无法调用远程的引用对象。</p>
+<p>除此之外被引用的<code>ObjectFactory</code>对象还将受到<code>com.sun.jndi.rmi.object.trustURLCodebase</code>配置限制，如果该值为false(不信任远程引用对象)则无法调用远程的引用对象。</p>
 <p>rmi的jndi在6u132，7u122，8u113 开始 <code>com.sun.jndi.rmi.object.trustURLCodebase</code>默认值已改为了false。</p>
-<p>如果想要通过rmi的jndi进行加载恶意类，在jdk8中，版本就可以适用到113</p>
-<p>JDK 6u141 <a target="_blank" rel="noopener" href="http://www.oracle.com/technetwork/java/javase/overview-156328.html#R160_141">http://www.oracle.com/technetwork/java/javase/overview-156328.html#R160_141</a><br>JDK 7u131 <a target="_blank" rel="noopener" href="http://www.oracle.com/technetwork/java/javase/7u131-relnotes-3338543.html">http://www.oracle.com/technetwork/java/javase/7u131-relnotes-3338543.html</a><br>JDK 8u121 <a target="_blank" rel="noopener" href="http://www.oracle.com/technetwork/java/javase/8u121-relnotes-3315208.html">http://www.oracle.com/technetwork/java/javase/8u121-relnotes-3315208.html</a></p>
+<p>如果想要通过rmi的jndi进行加载恶意类，在jdk8中，版本就可以适用到113。</p>
 <p>如下为jdk8u321的测试结果：</p>
 <p><img src="https://img2022.cnblogs.com/blog/1993367/202206/1993367-20220617182734589-490760347.png" alt="image-20220617182734089"></p>
 <h4 id="LDAP版本限制"><a href="#LDAP版本限制" class="headerlink" title="LDAP版本限制"></a>LDAP版本限制</h4><p>然后再说下ldap的jndi，ldap的jndi在6u211、7u201、8u191、11.0.1后也将默认的<code>com.sun.jndi.ldap.object.trustURLCodebase</code>设置为了false。</p>
@@ -461,6 +466,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2022/06/17/Java%E5%AE%89%E5%85%A8%E4%B9%8BJdk7u21%E9%93%BE%E5%88%86%E6%9E%90/" rel="next" title="Java安全之Jdk7u21链分析">
+                  Java安全之Jdk7u21链分析 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>
@@ -492,13 +500,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">237k</span>
+    <span title="站点总字数">242k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:36</span>
+    <span title="站点阅读时长">3:40</span>
   </span>
 </div>
 <div class="busuanzi-count">
@@ -508,7 +516,7 @@
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 <div class="theme-info">
   <div class="powered-by"></div>
-  <span class="post-count">博客全站共60.7k字</span>
+  <span class="post-count">博客全站共61.9k字</span>
   <span class="post-meta-divider">|</span>
   本站总访问量<span id="busuanzi_value_site_pv"></span>次
   <span class="post-meta-divider">|</span>
