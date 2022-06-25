@@ -3188,7 +3188,13 @@
   <entry>
     <title></title>
     <url>/2022/06/24/Spring%20Boot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<h2 id="Spring-Boot-相关漏洞的学习"><a href="#Spring-Boot-相关漏洞的学习" class="headerlink" title="Spring Boot 相关漏洞的学习"></a>Spring Boot 相关漏洞的学习</h2><h3 id="路由知识"><a href="#路由知识" class="headerlink" title="路由知识"></a>路由知识</h3><ul>
+    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title: Spring Boot相关漏洞学习</span><br><span class="line">date: 2022-06-26 02:43:20</span><br><span class="line">tags:</span><br><span class="line">  - SpringBoot</span><br><span class="line">categories:</span><br><span class="line">  - Java安全</span><br></pre></td></tr></table></figure>
+
+<meta name="referrer" content="no-referrer"/>
+
+<h3 id="Spring-Boot-相关漏洞的学习"><a href="#Spring-Boot-相关漏洞的学习" class="headerlink" title="Spring Boot 相关漏洞的学习"></a>Spring Boot 相关漏洞的学习</h3><span id="more"></span>
+
+<h3 id="路由知识"><a href="#路由知识" class="headerlink" title="路由知识"></a>路由知识</h3><ul>
 <li><code>spring</code>的根路径有时候设定为<code>/manage</code>、<code>/management</code>、项目app路径</li>
 <li>Spring Boot Actuator 1.x 版本默认内置路由的起始路径为 <code>/</code> ，2.x 版本则统一以 <code>/actuator</code> 为起始路径</li>
 <li>Spring Boot Actuator 默认的内置路由名字有时会被修改</li>
