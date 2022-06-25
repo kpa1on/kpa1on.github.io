@@ -3187,8 +3187,8 @@
   </entry>
   <entry>
     <title></title>
-    <url>/2022/06/24/Spring%20Boot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title: Spring Boot相关漏洞学习</span><br><span class="line">date: 2022-06-26 02:43:20</span><br><span class="line">tags:</span><br><span class="line">  - SpringBoot</span><br><span class="line">categories:</span><br><span class="line">  - Java安全</span><br></pre></td></tr></table></figure>
+    <url>/2022/06/24/Spring-Boot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
+    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title: Spring Boot相关漏洞学习</span><br><span class="line">date: 2022-06-26 02:47:14</span><br><span class="line">tags:</span><br><span class="line">  - SpringBoot</span><br><span class="line">categories:</span><br><span class="line">  - Java安全</span><br></pre></td></tr></table></figure>
 
 <meta name="referrer" content="no-referrer"/>
 
@@ -3915,11 +3915,13 @@
 <p><img src="https://s2.loli.net/2022/06/26/uRzp6nr8ytAYZBS.png" alt="image-20220626023808324"></p>
 <p>HTTP 请求记录如下</p>
 <p><img src="https://s2.loli.net/2022/06/26/4FTCb53KdzQGPSn.png" alt="image-20220626023841255"></p>
-<h4 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h4><ol>
+<p>漏洞原理：</p>
+<ol>
 <li>目标机器可以通过 spring.datasource.data 属性来设置 jdbc DML sql 文件的 URL 地址</li>
 <li>restart 重启应用后，程序会请求设置的 URL 地址</li>
 <li><code>spring-boot-autoconfigure</code> 组件中的 <code>org.springframework.boot.autoconfigure.jdbc.DataSourceInitializer.java</code> 文件代码逻辑中会使用 <code>runScripts</code> 方法执行请求 URL 内容中的 h2 database sql 代码，造成 RCE 漏洞</li>
 </ol>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://github.com/LandGrey/SpringBootVulExploit">https://github.com/LandGrey/SpringBootVulExploit</a></p>
 ]]></content>
   </entry>
 </search>
