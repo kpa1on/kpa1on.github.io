@@ -3186,13 +3186,11 @@
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/2022/06/24/Spring-Boot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">title: Spring Boot相关漏洞学习</span><br><span class="line">date: 2022-06-26 02:47:14</span><br><span class="line">tags:</span><br><span class="line">  - SpringBoot</span><br><span class="line">categories:</span><br><span class="line">  - Java安全</span><br></pre></td></tr></table></figure>
+    <title>SpringBoot相关漏洞学习</title>
+    <url>/2022/06/26/SpringBoot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
 
-<meta name="referrer" content="no-referrer"/>
-
-<h3 id="Spring-Boot-相关漏洞的学习"><a href="#Spring-Boot-相关漏洞的学习" class="headerlink" title="Spring Boot 相关漏洞的学习"></a>Spring Boot 相关漏洞的学习</h3><span id="more"></span>
+<h3 id="SpringBoot-相关漏洞的学习"><a href="#SpringBoot-相关漏洞的学习" class="headerlink" title="SpringBoot 相关漏洞的学习"></a>SpringBoot 相关漏洞的学习</h3><span id="more"></span>
 
 <h3 id="路由知识"><a href="#路由知识" class="headerlink" title="路由知识"></a>路由知识</h3><ul>
 <li><code>spring</code>的根路径有时候设定为<code>/manage</code>、<code>/management</code>、项目app路径</li>
@@ -3923,5 +3921,11 @@
 </ol>
 <h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://github.com/LandGrey/SpringBootVulExploit">https://github.com/LandGrey/SpringBootVulExploit</a></p>
 ]]></content>
+      <categories>
+        <category>Java安全</category>
+      </categories>
+      <tags>
+        <tag>SpringBoot</tag>
+      </tags>
   </entry>
 </search>
