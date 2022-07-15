@@ -2801,7 +2801,26 @@
 <p>关键函数或字符串查找</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">request.getParameter(&quot;userid&quot;)</span><br></pre></td></tr></table></figure>
 
+<h4 id="文件包含"><a href="#文件包含" class="headerlink" title="文件包含"></a>文件包含</h4><p>审计的注意点</p>
+<ul>
+<li>关注jsp是否存在文件包含的方法</li>
+</ul>
+<p>关键函数或字符串查找</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">本地文件包含：</span><br><span class="line">&lt;jsp:include page=&quot;&lt;%=file%&gt;&quot;&gt;&lt;/jsp:include&gt;</span><br><span class="line">&lt;jsp:include page =&quot;&lt;%=file%&gt;&quot;/&gt;</span><br><span class="line">远程文件包含：</span><br><span class="line">&lt;c:import url=&quot;&lt;%= url%&gt;&quot;&gt;&lt;/c:import&gt;</span><br></pre></td></tr></table></figure>
 
+<h4 id="XMLDecoder反序列化"><a href="#XMLDecoder反序列化" class="headerlink" title="XMLDecoder反序列化"></a>XMLDecoder反序列化</h4><p>审计注意点</p>
+<ul>
+<li>观察传入XMLDecoder()的参数是否可控</li>
+</ul>
+<p>关键函数或字符串查找</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">XMLDecoder decoder = new XMLDecoder(ins);</span><br><span class="line">deocder.readObject()</span><br></pre></td></tr></table></figure>
+
+<h4 id="BeanShell-RCE"><a href="#BeanShell-RCE" class="headerlink" title="BeanShell RCE"></a>BeanShell RCE</h4><p>审计注意点</p>
+<ul>
+<li>查找参数是否可控</li>
+</ul>
+<p>关键函数或字符串查找</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">Interpreter interpreter = new Interpreter();</span><br><span class="line">Interpreter.eval(evalString)</span><br></pre></td></tr></table></figure>
 
 <h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a href="https://su18.org/post/code-audit/">https://su18.org/post/code-audit/</a></p>
 <p><a href="https://github.com/Cryin/JavaID">https://github.com/Cryin/JavaID</a></p>
@@ -3926,6 +3945,79 @@
       </categories>
       <tags>
         <tag>SpringBoot</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>neo4j文档学习记录</title>
+    <url>/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer"/>
+
+<h3 id="入门指南"><a href="#入门指南" class="headerlink" title="入门指南"></a>入门指南</h3><h4 id="Neo4j"><a href="#Neo4j" class="headerlink" title="Neo4j"></a>Neo4j</h4><p>Neo4j 是世界领先的图形数据库。该架构旨在优化管理、存储和遍历节点和关系。图数据库采用属性图方式，对遍历性能和操作运行时间都有好处。</p>
+<span id="more"></span>
+
+<h4 id="Cypher"><a href="#Cypher" class="headerlink" title="Cypher"></a>Cypher</h4><p>Cypher 是 Neo4j 的图形查询语言，允许用户从图形数据库存储和检索数据。它是一种声明性的、受 SQL 启发的语言，用于使用 ASCII 艺术语法描述图形中的视觉模式。该语法提供了一种视觉和逻辑方式来匹配图中节点和关系的模式。</p>
+<h4 id="使用Neo4j"><a href="#使用Neo4j" class="headerlink" title="使用Neo4j"></a>使用Neo4j</h4><p>设置使用 Neo4j 和 Cypher 开发应用程序的环境的最简单方法是使用 Neo4j Desktop。从<a href="https://neo4j.com/download/">https://neo4j.com/download/</a>下载</p>
+<h3 id="Cypher使用"><a href="#Cypher使用" class="headerlink" title="Cypher使用"></a>Cypher使用</h3><blockquote>
+<p>名称是区分大小写的，<code>:PERSON</code>,<code>:Person</code>和<code>:person</code>是三个不同的标签，以及<code>n</code>和<code>N</code>是两个不同的变量。</p>
+</blockquote>
+<p>查询是使用各种子句构建的，以下是一些用于从图中读取的子句示例：</p>
+<ul>
+<li><code>MATCH</code>：要匹配的图形模式。这是从图表中获取数据的最常用方法。</li>
+<li><code>WHERE</code>: 本身不是一个子句，而是<code>MATCH</code>,<code>OPTIONAL MATCH</code>和的一部分<code>WITH</code>。向模式添加约束，或过滤通过<code>WITH</code>.</li>
+<li><code>RETURN</code>: 返回什么。</li>
+</ul>
+<h4 id="查询更新"><a href="#查询更新" class="headerlink" title="查询更新"></a>查询更新</h4><p>使用以下查询创建一个简单的示例图：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CREATE (john:Person &#123;name: &#x27;John&#x27;&#125;)</span><br><span class="line">CREATE (joe:Person &#123;name: &#x27;Joe&#x27;&#125;)</span><br><span class="line">CREATE (steve:Person &#123;name: &#x27;Steve&#x27;&#125;)</span><br><span class="line">CREATE (sara:Person &#123;name: &#x27;Sara&#x27;&#125;)</span><br><span class="line">CREATE (maria:Person &#123;name: &#x27;Maria&#x27;&#125;)</span><br><span class="line">CREATE (john)-[:FRIEND]-&gt;(joe)-[:FRIEND]-&gt;(steve)</span><br><span class="line">CREATE (john)-[:FRIEND]-&gt;(sara)-[:FRIEND]-&gt;(maria)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/sbpyaIcj43QWdFM.png" alt="image-20220714150548083"></p>
+<p>构造一个查询，查询john朋友的朋友</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH (john &#123;name: &#x27;John&#x27;&#125;)-[:FRIEND]-&gt;()-[:FRIEND]-&gt;(fof)</span><br><span class="line">RETURN john.name, fof.name</span><br></pre></td></tr></table></figure>
+
+<p>获取用户列表，从列表中找到具有名称的所有节点，匹配他们的朋友并仅返回那些具有以**’S’<strong>开头的</strong>‘name’**属性的follower user。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH (user)-[:FRIEND]-&gt;(follower)</span><br><span class="line">WHERE user.name IN [&#x27;Joe&#x27;, &#x27;John&#x27;, &#x27;Sara&#x27;, &#x27;Maria&#x27;, &#x27;Steve&#x27;] AND follower.name =~ &#x27;S.*&#x27;</span><br><span class="line">RETURN user.name, follower.name</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/Jjh3mLWfb2GO4cQ.png" alt="image-20220714151802994"></p>
+<p>这些是用于更新图形的子句示例：</p>
+<ul>
+<li><code>CREATE</code>（和<code>DELETE</code>）：创建（和删除）节点和关系。</li>
+<li><code>SET</code>（和<code>REMOVE</code>）：为属性设置值并在节点上添加标签 using<code>SET</code>和 use<code>REMOVE</code>删除它们。</li>
+<li><code>MERGE</code>：匹配现有的或创建新的节点和模式。这与独特的约束一起特别有用。</li>
+</ul>
+<p>这是一个更新图表的示例，将聚合数据写入图表：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH (n &#123;name: &#x27;John&#x27;&#125;)-[:FRIEND]-(friend)</span><br><span class="line">WITH n, count(friend) AS friendsCount</span><br><span class="line">SET n.friendsCount = friendsCount</span><br><span class="line">RETURN n</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/aLMFNruEAXC89Op.png" alt="image-20220714154820494"></p>
+<h4 id="路径匹配"><a href="#路径匹配" class="headerlink" title="路径匹配"></a>路径匹配</h4><p><strong>Neo4j Cypher</strong>利用<strong>关系同构</strong>进行路径匹配，是减少结果集大小和防止无限遍历的非常有效的方法。在 Neo4j 中，所有关系都有一个方向。</p>
+<p><strong>同态</strong>：如果查询正在寻找长度路径<code>n</code>并且不关心方向，<code>n</code>则将返回一个长度路径，一遍又一遍地重复两个节点。</p>
+<p>例如，查找所有具有 5 个关系的路径并且不关心关系方向：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH p = ()-[*5]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">如果使用同态，这将返回两个结果记录[a,b,a,b,a,b]，以及[b,a,b,a,b,a]。</span><br></pre></td></tr></table></figure>
+
+<p><strong>节点同构</strong>：对于每个路径匹配记录，不能多次返回同一节点。</p>
+<p>在另一个双节点示例中，例如<code>(a:Node)-[r:R]-&gt;(b:Node)</code>; 使用节点同构约束只能找到长度为 1 的路径。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH p = ()-[*1]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">如果使用节点同构，这将返回两个结果记录[a, b]，以及[b, a]。</span><br></pre></td></tr></table></figure>
+
+<p><strong>关系同构</strong>：对于每个路径匹配记录，不能多次返回相同的关系。</p>
+<p>在另一个双节点示例中，例如<code>(a:Node)-[r:R]-&gt;(b:Node)</code>; 使用关系同构约束只能找到长度为 1 的路径。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH p = ()-[*1]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">这将返回两个结果记录[a, b]，以及[b, a].</span><br></pre></td></tr></table></figure>
+
+<p><strong>Cypher 利用关系同构进行路径匹配</strong>：寻找用户朋友的朋友，并且不能返回用户本身。创建如下数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">CREATE</span><br><span class="line">  (adam:User &#123;name: &#x27;Adam&#x27;&#125;),</span><br><span class="line">  (pernilla:User &#123;name: &#x27;Pernilla&#x27;&#125;),</span><br><span class="line">  (david:User &#123;name: &#x27;David&#x27;&#125;),</span><br><span class="line">  (adam)-[:FRIEND]-&gt;(pernilla),</span><br><span class="line">  (pernilla)-[:FRIEND]-&gt;(david)</span><br></pre></td></tr></table></figure>
+
+<p>寻找Adam朋友的朋友</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH (user:User &#123;name: &#x27;Adam&#x27;&#125;)-[r1:FRIEND]-()-[r2:FRIEND]-(friend_of_a_friend)</span><br><span class="line">RETURN friend_of_a_friend.name AS fofName</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/YJoSy5MXWlspHzO.png" alt="image-20220714161410979"></p>
+<p>如果查询应该返回用户，则可以将匹配分布在多个<code>MATCH</code>子句中，如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MATCH (user:User &#123;name: &#x27;Adam&#x27;&#125;)-[r1:FRIEND]-(friend)</span><br><span class="line">MATCH (friend)-[r2:FRIEND]-(friend_of_a_friend)</span><br><span class="line">RETURN friend_of_a_friend.name AS fofName</span><br></pre></td></tr></table></figure>
+
+<p>目前先看到这，后续的语法学完之后再补充。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a href="https://neo4j.com/docs/">https://neo4j.com/docs/</a></p>
+]]></content>
+      <categories>
+        <category>数据库</category>
+      </categories>
+      <tags>
+        <tag>neo4j</tag>
       </tags>
   </entry>
 </search>

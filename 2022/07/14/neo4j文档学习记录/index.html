@@ -21,39 +21,33 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="对Jar包进行远程调试这里以冰蝎做示例，使用IDEA创建一个Java项目，并创建一个lib文件夹将Jar包和它的db数据库放入，再选中lib文件夹后，右键选择“add as library”，将lib文件夹添加进项目依赖，成功添加后可以看到Jar包中反编译后的源代码。">
+    <meta name="description" content="入门指南Neo4jNeo4j 是世界领先的图形数据库。该架构旨在优化管理、存储和遍历节点和关系。图数据库采用属性图方式，对遍历性能和操作运行时间都有好处。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="远程调试">
-<meta property="og:url" content="https://kpa1on.github.io/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/index.html">
+<meta property="og:title" content="neo4j文档学习记录">
+<meta property="og:url" content="https://kpa1on.github.io/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/index.html">
 <meta property="og:site_name" content="kpa1on&#39;s Blog">
-<meta property="og:description" content="对Jar包进行远程调试这里以冰蝎做示例，使用IDEA创建一个Java项目，并创建一个lib文件夹将Jar包和它的db数据库放入，再选中lib文件夹后，右键选择“add as library”，将lib文件夹添加进项目依赖，成功添加后可以看到Jar包中反编译后的源代码。">
+<meta property="og:description" content="入门指南Neo4jNeo4j 是世界领先的图形数据库。该架构旨在优化管理、存储和遍历节点和关系。图数据库采用属性图方式，对遍历性能和操作运行时间都有好处。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105447193-2138419681.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105651451-1732887489.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105919953-1313789309.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316110143684-113134102.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316111611425-940242255.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316112021582-176155912.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316112500955-289297251.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316114731945-619105757.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316121504585-664894600.png">
-<meta property="og:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316121117278-1364284906.png">
-<meta property="article:published_time" content="2022-03-16T02:48:47.000Z">
-<meta property="article:modified_time" content="2022-03-16T12:50:36.463Z">
+<meta property="og:image" content="https://s2.loli.net/2022/07/14/sbpyaIcj43QWdFM.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/14/Jjh3mLWfb2GO4cQ.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/14/aLMFNruEAXC89Op.png">
+<meta property="og:image" content="https://s2.loli.net/2022/07/14/YJoSy5MXWlspHzO.png">
+<meta property="article:published_time" content="2022-07-14T06:19:00.000Z">
+<meta property="article:modified_time" content="2022-07-15T09:00:21.654Z">
 <meta property="article:author" content="kpa1on">
-<meta property="article:tag" content="调试">
+<meta property="article:tag" content="neo4j">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105447193-2138419681.png">
+<meta name="twitter:image" content="https://s2.loli.net/2022/07/14/sbpyaIcj43QWdFM.png">
 
 
-<link rel="canonical" href="https://kpa1on.github.io/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/">
+<link rel="canonical" href="https://kpa1on.github.io/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/","path":"2022/03/16/远程调试/","title":"远程调试"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/","path":"2022/07/14/neo4j文档学习记录/","title":"neo4j文档学习记录"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>远程调试 | kpa1on's Blog</title>
+<title>neo4j文档学习记录 | kpa1on's Blog</title>
   
 
 
@@ -165,7 +159,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9Jar%E5%8C%85%E8%BF%9B%E8%A1%8C%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95"><span class="nav-number">1.</span> <span class="nav-text">对Jar包进行远程调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9Weblogic%E8%BF%9B%E8%A1%8C%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95"><span class="nav-number">2.</span> <span class="nav-text">对Weblogic进行远程调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9Tomcat%E8%BF%9B%E8%A1%8C%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95"><span class="nav-number">3.</span> <span class="nav-text">对Tomcat进行远程调试</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A5%E9%97%A8%E6%8C%87%E5%8D%97"><span class="nav-number">1.</span> <span class="nav-text">入门指南</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Neo4j"><span class="nav-number">1.1.</span> <span class="nav-text">Neo4j</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cypher"><span class="nav-number">1.2.</span> <span class="nav-text">Cypher</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8Neo4j"><span class="nav-number">1.3.</span> <span class="nav-text">使用Neo4j</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cypher%E4%BD%BF%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">Cypher使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%9B%B4%E6%96%B0"><span class="nav-number">2.1.</span> <span class="nav-text">查询更新</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B7%AF%E5%BE%84%E5%8C%B9%E9%85%8D"><span class="nav-number">2.2.</span> <span class="nav-text">路径匹配</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -257,7 +251,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/img/96.ico">
@@ -270,12 +264,12 @@
     </span>
     
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="远程调试 | kpa1on's Blog">
+      <meta itemprop="name" content="neo4j文档学习记录 | kpa1on's Blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          远程调试
+          neo4j文档学习记录
         </h1>
 
         <div class="post-meta-container">
@@ -285,9 +279,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-03-16 10:48:47 / 修改时间：20:50:36" itemprop="dateCreated datePublished" datetime="2022-03-16T10:48:47+08:00">2022-03-16</time>
+      <time title="创建时间：2022-07-14 14:19:00" itemprop="dateCreated datePublished" datetime="2022-07-14T14:19:00+08:00">2022-07-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-07-15 17:00:21" itemprop="dateModified" datetime="2022-07-15T17:00:21+08:00">2022-07-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -295,7 +295,7 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/Java%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Java安全</span></a>
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
         </span>
     </span>
 
@@ -306,14 +306,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>2.8k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>3 分钟</span>
     </span>
 </div>
 
@@ -326,29 +326,66 @@
     <div class="post-body" itemprop="articleBody">
         <meta name="referrer" content="no-referrer"/>
 
-<h2 id="对Jar包进行远程调试"><a href="#对Jar包进行远程调试" class="headerlink" title="对Jar包进行远程调试"></a>对Jar包进行远程调试</h2><p>这里以冰蝎做示例，使用IDEA创建一个Java项目，并创建一个lib文件夹将Jar包和它的db数据库放入，再选中lib文件夹后，右键选择“add as library”，将lib文件夹添加进项目依赖，成功添加后可以看到Jar包中反编译后的源代码。</p>
+<h3 id="入门指南"><a href="#入门指南" class="headerlink" title="入门指南"></a>入门指南</h3><h4 id="Neo4j"><a href="#Neo4j" class="headerlink" title="Neo4j"></a>Neo4j</h4><p>Neo4j 是世界领先的图形数据库。该架构旨在优化管理、存储和遍历节点和关系。图数据库采用属性图方式，对遍历性能和操作运行时间都有好处。</p>
 <span id="more"></span>
 
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105447193-2138419681.png" alt="image-20220316105447105"></p>
-<p>通过右上角的“Add Configurations”，并单击“+”来添加一个“Remote”，默认配置即可，单击“apply”提交保存。其中“-agentlib:jdwp&#x3D;transport&#x3D;dt_socket,server&#x3D;y,suspend&#x3D;n,address&#x3D;5005”将作为运行时的启动参数。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105651451-1732887489.png" alt="image-20220316105652338"></p>
-<p>将“ -agentlib:jdwp&#x3D;transport&#x3D;dt_socket,server&#x3D;y,suspend&#x3D;y,address&#x3D;5005”作为启动参数运行冰蝎的Jar包，suspend表示是否暂停程序等待调试器的连接，“y”表示暂停，“n”表示不暂停。建议选择暂停，避免程序执行过快导致一些断点无法拦截程序。</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316105919953-1313789309.png" alt="image-20220316105920262"></p>
-<p>设置好断点，单击右上角的Debug按钮，即可发现程序在断点处暂停，然后可以进行逐步的调试了</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316110143684-113134102.png" alt="image-20220316110144268"></p>
-<h2 id="对Weblogic进行远程调试"><a href="#对Weblogic进行远程调试" class="headerlink" title="对Weblogic进行远程调试"></a>对Weblogic进行远程调试</h2><p>进入&#x2F;weblogic&#x2F;CVE-2017-10271文件夹，修改其中的docker-compose.yml，将8453端口打开，这个端口是用来调试的</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316111611425-940242255.png" alt="image-20220316111612357"></p>
-<p>使用<code>docker-compose up -d</code> 命令编译镜像并启动容器，如下容器启动成功，开始8453端口映射到本地</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316112021582-176155912.png" alt="image-20220316112022492"></p>
-<p>使用<code>docker exec -it 25 /bin/bash</code>命令进入容器，使用vim修改~&#x2F;Oracle&#x2F;Middleware&#x2F;user_projects&#x2F;domains&#x2F;base_domain&#x2F;bin</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316112500955-289297251.png" alt="image-20220316112501671"></p>
-<p>使用<code>docker restart</code>命令重启容器，再进入容器，将&#x2F;root&#x2F;Oracle&#x2F;Middleware&#x2F;下的modules和wlserver_10.3文件夹使用zip命令压缩成zip压缩包。容器中是一个简易的Linux系统，需要执行<code>apt-get install zip</code>来安装zip压缩功能。Windows命令行对路径长度有限制，如果直接使用dokcer的cp指令，就会在复制一些长文件名的文件时报错，因此这一步的目的就是打包成压缩文件再进行复制，使用<code>docker cp</code>命令将zip文件复制到本机下</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316114731945-619105757.png" alt="image-20220316114732752"></p>
-<p>将该文件夹移动至一个项目文件中，选中wlserver_10.3&#x2F;server&#x2F;lib文件和modules文件右键单击，选择“add as library”添加库</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316121504585-664894600.png" alt="image-20220316121505388"></p>
-<p>配置调试器，和上面的jar包一样，端口换成8453就行了</p>
-<p><img src="https://img2022.cnblogs.com/blog/1993367/202203/1993367-20220316121117278-1364284906.png" alt="image-20220316121117895"></p>
-<h2 id="对Tomcat进行远程调试"><a href="#对Tomcat进行远程调试" class="headerlink" title="对Tomcat进行远程调试"></a>对Tomcat进行远程调试</h2><p>同样进入Vulhub中CVE-2017-12615漏洞环境所在的文件夹，修改docker-compose.yml文件，将5005端口开启，进入容器中，在&#x2F;usr&#x2F;local&#x2F;tomcat&#x2F;bin&#x2F;catalina.sh插入命令<code>JAVA_OPTS=&quot;-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005&quot;</code>，然后重启docker；下一步就是导出dokcer里面的lib，<code>docker cp 25:/usr/local/tomcat/lib ./</code>，并把lib设置为库，后面配置调试器，和上面的jar包一样。</p>
+<h4 id="Cypher"><a href="#Cypher" class="headerlink" title="Cypher"></a>Cypher</h4><p>Cypher 是 Neo4j 的图形查询语言，允许用户从图形数据库存储和检索数据。它是一种声明性的、受 SQL 启发的语言，用于使用 ASCII 艺术语法描述图形中的视觉模式。该语法提供了一种视觉和逻辑方式来匹配图中节点和关系的模式。</p>
+<h4 id="使用Neo4j"><a href="#使用Neo4j" class="headerlink" title="使用Neo4j"></a>使用Neo4j</h4><p>设置使用 Neo4j 和 Cypher 开发应用程序的环境的最简单方法是使用 Neo4j Desktop。从<a target="_blank" rel="noopener" href="https://neo4j.com/download/">https://neo4j.com/download/</a>下载</p>
+<h3 id="Cypher使用"><a href="#Cypher使用" class="headerlink" title="Cypher使用"></a>Cypher使用</h3><blockquote>
+<p>名称是区分大小写的，<code>:PERSON</code>,<code>:Person</code>和<code>:person</code>是三个不同的标签，以及<code>n</code>和<code>N</code>是两个不同的变量。</p>
+</blockquote>
+<p>查询是使用各种子句构建的，以下是一些用于从图中读取的子句示例：</p>
+<ul>
+<li><code>MATCH</code>：要匹配的图形模式。这是从图表中获取数据的最常用方法。</li>
+<li><code>WHERE</code>: 本身不是一个子句，而是<code>MATCH</code>,<code>OPTIONAL MATCH</code>和的一部分<code>WITH</code>。向模式添加约束，或过滤通过<code>WITH</code>.</li>
+<li><code>RETURN</code>: 返回什么。</li>
+</ul>
+<h4 id="查询更新"><a href="#查询更新" class="headerlink" title="查询更新"></a>查询更新</h4><p>使用以下查询创建一个简单的示例图：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">CREATE (john:Person &#123;name: &#x27;John&#x27;&#125;)</span><br><span class="line">CREATE (joe:Person &#123;name: &#x27;Joe&#x27;&#125;)</span><br><span class="line">CREATE (steve:Person &#123;name: &#x27;Steve&#x27;&#125;)</span><br><span class="line">CREATE (sara:Person &#123;name: &#x27;Sara&#x27;&#125;)</span><br><span class="line">CREATE (maria:Person &#123;name: &#x27;Maria&#x27;&#125;)</span><br><span class="line">CREATE (john)-[:FRIEND]-&gt;(joe)-[:FRIEND]-&gt;(steve)</span><br><span class="line">CREATE (john)-[:FRIEND]-&gt;(sara)-[:FRIEND]-&gt;(maria)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/sbpyaIcj43QWdFM.png" alt="image-20220714150548083"></p>
+<p>构造一个查询，查询john朋友的朋友</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MATCH (john &#123;name: &#x27;John&#x27;&#125;)-[:FRIEND]-&gt;()-[:FRIEND]-&gt;(fof)</span><br><span class="line">RETURN john.name, fof.name</span><br></pre></td></tr></table></figure>
+
+<p>获取用户列表，从列表中找到具有名称的所有节点，匹配他们的朋友并仅返回那些具有以**’S’<strong>开头的</strong>‘name’**属性的follower user。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MATCH (user)-[:FRIEND]-&gt;(follower)</span><br><span class="line">WHERE user.name IN [&#x27;Joe&#x27;, &#x27;John&#x27;, &#x27;Sara&#x27;, &#x27;Maria&#x27;, &#x27;Steve&#x27;] AND follower.name =~ &#x27;S.*&#x27;</span><br><span class="line">RETURN user.name, follower.name</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/Jjh3mLWfb2GO4cQ.png" alt="image-20220714151802994"></p>
+<p>这些是用于更新图形的子句示例：</p>
+<ul>
+<li><code>CREATE</code>（和<code>DELETE</code>）：创建（和删除）节点和关系。</li>
+<li><code>SET</code>（和<code>REMOVE</code>）：为属性设置值并在节点上添加标签 using<code>SET</code>和 use<code>REMOVE</code>删除它们。</li>
+<li><code>MERGE</code>：匹配现有的或创建新的节点和模式。这与独特的约束一起特别有用。</li>
+</ul>
+<p>这是一个更新图表的示例，将聚合数据写入图表：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MATCH (n &#123;name: &#x27;John&#x27;&#125;)-[:FRIEND]-(friend)</span><br><span class="line">WITH n, count(friend) AS friendsCount</span><br><span class="line">SET n.friendsCount = friendsCount</span><br><span class="line">RETURN n</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/aLMFNruEAXC89Op.png" alt="image-20220714154820494"></p>
+<h4 id="路径匹配"><a href="#路径匹配" class="headerlink" title="路径匹配"></a>路径匹配</h4><p><strong>Neo4j Cypher</strong>利用<strong>关系同构</strong>进行路径匹配，是减少结果集大小和防止无限遍历的非常有效的方法。在 Neo4j 中，所有关系都有一个方向。</p>
+<p><strong>同态</strong>：如果查询正在寻找长度路径<code>n</code>并且不关心方向，<code>n</code>则将返回一个长度路径，一遍又一遍地重复两个节点。</p>
+<p>例如，查找所有具有 5 个关系的路径并且不关心关系方向：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MATCH p = ()-[*5]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">如果使用同态，这将返回两个结果记录[a,b,a,b,a,b]，以及[b,a,b,a,b,a]。</span><br></pre></td></tr></table></figure>
+
+<p><strong>节点同构</strong>：对于每个路径匹配记录，不能多次返回同一节点。</p>
+<p>在另一个双节点示例中，例如<code>(a:Node)-[r:R]-&gt;(b:Node)</code>; 使用节点同构约束只能找到长度为 1 的路径。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MATCH p = ()-[*1]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">如果使用节点同构，这将返回两个结果记录[a, b]，以及[b, a]。</span><br></pre></td></tr></table></figure>
+
+<p><strong>关系同构</strong>：对于每个路径匹配记录，不能多次返回相同的关系。</p>
+<p>在另一个双节点示例中，例如<code>(a:Node)-[r:R]-&gt;(b:Node)</code>; 使用关系同构约束只能找到长度为 1 的路径。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">MATCH p = ()-[*1]-()</span><br><span class="line">RETURN nodes(p)</span><br><span class="line"></span><br><span class="line">这将返回两个结果记录[a, b]，以及[b, a].</span><br></pre></td></tr></table></figure>
+
+<p><strong>Cypher 利用关系同构进行路径匹配</strong>：寻找用户朋友的朋友，并且不能返回用户本身。创建如下数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">CREATE</span><br><span class="line">  (adam:User &#123;name: &#x27;Adam&#x27;&#125;),</span><br><span class="line">  (pernilla:User &#123;name: &#x27;Pernilla&#x27;&#125;),</span><br><span class="line">  (david:User &#123;name: &#x27;David&#x27;&#125;),</span><br><span class="line">  (adam)-[:FRIEND]-&gt;(pernilla),</span><br><span class="line">  (pernilla)-[:FRIEND]-&gt;(david)</span><br></pre></td></tr></table></figure>
+
+<p>寻找Adam朋友的朋友</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">MATCH (user:User &#123;name: &#x27;Adam&#x27;&#125;)-[r1:FRIEND]-()-[r2:FRIEND]-(friend_of_a_friend)</span><br><span class="line">RETURN friend_of_a_friend.name AS fofName</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s2.loli.net/2022/07/14/YJoSy5MXWlspHzO.png" alt="image-20220714161410979"></p>
+<p>如果查询应该返回用户，则可以将匹配分布在多个<code>MATCH</code>子句中，如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">MATCH (user:User &#123;name: &#x27;Adam&#x27;&#125;)-[r1:FRIEND]-(friend)</span><br><span class="line">MATCH (friend)-[r2:FRIEND]-(friend_of_a_friend)</span><br><span class="line">RETURN friend_of_a_friend.name AS fofName</span><br></pre></td></tr></table></figure>
+
+<p>目前先看到这，后续的语法学完之后再补充。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://neo4j.com/docs/">https://neo4j.com/docs/</a></p>
 
     </div>
 
@@ -368,7 +405,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://kpa1on.github.io/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" title="远程调试">https://kpa1on.github.io/2022/03/16/远程调试/</a>
+      <a href="https://kpa1on.github.io/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" title="neo4j文档学习记录">https://kpa1on.github.io/2022/07/14/neo4j文档学习记录/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -377,21 +414,18 @@
 </div>
 
           <div class="post-tags">
-              <a href="/tags/%E8%B0%83%E8%AF%95/" rel="tag"># 调试</a>
+              <a href="/tags/neo4j/" rel="tag"># neo4j</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2022/03/15/Docker%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" rel="prev" title="Docker容器的简单使用">
-                  <i class="fa fa-chevron-left"></i> Docker容器的简单使用
+                <a href="/2022/06/26/SpringBoot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/" rel="prev" title="SpringBoot相关漏洞学习">
+                  <i class="fa fa-chevron-left"></i> SpringBoot相关漏洞学习
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2022/03/17/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/" rel="next" title="Java反射机制学习">
-                  Java反射机制学习 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>
