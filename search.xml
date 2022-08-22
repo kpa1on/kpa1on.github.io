@@ -2806,7 +2806,7 @@
 <li>关注jsp是否存在文件包含的方法</li>
 </ul>
 <p>关键函数或字符串查找</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">本地文件包含：</span><br><span class="line">&lt;jsp:include page=<span class="string">&quot;&lt;%=file%&gt;&quot;</span>&gt;&lt;/jsp:include&gt;</span><br><span class="line">&lt;jsp:<span class="type">include</span> <span class="variable">page</span> <span class="operator">=</span><span class="string">&quot;&lt;%=file%&gt;&quot;</span>/&gt;</span><br><span class="line">远程文件包含：</span><br><span class="line">&lt;c:<span class="keyword">import</span> url=<span class="string">&quot;&lt;%= url%&gt;&quot;</span>&gt;&lt;/c:<span class="keyword">import</span>&gt;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">本地文件包含：</span><br><span class="line">&lt;jsp:include page=<span class="string">&quot;&lt;%=file%&gt;&quot;</span>&gt;&lt;/jsp:include&gt;</span><br><span class="line">&lt;jsp:<span class="type">include</span> <span class="variable">page</span> <span class="operator">=</span><span class="string">&quot;&lt;%=file%&gt;&quot;</span>/&gt;</span><br><span class="line">%<span class="meta">@include</span> file=<span class="string">&quot;test.jsp&quot;</span>%</span><br><span class="line">远程文件包含：</span><br><span class="line">&lt;c:<span class="keyword">import</span> url=<span class="string">&quot;&lt;%= url%&gt;&quot;</span>&gt;&lt;/c:<span class="keyword">import</span>&gt;</span><br></pre></td></tr></table></figure>
 
 <h4 id="XMLDecoder反序列化"><a href="#XMLDecoder反序列化" class="headerlink" title="XMLDecoder反序列化"></a>XMLDecoder反序列化</h4><p>审计注意点</p>
 <ul>
@@ -2828,6 +2828,16 @@
 </ul>
 <p>关键函数或字符串查找</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Yaml</span> <span class="variable">yaml</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Yaml</span>()</span><br><span class="line">yaml.load()</span><br></pre></td></tr></table></figure>
+
+<h4 id="未授权访问-x2F-权限绕过"><a href="#未授权访问-x2F-权限绕过" class="headerlink" title="未授权访问&#x2F;权限绕过"></a>未授权访问&#x2F;权限绕过</h4><p>审计注意点</p>
+<ul>
+<li>查看权限校验的过滤器，观察是否存在校验不严格的路由，或者是否存在检验绕过的情况</li>
+<li>找出全部的请求路由</li>
+</ul>
+<p>关键函数或字符串查找</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">@(.*?)Mapping(</span><br><span class="line">request.getRequestURL()</span><br><span class="line">request.getRequestURI()</span><br></pre></td></tr></table></figure>
+
+
 
 <h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><a href="https://su18.org/post/code-audit/">https://su18.org/post/code-audit/</a></p>
 <p><a href="https://github.com/Cryin/JavaID">https://github.com/Cryin/JavaID</a></p>
