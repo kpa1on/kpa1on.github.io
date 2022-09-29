@@ -1,47 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    
-        <title>SpEL表达式注入学习 | Mint Forge</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel='shortcut icon' href="/favicon.ico">
-    
-<link rel="stylesheet" href="/css/index.css">
 
-    
-<link rel="stylesheet" href="/css/plugins/highlight/dark.css">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
 
-    
-<link rel="stylesheet" href="/css/plugins/iconfont/iconfont.css">
+  <meta name="description" content="kpa1on的博客">
 
-<meta name="generator" content="Hexo 6.0.0"><link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
-</head>
-<body>
-    <div class="navbar-container">
-    <div class="navbar">
-        <ul>
-            <li><a href="/">MINT FORGE</a></li>
-            <li><a href="/">首页</a></li>
-            <li><a href='/categories'>分类</a></li>
-            <li><a href="/tags">标签</a></li>
-            <li><a href="/about">关于</a></li>
-        </ul>
-    </div>
-</div>
-    <div class="all-container">
-        <div class="article-container">
-    <h2 class="title">SpEL表达式注入学习</h2>
-    <span class="info">2022年3月29日</span>
-    
-    
-        <div class="toc">
-            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">1.</span> <span class="toc-text">什么是SpEL表达式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%A8%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">用法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81-Value"><span class="toc-number">2.1.</span> <span class="toc-text">1、@Value</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81bean%E9%85%8D%E7%BD%AE"><span class="toc-number">2.2.</span> <span class="toc-text">2、bean配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%E3%80%81Expression"><span class="toc-number">2.3.</span> <span class="toc-text">3、Expression</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83"><span class="toc-number">2.4.</span> <span class="toc-text">配置环境</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.5.</span> <span class="toc-text">核心接口</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">语法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%E3%80%81%E7%B1%BB%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">3.1.</span> <span class="toc-text">1、类表达式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%E3%80%81%E6%96%B9%E6%B3%95%E8%B0%83%E7%94%A8"><span class="toc-number">3.2.</span> <span class="toc-text">2、方法调用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3%E3%80%81%E8%B0%83%E7%94%A8%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="toc-number">3.3.</span> <span class="toc-text">3、调用构造函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4%E3%80%81Bean%E5%BC%95%E7%94%A8"><span class="toc-number">3.4.</span> <span class="toc-text">4、Bean引用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5%E3%80%81%E5%8F%98%E9%87%8F%E5%AE%9A%E4%B9%89"><span class="toc-number">3.5.</span> <span class="toc-text">5、变量定义</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6%E3%80%81%E7%94%A8%E6%88%B7%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84%E6%96%B9%E6%B3%95"><span class="toc-number">3.6.</span> <span class="toc-text">6、用户自定义的方法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7%E3%80%81%E6%A8%A1%E6%9D%BF%E8%A1%A8%E8%BE%BE%E5%BC%8F"><span class="toc-number">3.7.</span> <span class="toc-text">7、模板表达式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E5%9B%A0"><span class="toc-number">4.</span> <span class="toc-text">漏洞原因</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E7%9A%84payload"><span class="toc-number">5.</span> <span class="toc-text">常用的payload</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="toc-number">6.</span> <span class="toc-text">漏洞分析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#SpringBoot-SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E6%BC%8F%E6%B4%9E"><span class="toc-number">6.1.</span> <span class="toc-text">SpringBoot SpEL表达式注入漏洞</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">7.</span> <span class="toc-text">参考</span></a></li></ol>
-        </div>
-    
 
-    <div class="content"><meta name="referrer" content="no-referrer"/>
+<link rel="alternate" href="/atom.xml" title="kpa1on&#39;s Blog" type="application/atom+xml">
+<meta name="theme-color" content="#a1d0f6">
+<title>SpEL表达式注入学习 - kpa1on&#39;s Blog</title>
+<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+<link rel="shortcut icon" href="/favicon.png">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<nav class="main-nav">
+	
+	    <a href="/">← 主页</a>
+	
+	
+	    <a href="/about/">About</a>
+	
+	    <a href="/archives/">Archives</a>
+	
+	<a class="cta" href="/atom.xml" data-no-instant>订阅</a>
+</nav>
+
+<section id="wrapper">
+    <article class="post">
+    <header>
+        
+            <h1>SpEL表达式注入学习</h1>
+        
+        <h2 class="headline">Mar 29 2022
+        
+        </h2>
+    </header>
+</article>
+<section id="post-body"><meta name="referrer" content="no-referrer"/>
 
 <h3 id="什么是SpEL表达式"><a href="#什么是SpEL表达式" class="headerlink" title="什么是SpEL表达式"></a>什么是SpEL表达式</h3><p>Spring Expression  Language（简称SpEL）是一种强大的表达式语言，支持在运行时查询和操作对象图。它的语法类似于传统EL，但提供额外的功能，最出色的就是函数调用和简单字符串的模板函数。尽管有其他可选的 Java 表达式语言，如 OGNL, MVEL,JBoss EL 等等，但 Spel 创建的初衷是了给 Spring 社区提供一种简单而高效的表达式语言，一种可贯穿整个 Spring 产品组的语言。这种语言的特性应基于 Spring 产品的需求而设计。<br> Spring框架的核心功能之一就是通过依赖注入的方式来管理Bean之间的依赖关系，而SpEl可以方便快捷的对ApplicationContext中的Bean进行属性的装配和提取。</p>
 <span id="more"></span>
@@ -154,63 +151,79 @@
 <h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="http://rui0.cn/archives/1043">http://rui0.cn/archives/1043</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31481187/article/details/108025512">https://blog.csdn.net/qq_31481187/article/details/108025512</a></p>
 <p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9245#toc-11">https://xz.aliyun.com/t/9245#toc-11</a></p>
-</div>
-    <hr>
-    <div class="tags"></div>
-</div>
-<div class="paging">
+</section>
     
+        
+        <h2 class="footline">
+            <a href="/tags/注入/#注入">注入</a>
+        </h2>
     
-        <a id="prev" href="/2022/03/31/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/">上一篇</a>
-    
-    
-        <a id="next" href="/2022/03/29/Spring%20Cloud%20Function%20SpEL%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E5%8F%8A%E5%A4%8D%E7%8E%B0/">下一篇</a>
-    
-</div>
-<div class="footer">
-    <p><a href="/about/">转载前请联系作者</a></p>
-</div>
 
-<script src="/js/highlight.pack.js"></script>
+    <footer id="post-meta" class="clearfix">
+        <a href="/about/">
+        <img class="avatar" src="/images/avatar.png">
+        <div>
+            <span class="dark">kpa1on&#39;s Blog</span>
+            <span>keep passion！</span>
+        </div>
+        </a>
+        <section id="sharing">
+            <a title="Share to Twitter" class="twitter" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=https://kpa1on.github.io/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/ - SpEL表达式注入学习 @"><span class="icon-twitter">tweet</span></a>
+            <a title="Share to Facebook" class="facebook" href="#" onclick="
+                window.open(
+                  'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+                  'facebook-share-dialog',
+                  'width=626,height=436');
+                return false;"><span class="icon-facebook-sign">Share</span>
+            </a>
+        </section>
+    </footer>
 
-</script>
-<script>
-	hljs.initHighlightingOnLoad();
-</script>
 
-<script src="/js/iconfont.js"></script>
+  <section id="comment">
+    <button class="btn" id="loadcmts" onclick="cmts.load();">加载评论</button>
+    <div id="gitment"></div>
+    <script src='/js/gitment.browser.js'></script>
+    <link rel="stylesheet" href=''>
+    <script>
+      var cmts={
+        load:function cmts(){
+          var gitment = new Gitment({
+          
+            id: "SpEL表达式注入学习",
+          
+            owner: "",
+            repo: "",
+            oauth: {
+              client_id: "",
+              client_secret: "",
+            },
+          })
+          gitment.render('gitment');
+          var loadcmt = document.getElementById("loadcmts");
+          var imyourfather = loadcmt.parentNode;
+          imyourfather.removeChild(loadcmts)
+        }
+      }
+    </script>
+  </section>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-    </div>
-    <div class='rights'>
-	<p>©<span id='years'></span> Mint Forge. All Rights Reserved.</p>
-</div>
-<script type="text/javascript">
-	var today = new Date()
-	var years = today.getFullYear()
-	document.getElementById('years').innerHTML=years
-</script>
-    
-<script src="/js/iconfont.js"></script>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
-</html>
+	<footer id="footer">
+	<div id="social">
+		<p class="small">©  kpa1on| Powered by Hexo & 
+			<a target="_blank" rel="noopener" href="https://github.com/F0r3at/Lights"> Lights</a>
+		</p>
+	</div>
+</footer>
+
+</section>
+
+	<script src="//cdnjs.loli.net/ajax/libs/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+	<script data-no-instant>
+		
+		InstantClick.init('mousedown');
+	</script>
+
+
+

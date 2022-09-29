@@ -1,781 +1,461 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    
-        <title>Mint Forge</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel='shortcut icon' href="/favicon.ico">
-    
-<link rel="stylesheet" href="/css/index.css">
 
-    
-<link rel="stylesheet" href="/css/plugins/highlight/dark.css">
-
-    
-<link rel="stylesheet" href="/css/plugins/iconfont/iconfont.css">
-
-<meta name="generator" content="Hexo 6.0.0"><link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
-</head>
-<body>
-    <div class="navbar-container">
-    <div class="navbar">
-        <ul>
-            <li><a href="/">MINT FORGE</a></li>
-            <li><a href="/">首页</a></li>
-            <li><a href='/categories'>分类</a></li>
-            <li><a href="/tags">标签</a></li>
-            <li><a href="/about">关于</a></li>
-        </ul>
-    </div>
-</div>
-    <div class="all-container">
-        <div class="container">
-	<div class="card-container">
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/16/JavaWeb%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1CheckList/">JavaWeb代码审计CheckList</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-16</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/">代码审计</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>整理下平时Java代码审计中常见的一些漏洞学习总结以及一些审计思路，后续会不断补充。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/16/JavaWeb%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1CheckList/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/16/Java%E5%AE%89%E5%85%A8%E4%B9%8BRMI%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">Java安全之RMI反序列化</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-16</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/RMI/">RMI</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h3><p> Java远程方法调用，即Java RMI（Java Remote Method Invocation）是Java编程语言里，一种用于实现远程过程调用的应用程序编程接口。它使客户机上运行的程序可以调用远程服务器上的对象。远程方法调用特性使Java编程人员能够在网络环境中分布操作。RMI全部的宗旨就是尽可能简化远程接口对象的使用。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/16/Java%E5%AE%89%E5%85%A8%E4%B9%8BRMI%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections7%E5%88%86%E6%9E%90/">Java安全之Commons Collections7分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-05</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>该链和CC6类似，不过CC7利用链中是使用<code>Hashtable</code>作为反序列化的入口点。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections7%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections6%E5%88%86%E6%9E%90/">Java安全之Commons Collections6分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-05</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在CC6链中和CC5的利用链类似，只是CC6链中使用的是<code>HashSet</code>去触发<code>LazyMap</code>的get方法，而在CC5中使用的是<code>BadAttributeValueExpException</code>。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections6%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections5%E5%88%86%E6%9E%90/">Java安全之Commons Collections5分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-04</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在CC5链中<code>ysoserial</code>给出的提示是需要JDK1.8并且<code>SecurityManager</code>需要是关闭的。</p>
-<p>关于SecurityManager的介绍可以看下面的文章：</p>
-<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wly1-6/p/10291202.html">https://www.cnblogs.com/wly1-6/p/10291202.html</a></p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections5%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections4%E5%88%86%E6%9E%90/">Java安全之Commons Collections4分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-04</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>在构造CC4链时，看POC可以看出就是把CC2 和CC3的链进行了拼接</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections4%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections3%E5%88%86%E6%9E%90/">Java安全之Commons Collections3分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-06-04</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<p>cc3链可以说是cc1和cc2链的结合，下面进行分析。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections3%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/04/28/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections2%E5%88%86%E6%9E%90/">Java安全之Commons Collections2分析</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-04-28</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/cc%E9%93%BE/">cc链</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>之前分析了cc1的利用链，但是cc1的利用链是有JDK版本限制的。在JDK8u71版本以后，对<code>AnnotationInvocationHandler</code>的<code>readobject</code>进行了改写，导致高版本中利用链无法使用，这在上文中分析过了。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/04/28/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections2%E5%88%86%E6%9E%90/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/04/27/Java%E5%AE%89%E5%85%A8%E4%B9%8BJavassist%E5%8A%A8%E6%80%81%E7%BC%96%E7%A8%8B/">Java安全之Javassist动态编程</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-04-27</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/%E5%8A%A8%E6%80%81%E7%BC%96%E7%A8%8B/">动态编程</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="动态编程"><a href="#动态编程" class="headerlink" title="动态编程"></a>动态编程</h3><p>动态编程是相对于静态编程而言的,平时我们讨论比较多的就是静态编程语言，例如Java，与动态编程语言，例如JavaScript。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/04/27/Java%E5%AE%89%E5%85%A8%E4%B9%8BJavassist%E5%8A%A8%E6%80%81%E7%BC%96%E7%A8%8B/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-			<div class="index-card">
-  <div class="info">
-    <h2 class="title" >
-      <a href="/2022/04/25/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/">Java动态代理</a>
-    </h2>
-    
-    <div class="infos">
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-date"></use>
-        </svg>        
-        <span id="date">2022-04-25</span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon--basicpeople"></use>
-        </svg> 
-        <span id="author">
-          
-            yiming
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-duplicate_document"></use>
-        </svg> 
-        <span id="cate">
-          
-            <a href="/categories/Java%E5%AE%89%E5%85%A8/">Java安全</a>
-          
-        </span>
-        <span id="divider">|</span>
-      </div>
-
-      <div class="item">
-        <svg class="icon" aria-hidden="true">
-          <use xlink:href="#icon-tags"></use>
-        </svg> 
-        <span id="tags">
-          
-            <a href="/tags/%E4%BB%A3%E7%90%86/">代理</a>
-          
-        </span>
-      </div>
-
-    </div>
-    <div class="excerpt">
-      <meta name="referrer" content="no-referrer"/>
-
-<h3 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h3><p>为其他对象提供一个代理以控制对某个对象的访问。代理类主要负责为委托了（真实对象）预处理消息、过滤消息、传递消息给委托类，代理类不现实具体服务，而是利用委托类来完成服务，并将执行结果封装处理。</p>
-    </div>
-
-    <!--
-    <div class="readmore">
-      <a href="/2022/04/25/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/">Read More >></a>
-    </div>
-    -->
-
-    <hr class="divider">
-
-  </div>
-</div>
-		
-		<nav class="pagination">
-	<div class="pages">
-		
-	    <a class="extend prev" rel="prev" href="/archives/"><</a><a class="page-number" href="/archives/">1</a><span class="page-number current">2</span><a class="page-number" href="/archives/page/3/">3</a><a class="page-number" href="/archives/page/4/">4</a><a class="extend next" rel="next" href="/archives/page/3/">></a>
-	  
-	</div>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+
+  <meta name="description" content="kpa1on的博客">
+
+
+<link rel="alternate" href="/atom.xml" title="kpa1on&#39;s Blog" type="application/atom+xml">
+<meta name="theme-color" content="#a1d0f6">
+<title>归档 - kpa1on&#39;s Blog</title>
+<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+<link rel="shortcut icon" href="/favicon.png">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<nav class="main-nav">
+	
+	    <a href="/">← 主页</a>
+	
+	
+	    <a href="/about/">About</a>
+	
+	    <a href="/archives/">Archives</a>
+	
+	<a class="cta" href="/atom.xml" data-no-instant>订阅</a>
 </nav>
 
-	</div>
-	<div class="widgets">
-    <div class="self-info">
-        <h2>About Me</h2>
-        <div class="infos">
-            <img src="/favicon.ico">
-            <span>
-                <p>Kevin Jobs</p>
-                <p>a nameless man</p>
-            </span>
-        </div>
-        <div class="methods">
-            <a target="_blank" rel="noopener" href="https://github.com/kevinjobs" title="Github">
-                <svg class="icon" aria-hidden="true">
-                    <use xlink:href="#icon-github"></use>
-                </svg>
-            </a>
-            <a href="">
-                <svg class="icon" aria-hidden="true">
-                    <use xlink:href="#icon-zhihu"></use>
-                </svg>
-            </a>
-            <a href="">
-                <svg class="icon" aria-hidden="true">
-                    <use xlink:href="#icon-weibo"></use>
-                </svg>
-            </a>
-        </div>
-    </div>
-</div>
-</div>
-    </div>
-    <div class='rights'>
-	<p>©<span id='years'></span> Mint Forge. All Rights Reserved.</p>
-</div>
-<script type="text/javascript">
-	var today = new Date()
-	var years = today.getFullYear()
-	document.getElementById('years').innerHTML=years
-</script>
+<section id="wrapper">
     
-<script src="/js/iconfont.js"></script>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
+<div class="profile">
+	<section id="wrapper">
+		<header id="header">
+        	<a href="/about/">
+        	    <img id="avatar" class="2x" src="/images/avatar.png">
+        	</a>
+        	<h1>kpa1on&#39;s Blog</h1>
+        	
+        		<h2>keep passion！</h2>
+        	
+		</header>
+	</section>
+</div>
+<span class="archive-page-counter">
     
-<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
-</html>
+    目前共计 40 篇日志。
+</span>
+    
+        
+        
+            
+            
+    		<div class="archive" id="archive">
+            	<h3 class="archive-title">2022</h3>
+            	<ul>
+        
+        <div class="post-item">
+    <div class="post-time">Sep 26</div>
+    <a href="/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/" class="post-link">shiro历史漏洞学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Sep 08</div>
+    <a href="/2022/09/08/codeql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-link">codeql学习（1）</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jul 19</div>
+    <a href="/2022/07/19/Java%E5%AE%89%E5%85%A8%E4%B9%8BXStream-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" class="post-link">Java安全之XStream 漏洞分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jul 18</div>
+    <a href="/2022/07/18/Java%E5%AE%89%E5%85%A8%E4%B9%8BSnakeYaml%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" class="post-link">Java安全之SnakeYaml反序列化分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jul 14</div>
+    <a href="/2022/07/14/neo4j%E6%96%87%E6%A1%A3%E5%AD%A6%E4%B9%A0%E8%AE%B0%E5%BD%95/" class="post-link">neo4j文档学习记录</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 26</div>
+    <a href="/2022/06/26/SpringBoot%E7%9B%B8%E5%85%B3%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/" class="post-link">SpringBoot相关漏洞学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 20</div>
+    <a href="/2022/06/20/Java%E5%AE%89%E5%85%A8%E4%B9%8BUnsafe%E7%B1%BB/" class="post-link">Java安全之Unsafe类</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 19</div>
+    <a href="/2022/06/19/Java%E5%AE%89%E5%85%A8%E4%B9%8BJava-Agent/" class="post-link">Java安全之Java Agent</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 17</div>
+    <a href="/2022/06/17/Java%E5%AE%89%E5%85%A8%E4%B9%8BJdk7u21%E9%93%BE%E5%88%86%E6%9E%90/" class="post-link">Java安全之Jdk7u21链分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 17</div>
+    <a href="/2022/06/17/Java%E5%AE%89%E5%85%A8%E4%B9%8BJNDI%E6%B3%A8%E5%85%A5/" class="post-link">Java安全之JNDI注入</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 16</div>
+    <a href="/2022/06/16/JavaWeb%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1CheckList/" class="post-link">JavaWeb代码审计CheckList</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 16</div>
+    <a href="/2022/06/16/Java%E5%AE%89%E5%85%A8%E4%B9%8BRMI%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="post-link">Java安全之RMI反序列化</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 05</div>
+    <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections7%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections7分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 05</div>
+    <a href="/2022/06/05/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections6%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections6分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 04</div>
+    <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections5%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections5分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 04</div>
+    <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections4%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections4分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Jun 04</div>
+    <a href="/2022/06/04/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections3%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections3分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Apr 28</div>
+    <a href="/2022/04/28/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections2%E5%88%86%E6%9E%90/" class="post-link">Java安全之Commons Collections2分析</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Apr 27</div>
+    <a href="/2022/04/27/Java%E5%AE%89%E5%85%A8%E4%B9%8BJavassist%E5%8A%A8%E6%80%81%E7%BC%96%E7%A8%8B/" class="post-link">Java安全之Javassist动态编程</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Apr 25</div>
+    <a href="/2022/04/25/Java%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86/" class="post-link">Java动态代理</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Apr 25</div>
+    <a href="/2022/04/25/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%89%EF%BC%89/" class="post-link">Java安全之Commons-Collections1分析（三）</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Apr 24</div>
+    <a href="/2022/04/24/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%BA%8C%EF%BC%89/" class="post-link">Java安全之Commons-Collections1分析（二）</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 31</div>
+    <a href="/2022/03/31/%E5%B8%B8%E7%94%A8%E7%9A%84%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86%E5%B7%A5%E5%85%B7/" class="post-link">常用的信息收集工具</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 31</div>
+    <a href="/2022/03/31/Java%E5%AE%89%E5%85%A8%E4%B9%8BCommons-Collections1%E5%88%86%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/" class="post-link">Java安全之Commons Collections1分析（一）</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 29</div>
+    <a href="/2022/03/29/SpEL%E8%A1%A8%E8%BE%BE%E5%BC%8F%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" class="post-link">SpEL表达式注入学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 29</div>
+    <a href="/2022/03/29/Spring%20Cloud%20Function%20SpEL%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90%E5%8F%8A%E5%A4%8D%E7%8E%B0/" class="post-link">Spring Cloud Function SpEL漏洞分析及复现</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 24</div>
+    <a href="/2022/03/24/Java%E5%AE%89%E5%85%A8%E4%B9%8BURLDNS%E9%93%BE/" class="post-link">Java安全之URLDNS链</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 23</div>
+    <a href="/2022/03/23/Commons-Collections1%E5%88%86%E6%9E%90%E5%89%8D%E7%BD%AE%E7%9F%A5%E8%AF%86/" class="post-link">Commons Collections1分析前置知识</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 22</div>
+    <a href="/2022/03/22/APP%E6%B5%8B%E8%AF%95-DIVA/" class="post-link">APP测试-DIVA</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 22</div>
+    <a href="/2022/03/22/SQL%E6%B3%A8%E5%85%A5%E5%AD%A6%E4%B9%A0/" class="post-link">SQL注入学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 22</div>
+    <a href="/2022/03/22/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/" class="post-link">Java反序列化漏洞</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 21</div>
+    <a href="/2022/03/21/JEECG%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E4%B9%8B%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0/" class="post-link">JEECG代码审计之文件上传</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 21</div>
+    <a href="/2022/03/21/XXE%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/" class="post-link">XXE漏洞学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 21</div>
+    <a href="/2022/03/21/JSP-Webshell%E8%BF%9B%E9%98%B6/" class="post-link">JSP Webshell进阶</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 19</div>
+    <a href="/2022/03/19/Jsp-Webshell%E5%85%8D%E6%9D%80-%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C/" class="post-link">Jsp Webshell免杀-命令执行</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 18</div>
+    <a href="/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/" class="post-link">类加载器ClassLoader</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 17</div>
+    <a href="/2022/03/17/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/" class="post-link">Java反射机制学习</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 16</div>
+    <a href="/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/" class="post-link">远程调试</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 15</div>
+    <a href="/2022/03/15/Docker%E5%AE%B9%E5%99%A8%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="post-link">Docker容器的简单使用</a>
+</div>
+    
+        
+        
+        <div class="post-item">
+    <div class="post-time">Mar 11</div>
+    <a href="/2022/03/11/VulnTarget-a%20%E9%9D%B6%E5%9C%BA%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95/" class="post-link">VulnTarget-a 靶场渗透测试</a>
+</div>
+    
+    </ul>
+    </div>
+<div class="archive" id="tagcloud">
+	<h3 class="archive-title">标签云</h3>
+	<ul class="ct-list">
+		
+    		<a href="/tags/APP/#APP" title="APP">APP<span>1</span></a>
+    	
+    		<a href="/tags/cc链/#cc链" title="cc链">cc链<span>10</span></a>
+    	
+    		<a href="/tags/Docker/#Docker" title="Docker">Docker<span>1</span></a>
+    	
+    		<a href="/tags/Docker-compose/#Docker-compose" title="Docker-compose">Docker-compose<span>1</span></a>
+    	
+    		<a href="/tags/代码审计/#代码审计" title="代码审计">代码审计<span>2</span></a>
+    	
+    		<a href="/tags/文件上传/#文件上传" title="文件上传">文件上传<span>1</span></a>
+    	
+    		<a href="/tags/Webshell/#Webshell" title="Webshell">Webshell<span>2</span></a>
+    	
+    		<a href="/tags/代理/#代理" title="代理">代理<span>1</span></a>
+    	
+    		<a href="/tags/反射/#反射" title="反射">反射<span>2</span></a>
+    	
+    		<a href="/tags/命令执行/#命令执行" title="命令执行">命令执行<span>1</span></a>
+    	
+    		<a href="/tags/反序列化/#反序列化" title="反序列化">反序列化<span>2</span></a>
+    	
+    		<a href="/tags/JNDI/#JNDI" title="JNDI">JNDI<span>1</span></a>
+    	
+    		<a href="/tags/Java Agent/#Java Agent" title="Java Agent">Java Agent<span>1</span></a>
+    	
+    		<a href="/tags/RMI/#RMI" title="RMI">RMI<span>1</span></a>
+    	
+    		<a href="/tags/动态编程/#动态编程" title="动态编程">动态编程<span>1</span></a>
+    	
+    		<a href="/tags/利用链/#利用链" title="利用链">利用链<span>1</span></a>
+    	
+    		<a href="/tags/URLDNS/#URLDNS" title="URLDNS">URLDNS<span>1</span></a>
+    	
+    		<a href="/tags/Unsafe/#Unsafe" title="Unsafe">Unsafe<span>1</span></a>
+    	
+    		<a href="/tags/免杀/#免杀" title="免杀">免杀<span>1</span></a>
+    	
+    		<a href="/tags/注入/#注入" title="注入">注入<span>2</span></a>
+    	
+    		<a href="/tags/SpEL/#SpEL" title="SpEL">SpEL<span>1</span></a>
+    	
+    		<a href="/tags/漏洞复现/#漏洞复现" title="漏洞复现">漏洞复现<span>1</span></a>
+    	
+    		<a href="/tags/靶场/#靶场" title="靶场">靶场<span>1</span></a>
+    	
+    		<a href="/tags/vulntarget/#vulntarget" title="vulntarget">vulntarget<span>1</span></a>
+    	
+    		<a href="/tags/SpringBoot/#SpringBoot" title="SpringBoot">SpringBoot<span>1</span></a>
+    	
+    		<a href="/tags/codeql/#codeql" title="codeql">codeql<span>1</span></a>
+    	
+    		<a href="/tags/XXE/#XXE" title="XXE">XXE<span>1</span></a>
+    	
+    		<a href="/tags/neo4j/#neo4j" title="neo4j">neo4j<span>1</span></a>
+    	
+    		<a href="/tags/信息收集/#信息收集" title="信息收集">信息收集<span>1</span></a>
+    	
+    		<a href="/tags/调试/#调试" title="调试">调试<span>1</span></a>
+    	
+    		<a href="/tags/类加载器/#类加载器" title="类加载器">类加载器<span>1</span></a>
+    	
+    		<a href="/tags/shiro/#shiro" title="shiro">shiro<span>1</span></a>
+    	
+    </ul>
+</div>
+<div class="archive" id="category">
+	<h3 class="archive-title">分类</h3>
+	<ul class="ct-list">
+		
+    	</div>
+    </ul>
+</div>
+	<footer id="footer">
+	<div id="social">
+		<p class="small">©  kpa1on| Powered by Hexo & 
+			<a target="_blank" rel="noopener" href="https://github.com/F0r3at/Lights"> Lights</a>
+		</p>
+	</div>
+</footer>
+
+</section>
+
+	<script src="//cdnjs.loli.net/ajax/libs/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+	<script data-no-instant>
+		
+		InstantClick.init('mousedown');
+	</script>
+
+
+
+
+	<script>
+		// To make images retina, add a class "2x" to the img element
+		var isMobile = {
+			Android:function() {
+				return navigator.userAgent.match(/Android/i) ? true : false;
+			},
+			BlackBerry:function(){
+				return navigator.userAgent.match(/BlackBerry/i) ? true : false;
+			},
+			iOS:function(){
+				return navigator.userAgent.match(/iPhone|iPad|iPod/i) ? true : false;
+			},
+			Windows:function(){
+				return navigator.userAgent.match(/IEMobile/i) ? true : false;
+			},
+			any:function(){
+			   return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Windows());
+			}
+		};
+		if (isMobile.any()) {
+			var suffix = document.getElementsByClassName('2x')[0].getAttribute('src');
+			suffix = suffix.replace('.png','@2x.png');
+			suffix = suffix.replace('.jpg','@2x.jpg');
+			document.getElementsByClassName('2x')[0].setAttribute('src',suffix);
+		};
+	</script>
+	

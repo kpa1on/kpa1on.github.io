@@ -1,47 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    
-        <title>Java反射机制学习 | Mint Forge</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel='shortcut icon' href="/favicon.ico">
-    
-<link rel="stylesheet" href="/css/index.css">
 
-    
-<link rel="stylesheet" href="/css/plugins/highlight/dark.css">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
 
-    
-<link rel="stylesheet" href="/css/plugins/iconfont/iconfont.css">
+  <meta name="description" content="kpa1on的博客">
 
-<meta name="generator" content="Hexo 6.0.0"><link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
-</head>
-<body>
-    <div class="navbar-container">
-    <div class="navbar">
-        <ul>
-            <li><a href="/">MINT FORGE</a></li>
-            <li><a href="/">首页</a></li>
-            <li><a href='/categories'>分类</a></li>
-            <li><a href="/tags">标签</a></li>
-            <li><a href="/about">关于</a></li>
-        </ul>
-    </div>
-</div>
-    <div class="all-container">
-        <div class="article-container">
-    <h2 class="title">Java反射机制学习</h2>
-    <span class="info">2022年3月17日</span>
-    
-    
-        <div class="toc">
-            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84"><span class="toc-number">1.</span> <span class="toc-text">反射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96class%E7%B1%BB%E5%AF%B9%E8%B1%A1"><span class="toc-number">2.</span> <span class="toc-text">获取class类对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%88%90%E5%91%98%E5%B1%9E%E6%80%A7"><span class="toc-number">3.</span> <span class="toc-text">获取成员属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">获取构造方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%88%90%E5%91%98%E6%96%B9%E6%B3%95"><span class="toc-number">5.</span> <span class="toc-text">获取成员方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84%E8%B0%83%E7%94%A8%E5%B1%9E%E6%80%A7"><span class="toc-number">6.</span> <span class="toc-text">反射调用属性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95"><span class="toc-number">7.</span> <span class="toc-text">反射调用方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1"><span class="toc-number">8.</span> <span class="toc-text">反射创建对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BA%94%E7%94%A8"><span class="toc-number">9.</span> <span class="toc-text">应用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E6%B8%85%E5%8D%95"><span class="toc-number">10.</span> <span class="toc-text">方法清单</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">11.</span> <span class="toc-text">参考</span></a></li></ol>
-        </div>
-    
 
-    <div class="content"><meta name="referrer" content="no-referrer"/>
+<link rel="alternate" href="/atom.xml" title="kpa1on&#39;s Blog" type="application/atom+xml">
+<meta name="theme-color" content="#a1d0f6">
+<title>Java反射机制学习 - kpa1on&#39;s Blog</title>
+<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+<link rel="shortcut icon" href="/favicon.png">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<nav class="main-nav">
+	
+	    <a href="/">← 主页</a>
+	
+	
+	    <a href="/about/">About</a>
+	
+	    <a href="/archives/">Archives</a>
+	
+	<a class="cta" href="/atom.xml" data-no-instant>订阅</a>
+</nav>
+
+<section id="wrapper">
+    <article class="post">
+    <header>
+        
+            <h1>Java反射机制学习</h1>
+        
+        <h2 class="headline">Mar 17 2022
+        
+        </h2>
+    </header>
+</article>
+<section id="post-body"><meta name="referrer" content="no-referrer"/>
 
 <h2 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h2><p>Reflection(反射) 是 Java 程序开发语言的特征之一，反射允许运行中的Java程序在运行时获取一个类的所有信息，可以获取到任何定义的信息（包括成员变量，成员方法，构造器等），并且可以操纵类的字段、方法、构造器等部分，甚至能直接操作程序的私有属性。</p>
 <span id="more"></span>
@@ -158,63 +155,79 @@
 <li><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_43884234/article/details/115056812">(一起学JAVA 反射学习(超详细)</a></p>
 </li>
 </ul>
-</div>
-    <hr>
-    <div class="tags"></div>
-</div>
-<div class="paging">
+</section>
     
+        
+        <h2 class="footline">
+            <a href="/tags/反射/#反射">反射</a>, <a href="/tags/命令执行/#命令执行">命令执行</a>
+        </h2>
     
-        <a id="prev" href="/2022/03/18/%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8ClassLoader/">上一篇</a>
-    
-    
-        <a id="next" href="/2022/03/16/%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95/">下一篇</a>
-    
-</div>
-<div class="footer">
-    <p><a href="/about/">转载前请联系作者</a></p>
-</div>
 
-<script src="/js/highlight.pack.js"></script>
+    <footer id="post-meta" class="clearfix">
+        <a href="/about/">
+        <img class="avatar" src="/images/avatar.png">
+        <div>
+            <span class="dark">kpa1on&#39;s Blog</span>
+            <span>keep passion！</span>
+        </div>
+        </a>
+        <section id="sharing">
+            <a title="Share to Twitter" class="twitter" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=https://kpa1on.github.io/2022/03/17/Java%E5%8F%8D%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AD%A6%E4%B9%A0/ - Java反射机制学习 @"><span class="icon-twitter">tweet</span></a>
+            <a title="Share to Facebook" class="facebook" href="#" onclick="
+                window.open(
+                  'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+                  'facebook-share-dialog',
+                  'width=626,height=436');
+                return false;"><span class="icon-facebook-sign">Share</span>
+            </a>
+        </section>
+    </footer>
 
-</script>
-<script>
-	hljs.initHighlightingOnLoad();
-</script>
 
-<script src="/js/iconfont.js"></script>
+  <section id="comment">
+    <button class="btn" id="loadcmts" onclick="cmts.load();">加载评论</button>
+    <div id="gitment"></div>
+    <script src='/js/gitment.browser.js'></script>
+    <link rel="stylesheet" href=''>
+    <script>
+      var cmts={
+        load:function cmts(){
+          var gitment = new Gitment({
+          
+            id: "Java反射机制学习",
+          
+            owner: "",
+            repo: "",
+            oauth: {
+              client_id: "",
+              client_secret: "",
+            },
+          })
+          gitment.render('gitment');
+          var loadcmt = document.getElementById("loadcmts");
+          var imyourfather = loadcmt.parentNode;
+          imyourfather.removeChild(loadcmts)
+        }
+      }
+    </script>
+  </section>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-    </div>
-    <div class='rights'>
-	<p>©<span id='years'></span> Mint Forge. All Rights Reserved.</p>
-</div>
-<script type="text/javascript">
-	var today = new Date()
-	var years = today.getFullYear()
-	document.getElementById('years').innerHTML=years
-</script>
-    
-<script src="/js/iconfont.js"></script>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
-</html>
+	<footer id="footer">
+	<div id="social">
+		<p class="small">©  kpa1on| Powered by Hexo & 
+			<a target="_blank" rel="noopener" href="https://github.com/F0r3at/Lights"> Lights</a>
+		</p>
+	</div>
+</footer>
+
+</section>
+
+	<script src="//cdnjs.loli.net/ajax/libs/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+	<script data-no-instant>
+		
+		InstantClick.init('mousedown');
+	</script>
+
+
+

@@ -1,47 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    
-        <title>codeql学习（1） | Mint Forge</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <link rel='shortcut icon' href="/favicon.ico">
-    
-<link rel="stylesheet" href="/css/index.css">
 
-    
-<link rel="stylesheet" href="/css/plugins/highlight/dark.css">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
 
-    
-<link rel="stylesheet" href="/css/plugins/iconfont/iconfont.css">
+  <meta name="description" content="kpa1on的博客">
 
-<meta name="generator" content="Hexo 6.0.0"><link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
-</head>
-<body>
-    <div class="navbar-container">
-    <div class="navbar">
-        <ul>
-            <li><a href="/">MINT FORGE</a></li>
-            <li><a href="/">首页</a></li>
-            <li><a href='/categories'>分类</a></li>
-            <li><a href="/tags">标签</a></li>
-            <li><a href="/about">关于</a></li>
-        </ul>
-    </div>
-</div>
-    <div class="all-container">
-        <div class="article-container">
-    <h2 class="title">codeql学习（1）</h2>
-    <span class="info">2022年9月8日</span>
-    
-    
-        <div class="toc">
-            <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">简介</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#codeql%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">codeql分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%AE%89%E8%A3%85"><span class="toc-number">3.</span> <span class="toc-text">下载与安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%88%9B%E5%BB%BA"><span class="toc-number">4.</span> <span class="toc-text">数据库创建</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8%E7%BA%BF%E5%88%9B%E5%BB%BA"><span class="toc-number">4.1.</span> <span class="toc-text">在线创建</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%88%9B%E5%BB%BA"><span class="toc-number">4.2.</span> <span class="toc-text">命令行创建</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A7%A3%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">数据库解析</span></a></li></ol>
-        </div>
-    
 
-    <div class="content"><meta name="referrer" content="no-referrer"/>
+<link rel="alternate" href="/atom.xml" title="kpa1on&#39;s Blog" type="application/atom+xml">
+<meta name="theme-color" content="#a1d0f6">
+<title>codeql学习（1） - kpa1on&#39;s Blog</title>
+<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+<link rel="shortcut icon" href="/favicon.png">
+
+<link rel="stylesheet" href="/css/style.css">
+
+<nav class="main-nav">
+	
+	    <a href="/">← 主页</a>
+	
+	
+	    <a href="/about/">About</a>
+	
+	    <a href="/archives/">Archives</a>
+	
+	<a class="cta" href="/atom.xml" data-no-instant>订阅</a>
+</nav>
+
+<section id="wrapper">
+    <article class="post">
+    <header>
+        
+            <h1>codeql学习（1）</h1>
+        
+        <h2 class="headline">Sep 08 2022
+        
+        </h2>
+    </header>
+</article>
+<section id="post-body"><meta name="referrer" content="no-referrer"/>
 
 <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>codeql是一个将代码转化成类似数据库的形式，并基于该database进行分析的引擎。在 codeql中，代码被视为数据。安全漏洞、Bug 和其他错误被建模为可针对从代码中提取的数据库执行的查询。</p>
 <h3 id="codeql分析"><a href="#codeql分析" class="headerlink" title="codeql分析"></a>codeql分析</h3><p>codeql分析可分为三个步骤：</p>
@@ -88,63 +85,79 @@
 <p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209081200414.png" alt="image-20220908120036218"></p>
 <p>选择好数据库之后，用VSCode打开前面下载的<code>SDK</code>，在ql&#x2F;java&#x2F;ql&#x2F;examples文件夹下新建一个demo.ql，这里测试输出”hello world”。</p>
 <p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209081210382.png" alt="image-20220908121008190"></p>
-</div>
-    <hr>
-    <div class="tags"></div>
-</div>
-<div class="paging">
+</section>
     
+        
+        <h2 class="footline">
+            <a href="/tags/codeql/#codeql">codeql</a>
+        </h2>
     
-        <a id="prev" href="/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/">上一篇</a>
-    
-    
-        <a id="next" href="/2022/07/19/Java%E5%AE%89%E5%85%A8%E4%B9%8BXStream-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">下一篇</a>
-    
-</div>
-<div class="footer">
-    <p><a href="/about/">转载前请联系作者</a></p>
-</div>
 
-<script src="/js/highlight.pack.js"></script>
+    <footer id="post-meta" class="clearfix">
+        <a href="/about/">
+        <img class="avatar" src="/images/avatar.png">
+        <div>
+            <span class="dark">kpa1on&#39;s Blog</span>
+            <span>keep passion！</span>
+        </div>
+        </a>
+        <section id="sharing">
+            <a title="Share to Twitter" class="twitter" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=https://kpa1on.github.io/2022/09/08/codeql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/ - codeql学习（1） @"><span class="icon-twitter">tweet</span></a>
+            <a title="Share to Facebook" class="facebook" href="#" onclick="
+                window.open(
+                  'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(location.href),
+                  'facebook-share-dialog',
+                  'width=626,height=436');
+                return false;"><span class="icon-facebook-sign">Share</span>
+            </a>
+        </section>
+    </footer>
 
-</script>
-<script>
-	hljs.initHighlightingOnLoad();
-</script>
 
-<script src="/js/iconfont.js"></script>
+  <section id="comment">
+    <button class="btn" id="loadcmts" onclick="cmts.load();">加载评论</button>
+    <div id="gitment"></div>
+    <script src='/js/gitment.browser.js'></script>
+    <link rel="stylesheet" href=''>
+    <script>
+      var cmts={
+        load:function cmts(){
+          var gitment = new Gitment({
+          
+            id: "codeql学习（1）",
+          
+            owner: "",
+            repo: "",
+            oauth: {
+              client_id: "",
+              client_secret: "",
+            },
+          })
+          gitment.render('gitment');
+          var loadcmt = document.getElementById("loadcmts");
+          var imyourfather = loadcmt.parentNode;
+          imyourfather.removeChild(loadcmts)
+        }
+      }
+    </script>
+  </section>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-    </div>
-    <div class='rights'>
-	<p>©<span id='years'></span> Mint Forge. All Rights Reserved.</p>
-</div>
-<script type="text/javascript">
-	var today = new Date()
-	var years = today.getFullYear()
-	document.getElementById('years').innerHTML=years
-</script>
-    
-<script src="/js/iconfont.js"></script>
 
-<style>
-    .icon {
-      width: 1rem;
-      height: 1rem;
-      vertical-align: -0.15em;
-      fill: currentColor;
-      overflow: hidden;
-    }
-</style>
-    
-<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
-</html>
+	<footer id="footer">
+	<div id="social">
+		<p class="small">©  kpa1on| Powered by Hexo & 
+			<a target="_blank" rel="noopener" href="https://github.com/F0r3at/Lights"> Lights</a>
+		</p>
+	</div>
+</footer>
+
+</section>
+
+	<script src="//cdnjs.loli.net/ajax/libs/instantclick/3.0.1/instantclick.min.js" data-no-instant></script>
+	<script data-no-instant>
+		
+		InstantClick.init('mousedown');
+	</script>
+
+
+
