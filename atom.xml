@@ -49,13 +49,19 @@
     
     <summary type="html">&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
 
-&lt;p&gt;codeql是一个将代码转化成类似数据库的形式，并基于该database进行分析的引擎。在 codeql中，代码被视为数据。安全漏洞、Bug 和其他错误被建模为可针对从代码中提取的数据库执行的查询。&lt;/p&gt;
-&lt;p&gt;codeql分析可分为三个步骤：&lt;/p&gt;
+&lt;h3 id=&quot;简介&quot;&gt;&lt;a href=&quot;#简介&quot; class=&quot;headerlink&quot; title=&quot;简介&quot;&gt;&lt;/a&gt;简介&lt;/h3&gt;&lt;p&gt;codeql是一个将代码转化成类似数据库的形式，并基于该database进行分析的引擎。在 codeql中，代码被视为数据。安全漏洞、Bug 和其他错误被建模为可针对从代码中提取的数据库执行的查询。&lt;/p&gt;
+&lt;h3 id=&quot;codeql分析&quot;&gt;&lt;a href=&quot;#codeql分析&quot; class=&quot;headerlink&quot; title=&quot;codeql分析&quot;&gt;&lt;/a&gt;codeql分析&lt;/h3&gt;&lt;p&gt;codeql分析可分为三个步骤：&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;创建codeql数据库&lt;/li&gt;
 &lt;li&gt;运行codeql查询语句分析数据库&lt;/li&gt;
 &lt;li&gt;解析查询结果&lt;/li&gt;
-&lt;/ol&gt;</summary>
+&lt;/ol&gt;
+&lt;h3 id=&quot;下载与安装&quot;&gt;&lt;a href=&quot;#下载与安装&quot; class=&quot;headerlink&quot; title=&quot;下载与安装&quot;&gt;&lt;/a&gt;下载与安装&lt;/h3&gt;&lt;p&gt;codeql本身包含两部分：解析引擎+&lt;code&gt;SDK&lt;/code&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;解析引擎用来解析我们编写的规则；&lt;/li&gt;
+&lt;li&gt;SDK为开源的，里面包含大部分现成的漏洞规则，我们也可以利用其编写自定义规则；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;codeql解析引擎：&lt;a href=&quot;https://github.com/github/codeql-cli-binaries/releases/latest/download/codeql.zip&quot;&gt;CodeQL-cli&lt;/a&gt; ，下载并设置好&lt;code&gt;codeql&lt;/code&gt;环境变量；&lt;/p&gt;</summary>
     
     
     
