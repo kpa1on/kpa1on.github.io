@@ -22,13 +22,13 @@
 	
 	    <a href="/">home</a>
 	
-	    <a href="/about/">about</a>
+	    <a href="/about">about</a>
 	
-	    <a href="/tags/%20%7C%7C%20fa%20fa-tags">tags</a>
+	    <a href="/tags">tags</a>
 	
-	    <a href="/categories/%20%7C%7C%20fa%20fa-th">categories</a>
+	    <a href="/categories">categories</a>
 	
-	    <a href="/archives/%20%7C%7C%20fa%20fa-archive">archives</a>
+	    <a href="/archives">archives</a>
 	
 	<a class="cta" href="/atom.xml" data-no-instant>订阅</a>
 </nav>
@@ -878,7 +878,8 @@
 </tr>
 </tbody></table>
 <h4 id="漏洞复现-11"><a href="#漏洞复现-11" class="headerlink" title="漏洞复现"></a>漏洞复现</h4><p>该漏洞和CVE-2022-22978 Spring-security RegexRequestMatcher 认证绕过漏洞类似，在 RegexRequestMatcher 中使用的正则匹配在默认情况下, 正则表达式中点(.)不会匹配换行符, 设置了<code>Pattern.DOTALL</code>模式, 才会匹配所有字符包括换行符，因此可以使用在路径中添加换行符来绕过权限校验。</p>
-<p>漏洞环境采用的是4ra1n师傅的，但已经删除了，可以访问<a target="_blank" rel="noopener" href="https://github.com/Lay0us1/CVE-2022-32532%EF%BC%8C%E5%9C%A8%E8%BF%99%E5%A5%97%E7%8E%AF%E5%A2%83%E4%B8%AD%E7%94%A8%E7%9A%84%E6%98%AFshiro1.9.0%EF%BC%8C%E7%8E%AF%E5%A2%83%E4%BD%BF%E7%94%A8%E7%9A%84PatternMatcher%E4%B8%BA%60RegExPatternMatcher%60">https://github.com/Lay0us1/CVE-2022-32532，在这套环境中用的是shiro1.9.0，环境使用的PatternMatcher为`RegExPatternMatcher`</a></p>
+<p>漏洞环境采用的是4ra1n师傅的，但已经删除了，可以访问<a target="_blank" rel="noopener" href="https://github.com/Lay0us1/CVE-2022-32532">https://github.com/Lay0us1/CVE-2022-32532</a></p>
+<p>在这套环境中用的是shiro1.9.0，环境使用的PatternMatcher为<code>RegExPatternMatcher</code></p>
 <p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291454788.png" alt="image-20220929145453712"></p>
 <p>环境搭建好后，<code>/permit/*</code>下的都是需要权限的，因此直接访问失败</p>
 <p><img src="https://gitee.com/look_cold/pic-bed/raw/master/img/202209291458346.png" alt="image-20220929145816133"></p>
@@ -905,7 +906,7 @@
     
 
     <footer id="post-meta" class="clearfix">
-        <a href="/about/">
+        <a href="/about">
         <img class="avatar" src="/images/avatar.png">
         <div>
             <span class="dark">kpa1on&#39;s Blog</span>
